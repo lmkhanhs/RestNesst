@@ -2,6 +2,7 @@ package com.pbl5cnpm.airbnb_service.repository.Custom;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
@@ -51,6 +52,91 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         Query query = entityManager.createNativeQuery(sql, ListingEntity.class);
         query.setParameter("key", key);
         return query.getResultList();
+    }
+
+    @Override
+    public List<ListingEntity> filter(Map<String, String> args, List<String> amenities) {
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT l.*");
+        StringBuilder table = new StringBuilder(" FROM listings l ");
+        StringBuilder condition = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE ");
+        if (amenities != null) {
+            table.append(" INNER JOIN listing_amenites la ON l.id = la.listing_id ");
+            table.append(" INNER JOIN amenites a ON la.amenites_id = a.id ");
+
+            for (String string : amenities) {
+                condition.append(" AND a.name = '" + string + "'");
+            }
+        }
+        if (args.containsKey("lowestPrice")) {
+            String lowestPrice = args.get("lowestPrice");
+            condition.append(" AND l.price >= " + lowestPrice);
+        }
+        if (args.containsKey("highestPrice")) {
+            String highestPrice = args.get("highestPrice");
+            condition.append(" AND l.price <= " + highestPrice);
+        }
+        if (args.containsKey("country")) {
+            String country = args.get("country");
+            table.append(" INNER JOIN countries c ON l.country_id = c.id");
+            condition.append(" AND c.name = '" + country + "'");
+        }
+        if (args.containsKey("category")) {
+            String category = args.get("category");
+            table.append(" INNER JOIN listing_categories lc ON l.id = lc.listing_id");
+            table.append(" INNER JOIN categories cg ON lc.category_id = cg.id");
+            condition.append(" AND cg.name = '" + category + "'");
+        }
+        if (args.containsKey("startDate")) {
+            String startDay = args.get("startDate");
+            condition.append(" l.start_date <= '" + startDay + "'");
+        }
+        if (args.containsKey("endDate")) {
+            String endDate = args.get("endDate");
+            condition.append(" l.end_date >= '" + endDate + "'");
+        }
+        /// end my code
+        /// if (args.containsKey("startDate")) {
+        // String startDay = args.get("startDate");
+        // condition.append(" AND l.start_date <= '").append(startDay).append("'");
+        // }
+
+        // if (args.containsKey("endDate")) {
+        // String endDate = args.get("endDate");
+        // condition.append(" AND l.end_date >= '").append(endDate).append("'");
+        // }
+
+        // if (args.containsKey("lowestPrice")) {
+        // sql.append(" AND l.price >= :lowestPrice");
+        // }
+        // if (args.containsKey("highestPrice")) {
+        // sql.append(" AND l.price <= :highestPrice");
+        // }
+        // if (args.containsKey("country")) {
+        // sql.append(" AND LOWER(c.name) = LOWER(:country)");
+        // }
+        // if (args.containsKey("city")) {
+        // sql.append(" AND LOWER(l.city) LIKE LOWER(CONCAT('%', :city, '%'))");
+        // }
+        // if (args.containsKey("popular")) {
+        // sql.append(" AND l.popular = :popular");
+        // }
+        // if (args.containsKey("startDate")) {
+        // sql.append(" AND l.start_date <= :startDate");
+        // }
+        // if (args.containsKey("endDate")) {
+        // sql.append(" AND l.end_date >= :endDate");
+        // }
+        // if (args.containsKey("category")) {
+        // sql.append(" AND LOWER(cat.name) LIKE LOWER(CONCAT('%', :category, '%'))");
+        // }
+        // if (args.containsKey("amenity")) {
+        // sql.append(" AND LOWER(a.name) LIKE LOWER(CONCAT('%', :amenity, '%'))");
+        // }
+
+        sql.append(table).append(condition);
+        Query query = entityManager.createNativeQuery(sql.toString(), ListingEntity.class);
+        return query.getResultList();
+
     }
 
 }

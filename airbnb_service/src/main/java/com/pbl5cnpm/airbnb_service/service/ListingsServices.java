@@ -2,6 +2,7 @@ package com.pbl5cnpm.airbnb_service.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -67,6 +68,13 @@ public class ListingsServices {
     }
     public List<ListingsResponse> handlerSearch(String keyword){
         List<ListingEntity> listingEntities = this.listingsRepository.searchByKey(keyword);
+        return listingEntities.stream()
+                .map(data -> this.listingMapper.toResponse(data))
+                .toList();
+    }
+    
+    public List<ListingsResponse> handlerfilter(Map<String, String> args, List<String> amenities){
+        List<ListingEntity> listingEntities = this.listingsRepository.filter(args, amenities);
         return listingEntities.stream()
                 .map(data -> this.listingMapper.toResponse(data))
                 .toList();

@@ -1,6 +1,7 @@
 package com.pbl5cnpm.airbnb_service.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,11 +24,12 @@ import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.service.ListingsServices;
 
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("${api.base.path}")
 @RequiredArgsConstructor
+@Slf4j
 public class ListingsController {
     private final ListingsServices listingsServices;
 
@@ -62,25 +64,44 @@ public class ListingsController {
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/listings/counts")
     public ApiResponse<Long> getcounts() {
         return ApiResponse.<Long>builder()
-                        .code(200)
-                        .message("get count listing")
-                        .result(this.listingsServices.getCount())
-                        .build();
+                .code(200)
+                .message("get count listing")
+                .result(this.listingsServices.getCount())
+                .build();
     }
-    
+
     @GetMapping("/listings/search")
     public ApiResponse<List<ListingsResponse>> search(
-                @RequestParam(name = "keyword", required = true, defaultValue = " ")  String param
-            ) {
+            @RequestParam(name = "keyword", required = true, defaultValue = " ") String param) {
         return ApiResponse.<List<ListingsResponse>>builder()
-                    .code(200)
-                    .message("get listring by key")
-                    .result(this.listingsServices.handlerSearch(param))
-                    .build();
+                .code(200)
+                .message("get listring by key")
+                .result(this.listingsServices.handlerSearch(param))
+                .build();
     }
-    
+
+    @GetMapping("/listings/filter")
+    public ApiResponse<List<ListingsResponse>> filter(
+            @RequestParam Map<String, String> args,
+            @RequestParam(name = "amenities", required = false) List<String> amenities) {
+
+        if (amenities != null) {
+            System.out.println("CHECK ------------>>>>");
+            for (int i = 0; i < amenities.size(); i++) {
+                System.out.println(amenities.get(i));
+            }
+        }
+
+        return ApiResponse.<List<ListingsResponse>>builder()
+                .code(200)
+                .message("get listing by key")
+                .result(this.listingsServices.handlerfilter(args, amenities)) // truyền xuống service
+                .build();
+    }
+
 }
