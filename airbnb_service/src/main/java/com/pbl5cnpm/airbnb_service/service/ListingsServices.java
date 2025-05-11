@@ -63,6 +63,6 @@ public class ListingsServices {
         return this.listingMapper.toResponse(enti);
     }
     public Long getCount(){
-        return this.userRepository.count();
+        return this.listingsRepository.count();
     }
 }
