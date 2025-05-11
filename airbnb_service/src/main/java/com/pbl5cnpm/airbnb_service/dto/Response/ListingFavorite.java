@@ -24,4 +24,7 @@ public class ListingFavorite {
     Double price;
     LocalDate startDate;
     LocalDate endDate;
+    String address;
+    String area;
+    String city;
 }

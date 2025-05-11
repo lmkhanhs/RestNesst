@@ -24,11 +24,15 @@ public abstract class BookingMapper {
 
     @Named("toListingEntity")
     protected ListingEntity toListingEntity(Long listingId) {
-        if (listingId == null) return null;
+        if (listingId == null)
+            return null;
         return listingsRepository.findById(listingId)
                 .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
     }
+
     @Mapping(source = "id", target = "bookingId")
+    @Mapping(source = "listing.id", target = "listingId")
+    @Mapping(source = "listing", target = "primaryUrl", qualifiedByName = "toPrimaryUrl")
     @Mapping(source = "listing.title", target = "title")
     @Mapping(source = "listing.avgStart", target = "avgStart")
     @Mapping(source = "listing.popular", target = "popular")
@@ -41,4 +45,13 @@ public abstract class BookingMapper {
     @Mapping(source = "totalPrice", target = "totalPrice")
     @Mapping(source = "content", target = "content")
     public abstract BookingResponse toBookingResponse(BookingEntity bookingEntity);
+
+    @Named("toPrimaryUrl")
+    protected String toPrimaryUrl(ListingEntity listing) {
+        if (listing == null || listing.getImagesEntities() == null || listing.getImagesEntities().isEmpty()) {
+            return null;
+        }
+        return listing.getImagesEntities().get(0).getImageUrl(); // đảm bảo ImagesEntity có phương thức getUrl()
+    }
+
 }
