@@ -11,7 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
@@ -21,9 +23,6 @@ import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.service.ListingsServices;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
@@ -73,5 +72,15 @@ public class ListingsController {
                         .build();
     }
     
-
+    @GetMapping("/listings/search")
+    public ApiResponse<List<ListingsResponse>> search(
+                @RequestParam(name = "keyword", required = true, defaultValue = " ")  String param
+            ) {
+        return ApiResponse.<List<ListingsResponse>>builder()
+                    .code(200)
+                    .message("get listring by key")
+                    .result(this.listingsServices.handlerSearch(param))
+                    .build();
+    }
+    
 }

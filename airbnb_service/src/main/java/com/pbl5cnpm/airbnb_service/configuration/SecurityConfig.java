@@ -22,55 +22,57 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final String[] PUBLIC_POST = { "/api/users", "/auth/login", "/auth/introspect", "/auth/logout",
-            "auth/refresh", "/auth/forget" };
-    private final String[] PUBLIC_END_POINT_TEST = { "/api/categories", "/api/countries" };
-    private final String[] PULIC_GET = { "/test", "/api/categories", "/api/amenities", "/api/countries",
-            "/api/listings", "/api/listings/{id}", "api/payment/vnpay-return" };
-    private final String[] PULIC_PUT = { "/api/users/password" };
-    @Autowired
-    private CustomJwtDecoder customJwtDecoder;
+        private final String[] PUBLIC_POST = { "/api/users", "/auth/login", "/auth/introspect", "/auth/logout",
+                        "auth/refresh", "/auth/forget" };
+        private final String[] PUBLIC_END_POINT_TEST = { "/api/categories", "/api/countries" };
+        private final String[] PULIC_GET = { "/test", "/api/categories", "/api/amenities", "/api/countries",
+                        "/api/listings", "/api/listings/{id}", "api/payment/vnpay-return", "/api/listings/search" };
+        private final String[] PULIC_PUT = { "/api/users/password" };
+        @Autowired
+        private CustomJwtDecoder customJwtDecoder;
 
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, PULIC_GET).permitAll()
-                        .requestMatchers(HttpMethod.PUT, PULIC_PUT).permitAll()
-                        .requestMatchers(HttpMethod.POST, PUBLIC_END_POINT_TEST).permitAll()
-                        .requestMatchers(HttpMethod.POST, PUBLIC_POST).permitAll() // main
-                        // .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("ADMIN")
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(
-                        auth2 -> auth2.jwt(JwtConfigurer -> JwtConfigurer.decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(authenticationConverter()))
-                                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+        @Bean
+        SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+                httpSecurity
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .authorizeHttpRequests(request -> request
+                                                .requestMatchers("/uploads/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, PULIC_GET).permitAll()
+                                                .requestMatchers(HttpMethod.PUT, PULIC_PUT).permitAll()
+                                                .requestMatchers(HttpMethod.POST, PUBLIC_END_POINT_TEST).permitAll()
+                                                .requestMatchers(HttpMethod.POST, PUBLIC_POST).permitAll() // main
+                                                // .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority("ADMIN")
+                                                .anyRequest().authenticated())
+                                .oauth2ResourceServer(
+                                                auth2 -> auth2.jwt(JwtConfigurer -> JwtConfigurer
+                                                                .decoder(customJwtDecoder)
+                                                                .jwtAuthenticationConverter(authenticationConverter()))
+                                                                .authenticationEntryPoint(
+                                                                                new JwtAuthenticationEntryPoint()));
 
-        return httpSecurity.build();
-    }
+                return httpSecurity.build();
+        }
 
-    @Bean
-    JwtAuthenticationConverter authenticationConverter() {
-        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthorityPrefix("");
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
-        return converter;
-    }
+        @Bean
+        JwtAuthenticationConverter authenticationConverter() {
+                JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+                authoritiesConverter.setAuthorityPrefix("");
+                JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+                converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+                return converter;
+        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of("*"));
+                configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }

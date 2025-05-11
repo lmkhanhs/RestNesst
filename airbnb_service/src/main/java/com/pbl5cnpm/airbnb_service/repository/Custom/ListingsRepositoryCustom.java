@@ -7,4 +7,5 @@ import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 
 public interface ListingsRepositoryCustom {
     List<ListingEntity> findAllAndStatus(String status, boolean deleted, boolean access, LocalDate now);
+    List<ListingEntity> searchByKey(String key);
 }

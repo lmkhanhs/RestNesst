@@ -65,4 +65,10 @@ public class ListingsServices {
     public Long getCount(){
         return this.listingsRepository.count();
     }
+    public List<ListingsResponse> handlerSearch(String keyword){
+        List<ListingEntity> listingEntities = this.listingsRepository.searchByKey(keyword);
+        return listingEntities.stream()
+                .map(data -> this.listingMapper.toResponse(data))
+                .toList();
+    }
 }
