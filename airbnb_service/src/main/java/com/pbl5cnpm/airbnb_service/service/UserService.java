@@ -1,6 +1,7 @@
 package com.pbl5cnpm.airbnb_service.service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -173,19 +174,45 @@ public class UserService {
         return this.mapper.toHostProfile(entity);
     }
 
-    public Boolean handleApply(ApplyHostResquest applyHostResquest){
+    public Boolean handleApply(ApplyHostResquest applyHostResquest) {
         UserEntity entity = this.userRepository.findById(applyHostResquest.getUserId())
-                        .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         entity.setDescription(applyHostResquest.getDescription());
         entity.setLanguages(applyHostResquest.getLanguage());
         entity.setLanguages(applyHostResquest.getLanguage());
         entity.setDidHostYear(applyHostResquest.getDidHostYear());
 
         ApplyHostEntity entityApl = ApplyHostEntity.builder()
-                            .hostId(entity.getId().toString())  
-                            .deleted(false)
-                            .build();
+                .hostId(entity.getId())
+                .deleted(false)
+                .build();
         this.applyHostListRepository.save(entityApl);
+        this.userRepository.save(entity);
         return null;
     }
+
+    public List<HostProfileResponse> handleGetApplyPerson() {
+        // Lấy danh sách các apply request chưa xóa
+        List<ApplyHostEntity> applyToHosts = applyHostListRepository.findAllByDeleted(false);
+        List<UserEntity> allUsers = userRepository.findAll();
+
+        Set<Long> appliedHostIds = applyToHosts.stream()
+                .map(ApplyHostEntity::getHostId)
+                .collect(Collectors.toSet());
+
+        // // Lọc ra các user có id nằm trong danh sách apply
+        // List<HostProfileResponse> result = allUsers.stream()
+        //         .filter(user -> appliedHostIds.contains(user.getId()))
+        //         .map(user -> HostProfileResponse.builder()
+        //                 .id(user.getId())
+        //                 .name(user.getName())
+        //                 .email(user.getEmail())
+        //                 .phone(user.getPhone())
+        //                 // thêm các trường cần thiết nếu có
+        //                 .build())
+        //         .collect(Collectors.toList());
+
+        return null;
+    }
+
 }

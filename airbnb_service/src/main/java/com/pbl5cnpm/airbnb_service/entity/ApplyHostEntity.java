@@ -24,6 +24,6 @@ public class ApplyHostEntity {
     @Id
     String id = UUID.randomUUID().toString();
 
-    String hostId; 
+    Long hostId; 
     Boolean deleted;
 }

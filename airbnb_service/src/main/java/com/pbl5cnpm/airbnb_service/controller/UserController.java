@@ -172,8 +172,13 @@ public class UserController {
 
         return ApiResponse.<Void>builder()
                 .code(200)
-                .message("Apply to host")
+                .message("Apply to host success")
                 .build();
     }
+    @GetMapping("/users/host/apply")
+    public String getApplyPerson(@RequestParam String param) {
+        return new String();
+    }
+    
 
 }
