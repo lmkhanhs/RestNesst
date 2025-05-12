@@ -181,7 +181,7 @@ public class ApplicationInitConfig {
         UserEntity host = this.userRepository.findByUsername("admin")
                 .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
         List<CategoriesEntity> categoriesEntities = this.categoriesRepository.findAll();
-        List<AmenitesEntity> amenitesEntities = this.amenitiesRepository.findAll();
+        List<AmenitesEntity> amenitesEntities = null;
         List<ImagesEntity> imagesEntities = List.of(image1, image2);
         CountriesEntity countriesEntity = this.countriesRepository.findByName("Việt Nam")
                 .orElseThrow(() -> new RuntimeException("k tim thay country viet nam trong database"));
