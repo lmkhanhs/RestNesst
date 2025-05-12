@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,11 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.service.ListingsServices;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("${api.base.path}")
@@ -93,9 +97,31 @@ public class ListingsController {
         return ApiResponse.<List<ListingsResponse>>builder()
                 .code(200)
                 .message("get listing by key")
-                .result(this.listingsServices.handlerfilter(args, amenities)) 
+                .result(this.listingsServices.handlerfilter(args, amenities))
                 .build();
     }
-    
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/listings/access/{id}")
+    public ApiResponse<Void> statusAccess(@PathVariable Long id, @RequestParam Boolean status) {
+        this.listingsServices.handleAccessStatus(status, id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("update status " + status)
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/listings/all")
+    public ApiResponse<List<ListingResponseManager>> getFullAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.<List<ListingResponseManager>>builder()
+                .code(200)
+                .message("get full all listings")
+                .result(this.listingsServices.handlegetfullAll())
+                .build();
+    }
+     @PreAuthorize("hasAuthority('ADMIN')")
+    // @DeleteMapping()
 }

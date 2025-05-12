@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
@@ -79,7 +80,7 @@ public class ListingsServices {
                 .map(data -> this.listingMapper.toResponse(data))
                 .toList();
     }
-    public boolean handleAccessStatus(boolean status, Long listingId){
+    public boolean handleAccessStatus(Boolean status, Long listingId){
         ListingEntity listingEntity =  this.listingsRepository.findById(listingId)
                                         .orElseThrow(()-> new AppException(ErrorCode.LISTING_NOT_EXISTED));
         if(status == true){
@@ -90,5 +91,17 @@ public class ListingsServices {
         listingEntity.setAccess(false);
         this.listingsRepository.save(listingEntity);
         return false;
+    }
+    public List<ListingResponseManager> handlegetfullAll(){
+        List<ListingEntity> entities = this.listingsRepository.findAllByDeleted(false);
+        return entities.stream()
+                    .map(data -> this.listingMapper.toLisingResposeManager(data))
+                    .toList();
+    }
+    public void handleDelete(Long listingId){
+        ListingEntity listingEntity =  this.listingsRepository.findById(listingId)
+                                        .orElseThrow(()-> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        listingEntity.setDeleted(true);
+        this.listingsRepository.save(listingEntity);
     }
 }
