@@ -40,6 +40,7 @@ public class UserEntity extends BaseEntity {
    
     String languages;
     Integer didHostYear;
+    @Column(columnDefinition = "TEXT")
     String description;
     @Column(nullable = false, unique = true)
     String username;
