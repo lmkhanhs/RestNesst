@@ -53,9 +53,16 @@ public class CoutriesService {
                     .toList();
                 
     }
-    public List<CountryDetailResponse> handleUpdate(UpdateCountryRequest countryRequest){
-        CountriesEntity countriesEntity = this.mapper.toCoutriesEntityForUpdate(countryRequest);
-        this.coutriesRepository.save(countriesEntity);
-        return handlegetDetail();
+
+    public CountryDetailResponse handleUpdate(UpdateCountryRequest countryRequest){
+        Long countryId = countryRequest.getId();
+        CountriesEntity countriesEntity = this.coutriesRepository.findById(countryId)
+                                    .orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
+        CountriesEntity countriesEntityUpdate = this.mapper.toCoutriesEntityForUpdate(countryRequest);
+        if(countriesEntityUpdate.getThumbnail() == null){
+            countriesEntityUpdate.setThumbnail(countriesEntity.getThumbnail());
+        }
+        this.coutriesRepository.save(countriesEntityUpdate);
+        return this.mapper.toCountryDetailResponse(countriesEntityUpdate);
     }
 }

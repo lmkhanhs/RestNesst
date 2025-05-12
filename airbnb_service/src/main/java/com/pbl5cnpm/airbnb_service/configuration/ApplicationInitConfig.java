@@ -164,6 +164,7 @@ public class ApplicationInitConfig {
                     .thumbnail("https://dynamic-media-cdn.tripadvisor.com/media/photo-o/18/19/a5/0c/get-relaxing-with-your.jpg?w=700&h=700&s=1")
                     .description("Du lịch Việt Nam là một trải nghiệm phong phú và đa dạng, thu hút du khách bởi vẻ đẹp thiên nhiên hùng vĩ, nền văn hóa đậm đà bản sắc dân tộc và ẩm thực độc đáo. Từ vịnh Hạ Long – di sản thiên nhiên thế giới với hàng ngàn đảo đá vôi kỳ thú, đến phố cổ Hội An cổ kính, hay cố đô Huế trầm mặc mang đậm dấu ấn lịch sử, mỗi vùng miền đều mang một vẻ đẹp riêng. Việt Nam còn nổi tiếng với những bãi biển trải dài như Nha Trang, Đà Nẵng, Phú Quốc và những vùng cao nguyên thơ mộng như Đà Lạt, Sa Pa. Không chỉ có phong cảnh, du khách còn được hòa mình vào những lễ hội truyền thống đặc sắc, khám phá nền ẩm thực đa dạng với các món ăn như phở, bún chả, bánh mì, gỏi cuốn... Du lịch Việt Nam đang ngày càng phát triển, trở thành điểm đến hấp dẫn đối với cả du khách trong nước và quốc tế.")
                     .deleted(false)
+                    .isActive(true)
                     .build();
             this.countriesRepository.save(entity);
         }

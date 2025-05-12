@@ -21,4 +21,5 @@ public class UpdateCountryRequest {
     String description;
     MultipartFile thumbnail;
     Boolean isActive;
+    Boolean deleted;
 }

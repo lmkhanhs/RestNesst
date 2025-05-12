@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pbl5cnpm.airbnb_service.AirbnbServiceApplication;
 import com.pbl5cnpm.airbnb_service.dto.Request.CountryResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.CoutriesRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateCountryRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CountryDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CoutriesResponse;
@@ -25,8 +26,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
-
 
 @RestController
 @RequestMapping("/api")
@@ -38,38 +37,46 @@ public class CountriesController {
     CountriesController(CoutriesService coutriesService) {
         this.coutriesService = coutriesService;
     }
-    
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping(value = "/countries", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<CountryDetailResponse>> createCountries(@ModelAttribute CountryResquest coutryRequest){
+    public ResponseEntity<ApiResponse<CountryDetailResponse>> createCountries(
+            @ModelAttribute CountryResquest coutryRequest) {
         ApiResponse<CountryDetailResponse> apiResponse = ApiResponse.<CountryDetailResponse>builder()
-                                                    .result(this.coutriesService.handleCreateCounties(coutryRequest))
-                                                    .code(201)
-                                                    .message("create country success!")
-                                                    .build();
+                .result(this.coutriesService.handleCreateCounties(coutryRequest))
+                .code(201)
+                .message("create country success!")
+                .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
+
     @GetMapping("/countries")
-    public ApiResponse<List<CoutriesResponse>> getallCountries(){
+    public ApiResponse<List<CoutriesResponse>> getallCountries() {
         return ApiResponse.<List<CoutriesResponse>>builder()
-                    .result(this.coutriesService.handleGetAll())
-                    .message("get all countries successfully!")
-                    .build();
+                .result(this.coutriesService.handleGetAll())
+                .message("get all countries successfully!")
+                .build();
     }
+
     @GetMapping("/countries/detail")
     public ApiResponse<List<CountryDetailResponse>> getALldetail() {
         List<CountryDetailResponse> result = this.coutriesService.handlegetDetail();
         return ApiResponse.<List<CountryDetailResponse>>builder()
-                        .code(200)
-                        .message("get detail country")
-                        .result(result)
-                        .build();
+                .code(200)
+                .message("get detail country")
+                .result(result)
+                .build();
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PutMapping( value = "/countries",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String updateCountry(@ModelAttribute CountryResquest coutryRequest) {
-        
-        
-        return null;
+    @PutMapping(value = "/countries", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<CountryDetailResponse> updateCountry(@ModelAttribute UpdateCountryRequest coutryRequest) {
+        CountryDetailResponse result = this.coutriesService.handleUpdate(coutryRequest);
+
+        return ApiResponse.<CountryDetailResponse>builder()
+                .code(200)
+                .message("update country")
+                .result(result)
+                .build();
     }
-}   
+}

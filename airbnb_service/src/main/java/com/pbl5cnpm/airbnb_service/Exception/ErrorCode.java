@@ -24,8 +24,9 @@ public enum ErrorCode {
     PASSWORD_INVALID(1015, "password invalid", HttpStatus.BAD_REQUEST),
     PASSWORD_CONFIRM_NOT_MATCH(1016, "password confirm not match", HttpStatus.BAD_REQUEST),
     BOOKING_NOT_EXIT(1017,"booking not exits", HttpStatus.BAD_GATEWAY),
-    BOOKING_DIFFERECES_PAID(1018,"booking not paid", HttpStatus.BAD_GATEWAY),
-    PAYMENT_NOT_EXIST(1019, "payment not exits", HttpStatus.BAD_GATEWAY)
+    BOOKING_DIFFERECES_PAID(1018,"booking not paid", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_EXIST(1019, "payment not exits", HttpStatus.BAD_REQUEST),
+
     ;
     ErrorCode(int code, String message, HttpStatus httpStatus){
         this.code = code;
