@@ -88,50 +88,16 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         }
         if (args.containsKey("startDate")) {
             String startDay = args.get("startDate");
-            condition.append(" l.start_date <= '" + startDay + "'");
+            condition.append(" AND l.start_date <= '" + startDay + "'");
         }
         if (args.containsKey("endDate")) {
             String endDate = args.get("endDate");
-            condition.append(" l.end_date >= '" + endDate + "'");
+            condition.append(" AND l.end_date >= '" + endDate + "'");
         }
-        /// end my code
-        /// if (args.containsKey("startDate")) {
-        // String startDay = args.get("startDate");
-        // condition.append(" AND l.start_date <= '").append(startDay).append("'");
-        // }
-
-        // if (args.containsKey("endDate")) {
-        // String endDate = args.get("endDate");
-        // condition.append(" AND l.end_date >= '").append(endDate).append("'");
-        // }
-
-        // if (args.containsKey("lowestPrice")) {
-        // sql.append(" AND l.price >= :lowestPrice");
-        // }
-        // if (args.containsKey("highestPrice")) {
-        // sql.append(" AND l.price <= :highestPrice");
-        // }
-        // if (args.containsKey("country")) {
-        // sql.append(" AND LOWER(c.name) = LOWER(:country)");
-        // }
-        // if (args.containsKey("city")) {
-        // sql.append(" AND LOWER(l.city) LIKE LOWER(CONCAT('%', :city, '%'))");
-        // }
-        // if (args.containsKey("popular")) {
-        // sql.append(" AND l.popular = :popular");
-        // }
-        // if (args.containsKey("startDate")) {
-        // sql.append(" AND l.start_date <= :startDate");
-        // }
-        // if (args.containsKey("endDate")) {
-        // sql.append(" AND l.end_date >= :endDate");
-        // }
-        // if (args.containsKey("category")) {
-        // sql.append(" AND LOWER(cat.name) LIKE LOWER(CONCAT('%', :category, '%'))");
-        // }
-        // if (args.containsKey("amenity")) {
-        // sql.append(" AND LOWER(a.name) LIKE LOWER(CONCAT('%', :amenity, '%'))");
-        // }
+        if (args.containsKey("popular")) {
+            String popular = args.get("popular");
+            condition.append(" AND l.popular = " + popular);
+        }
 
         sql.append(table).append(condition);
         Query query = entityManager.createNativeQuery(sql.toString(), ListingEntity.class);

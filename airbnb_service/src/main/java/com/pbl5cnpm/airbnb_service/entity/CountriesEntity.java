@@ -31,6 +31,9 @@ public class CountriesEntity extends BaseEntity {
     @Column(unique = true)
     String name;
     Boolean deleted;
+    String description;
+    String thumbnail;
+    Boolean isActive;
     @OneToMany(mappedBy = "countriesEntity")
     List<ListingEntity> listings;
 }
