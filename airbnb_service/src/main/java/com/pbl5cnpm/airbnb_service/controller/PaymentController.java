@@ -130,10 +130,11 @@ public class PaymentController {
                 .booking(bookingEntity) 
                 .transactionId(UUID.randomUUID().toString()) 
                 .content(body.getContent())
+                .code(UUID.randomUUID().toString())
                 .build();
         entity = this.paymentRepository.save(entity);
         //
-        String vnp_TxnRef = String.valueOf(entity.getId());
+        String vnp_TxnRef = entity.getCode();
         int vnp_Amount = (int) Math.round(bookingEntity.getTotalPrice() * 100);
 
         Map<String, String> vnp_Params = new HashMap<>();

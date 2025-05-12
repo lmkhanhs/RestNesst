@@ -98,8 +98,8 @@ public class PaymentControllerReturn {
         // model.addAttribute("error", "Thanh toán thất bại");
         // return "payment-failed";
         // }
-        Long paymentId = Long.parseLong(vnp_TxnRef);
-        PaymentEntity paymentEntity = paymentRepository.findById(paymentId)
+        String paymentCode = vnp_TxnRef;
+        PaymentEntity paymentEntity = paymentRepository.findByCode(paymentCode)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXIST));
 
         if ("00".equals(vnp_ResponseCode)) {

@@ -24,7 +24,7 @@ public class PaymentEntity extends BaseEntity {
     String status;
     String transactionId;
     String content;
-
+    String code ;
     // Quan hệ 1-1 với Booking
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false, unique = true)

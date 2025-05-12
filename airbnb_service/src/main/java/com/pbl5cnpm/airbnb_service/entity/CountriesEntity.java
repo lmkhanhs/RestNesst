@@ -31,6 +31,7 @@ public class CountriesEntity extends BaseEntity {
     @Column(unique = true)
     String name;
     Boolean deleted;
+    @Column(columnDefinition = "TEXT")
     String description;
     String thumbnail;
     Boolean isActive;
