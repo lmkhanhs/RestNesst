@@ -53,6 +53,7 @@ public class ListingsServices {
         entity.setDeleted(false);
         entity.setStatus(ListingStatus.ACTIVE.toString());
         entity.setAvgStart(4.9);
+        entity.setPosition(this.listingsRepository.count());
         if (entity.getImagesEntities() != null) {
             for (ImagesEntity img : entity.getImagesEntities()) {
                 img.setListingEntity(entity);
@@ -111,7 +112,7 @@ public class ListingsServices {
         this.listingsRepository.save(listingEntity);
     }
 
-    public void handleChangePosition(Long listingId, Integer position) {
+    public void handleChangePosition(Long listingId, Long position) {
         ListingEntity listingEntity = this.listingsRepository.findById(listingId)
                 .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
         listingEntity.setPosition(position);

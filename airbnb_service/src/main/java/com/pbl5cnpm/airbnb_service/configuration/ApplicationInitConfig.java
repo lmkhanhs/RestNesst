@@ -213,7 +213,7 @@ public class ApplicationInitConfig {
                 .amenitesEntities(amenitesEntities)
                 .imagesEntities(imagesEntities)
                 .countriesEntity(countriesEntity)
-                .position(1)
+                .position(1L)
                 .avgStart(4.9)
                 .build();
         // Gán listing cho từng ảnh
@@ -263,7 +263,7 @@ public class ApplicationInitConfig {
                 .amenitesEntities(amenitesEntities)
                 .imagesEntities(imagesEntities)
                 .countriesEntity(countriesEntity)
-                .position(2)
+                .position(2L)
                 .avgStart(4.5)
                 .description(description)
                 .build();

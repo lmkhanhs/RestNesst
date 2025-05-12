@@ -133,7 +133,7 @@ public class ListingsController {
     }
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/listings/{id}/{position}")
-    public ApiResponse<Void> changPosition(@PathVariable Long id, @PathVariable Integer position) {
+    public ApiResponse<Void> changPosition(@PathVariable Long id, @PathVariable Long position) {
         this.listingsServices.handleChangePosition(id, position);
         
         return ApiResponse.<Void>builder()

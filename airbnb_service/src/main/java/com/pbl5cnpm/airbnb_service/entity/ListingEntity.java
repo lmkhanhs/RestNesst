@@ -34,7 +34,7 @@ public class ListingEntity extends BaseEntity {
     Boolean popular;
     LocalDate startDate;
     LocalDate endDate;
-    Integer position;
+    Long position;
     @ManyToOne
     @JoinColumn(name = "host_id")
     UserEntity host;
