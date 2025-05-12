@@ -13,14 +13,17 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.pbl5cnpm.airbnb_service.assistants.HMACutill;
 import com.pbl5cnpm.airbnb_service.entity.BookingEntity;
+import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.PaymentEntity;
 import com.pbl5cnpm.airbnb_service.enums.BookingStatus;
+import com.pbl5cnpm.airbnb_service.enums.ListingStatus;
 import com.pbl5cnpm.airbnb_service.enums.PaymentStatus;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
@@ -36,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
+@Transactional
 public class PaymentControllerReturn {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
@@ -108,10 +112,13 @@ public class PaymentControllerReturn {
             model.addAttribute("paymentTime", formatPayDate(vnp_PayDate));
             paymentEntity.setStatus(PaymentStatus.SUCCESS.toString());
             this.paymentRepository.save(paymentEntity);
-
             BookingEntity booking = paymentEntity.getBooking();
             booking.setBookingStatus(BookingStatus.PAID.toString());
             this.bookingRepository.save(booking);
+            // update to inactive listing
+            ListingEntity listingEntity = paymentEntity.getBooking().getListing();
+            listingEntity.setStatus(ListingStatus.INACTIVE.toString());
+            this.listingsRepository.save(listingEntity);
 
             return "vnpay-success";
         } else {
