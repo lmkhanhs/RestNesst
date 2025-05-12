@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,9 @@ import com.pbl5cnpm.airbnb_service.service.CoutriesService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 
 @RestController
@@ -34,6 +38,8 @@ public class CountriesController {
     CountriesController(CoutriesService coutriesService) {
         this.coutriesService = coutriesService;
     }
+    
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping(value = "/countries", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CountryDetailResponse>> createCountries(@ModelAttribute CountryResquest coutryRequest){
         ApiResponse<CountryDetailResponse> apiResponse = ApiResponse.<CountryDetailResponse>builder()
@@ -59,5 +65,11 @@ public class CountriesController {
                         .result(result)
                         .build();
     }
-    
-}
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping( value = "/countries",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String updateCountry(@ModelAttribute CountryResquest coutryRequest) {
+        
+        
+        return null;
+    }
+}   

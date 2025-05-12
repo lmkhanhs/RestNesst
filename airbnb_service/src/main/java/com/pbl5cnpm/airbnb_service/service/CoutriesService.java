@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.pbl5cnpm.airbnb_service.AirbnbServiceApplication;
 import com.pbl5cnpm.airbnb_service.dto.Request.CountryResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.CoutriesRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateCountryRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.CountryDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CoutriesResponse;
 import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
@@ -33,6 +34,7 @@ public class CoutriesService {
         }
         CountriesEntity coutriesEntity = mapper.toCoutriesEntity(coutryRequest);
                         coutriesEntity.setDeleted(false);
+                        coutriesEntity.setIsActive(true);
                         
         return mapper.toCountryDetailResponse(this.coutriesRepository.save(coutriesEntity));
     }
@@ -50,5 +52,10 @@ public class CoutriesService {
                     .map(data -> mapper.toCountryDetailResponse(data))
                     .toList();
                 
+    }
+    public List<CountryDetailResponse> handleUpdate(UpdateCountryRequest countryRequest){
+        CountriesEntity countriesEntity = this.mapper.toCoutriesEntityForUpdate(countryRequest);
+        this.coutriesRepository.save(countriesEntity);
+        return handlegetDetail();
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.CountryResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.CoutriesRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateCountryRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.CountryDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CoutriesResponse;
 import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
@@ -27,4 +28,7 @@ public abstract class CountriesMapper {
     }
 
     public abstract CountryDetailResponse toCountryDetailResponse(CountriesEntity coutriesEntity);
+
+    @Mapping(source = "thumbnail", target = "thumbnail", qualifiedByName = "thumbnail" )
+    public abstract CountriesEntity toCoutriesEntityForUpdate(UpdateCountryRequest countryRequest);
 }

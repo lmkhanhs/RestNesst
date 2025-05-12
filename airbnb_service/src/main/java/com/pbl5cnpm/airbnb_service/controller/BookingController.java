@@ -50,5 +50,5 @@ public class BookingController {
                 .result(responses)
                 .build();
     }
-
+    
 }
