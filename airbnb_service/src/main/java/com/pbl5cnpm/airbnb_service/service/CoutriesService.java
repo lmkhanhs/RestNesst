@@ -65,4 +65,11 @@ public class CoutriesService {
         this.coutriesRepository.save(countriesEntityUpdate);
         return this.mapper.toCountryDetailResponse(countriesEntityUpdate);
     }
+    public Boolean handleDeteled(Long countryId){
+        CountriesEntity countriesEntity = this.coutriesRepository.findById(countryId)
+                                    .orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
+        countriesEntity.setDeleted(true);
+        this.coutriesRepository.save(countriesEntity);
+        return false;
+    }
 }

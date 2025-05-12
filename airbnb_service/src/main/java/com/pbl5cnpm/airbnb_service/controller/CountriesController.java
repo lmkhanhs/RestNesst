@@ -2,11 +2,15 @@ package com.pbl5cnpm.airbnb_service.controller;
 
 import java.util.List;
 
+import javax.print.DocFlavor.STRING;
+
+import org.eclipse.angus.mail.handlers.message_rfc822;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,5 +82,14 @@ public class CountriesController {
                 .message("update country")
                 .result(result)
                 .build();
+    }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/countries/{id}")
+    public ApiResponse<Void> deleteCountry(@PathVariable Long id ){
+        this.coutriesService.handleDeteled(id);
+        return ApiResponse.<Void>builder()
+                    .code(200)
+                    .message("Update succesffully!")
+                    .build();
     }
 }
