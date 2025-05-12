@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.hc.core5.net.Host;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,7 @@ import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
 import com.pbl5cnpm.airbnb_service.entity.ApplyHostEntity;
+import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
@@ -35,6 +37,7 @@ import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
 import com.pbl5cnpm.airbnb_service.mapper.UserMapper;
 import com.pbl5cnpm.airbnb_service.repository.ApplyHostListRepository;
+import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.RoleRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
 
@@ -54,6 +57,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ListingMapper listingMapper;
     private final CloudinaryService cloudinaryService;
+    private final CountriesRepository countriesRepository;
     @Value("${security.secret}")
     private String SIGNER_KEY;
     @Value("${image.customer}")
@@ -181,14 +185,17 @@ public class UserService {
         entity.setLanguages(applyHostResquest.getLanguage());
         entity.setLanguages(applyHostResquest.getLanguage());
         entity.setDidHostYear(applyHostResquest.getDidHostYear());
-
+        String country = applyHostResquest.getCountry();
+        CountriesEntity countriesEntity = this.countriesRepository.findByName(country)
+                .orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
+        entity.setCountry(countriesEntity);
         ApplyHostEntity entityApl = ApplyHostEntity.builder()
                 .hostId(entity.getId())
                 .deleted(false)
                 .build();
         this.applyHostListRepository.save(entityApl);
         this.userRepository.save(entity);
-        return null;
+        return true;
     }
 
     public List<HostProfileResponse> handleGetApplyPerson() {
@@ -199,20 +206,11 @@ public class UserService {
         Set<Long> appliedHostIds = applyToHosts.stream()
                 .map(ApplyHostEntity::getHostId)
                 .collect(Collectors.toSet());
-
-        // // Lọc ra các user có id nằm trong danh sách apply
-        // List<HostProfileResponse> result = allUsers.stream()
-        //         .filter(user -> appliedHostIds.contains(user.getId()))
-        //         .map(user -> HostProfileResponse.builder()
-        //                 .id(user.getId())
-        //                 .name(user.getName())
-        //                 .email(user.getEmail())
-        //                 .phone(user.getPhone())
-        //                 // thêm các trường cần thiết nếu có
-        //                 .build())
-        //         .collect(Collectors.toList());
-
-        return null;
+        List<HostProfileResponse> result = allUsers.stream()
+                    .filter(user -> appliedHostIds.contains(user.getId()))
+                    .map(user -> mapper.toHostProfile(user))
+                    .toList();
+        return result;
     }
 
 }

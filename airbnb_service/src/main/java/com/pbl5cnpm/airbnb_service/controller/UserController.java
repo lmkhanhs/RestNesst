@@ -175,10 +175,13 @@ public class UserController {
                 .message("Apply to host success")
                 .build();
     }
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users/host/apply")
-    public String getApplyPerson(@RequestParam String param) {
-        return new String();
+    public ApiResponse<List<HostProfileResponse>> getApplyPerson() {
+        return ApiResponse.<List<HostProfileResponse>>builder()
+                        .code(200)
+                        .message("get user want to apply host")
+                        .result(this.userService.handleGetApplyPerson())
+                        .build();
     }
-    
-
 }
