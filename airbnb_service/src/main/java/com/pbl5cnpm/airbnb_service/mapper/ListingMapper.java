@@ -2,12 +2,14 @@ package com.pbl5cnpm.airbnb_service.mapper;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.AmenitiesForListingRespose;
+import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReviewResponse;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.ReviewEntity;
+import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.repository.AmenitiesRepository;
@@ -43,7 +45,7 @@ public abstract class ListingMapper {
             @Mapping(source = "title", target = "name"),
             @Mapping(source = "countriesEntity.name", target = "country"),
             @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
-            @Mapping(source = "host.thumnailUrl", target = "hostThumnailUrl")
+            @Mapping(source = "host.id", target = "hostId")
     })
     public abstract ListingsResponse toResponse(ListingEntity entity);
 
@@ -139,5 +141,5 @@ public abstract class ListingMapper {
         var enti = this.countriesRepository.findByName(country).orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
         return enti;
     }
-
+    
 }

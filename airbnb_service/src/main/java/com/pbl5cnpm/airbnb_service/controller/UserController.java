@@ -24,6 +24,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
@@ -105,7 +106,6 @@ public class UserController {
         this.favoriteService.addFavorite(listingId, username);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
     @DeleteMapping("/users/favorites") // xóa
     public ApiResponse<Void> handleDelete(@RequestBody FavoriteRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -154,4 +154,14 @@ public class UserController {
                 .result(this.userService.handleChangePass(request))
                 .build();
     }
+
+    @GetMapping("/users/host/{id}")
+    public ApiResponse<HostProfileResponse> getMethodName(@PathVariable Long id) {
+        return ApiResponse.<HostProfileResponse>builder()
+                            .code(200)
+                            .message("get profile host")
+                            .result(this.userService.handlegetHost(id))
+                            .build();
+    }
+    
 }

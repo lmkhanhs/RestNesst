@@ -28,7 +28,6 @@ public class CountriesEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    @Column(unique = true)
     String name;
     Boolean deleted;
     @Column(columnDefinition = "TEXT")
@@ -37,5 +36,9 @@ public class CountriesEntity extends BaseEntity {
     Boolean isActive;
     @OneToMany(mappedBy = "countriesEntity")
     List<ListingEntity> listings;
+
+    // Một quốc gia có thể có nhiều user
+    @OneToMany(mappedBy = "country")
+    private List<UserEntity> users;
 }
 

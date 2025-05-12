@@ -8,6 +8,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
+import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
@@ -28,5 +29,6 @@ public interface UserMapper {
                 .map(role -> role.getRoleName()) 
                 .collect(Collectors.toSet());
     }
-    
+    @Mapping(source = "country.name", target = "country")
+    public abstract HostProfileResponse toHostProfile(UserEntity entity);
 }

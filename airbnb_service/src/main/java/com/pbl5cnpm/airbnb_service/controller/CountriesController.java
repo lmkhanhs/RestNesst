@@ -89,7 +89,7 @@ public class CountriesController {
         this.coutriesService.handleDeteled(id);
         return ApiResponse.<Void>builder()
                     .code(200)
-                    .message("Update succesffully!")
+                    .message("delete succesffully!")
                     .build();
     }
 }

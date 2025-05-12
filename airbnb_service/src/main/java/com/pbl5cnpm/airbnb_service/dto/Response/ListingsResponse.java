@@ -31,6 +31,6 @@ public class ListingsResponse {
     Boolean popular;
     LocalDate startDate;
     LocalDate endDate;
-    Double price;
-    String hostThumnailUrl;
+    Double price; 
+    String hostId;
 }

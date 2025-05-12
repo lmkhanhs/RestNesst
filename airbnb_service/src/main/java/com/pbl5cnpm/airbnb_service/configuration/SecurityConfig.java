@@ -27,7 +27,7 @@ public class SecurityConfig {
         private final String[] PUBLIC_END_POINT_TEST = { "/api/categories", "/api/countries" };
         private final String[] PULIC_GET = { "/test", "/api/categories", "/api/amenities", "/api/countries",
                         "/api/listings", "/api/listings/{id}", "api/payment/vnpay-return", "/api/listings/search",
-                        "/api/listings/filter" };
+                        "/api/listings/filter", "/api/users/host/{id}" };
         private final String[] PULIC_PUT = { "/api/users/password" };
         @Autowired
         private CustomJwtDecoder customJwtDecoder;

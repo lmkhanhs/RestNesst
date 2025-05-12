@@ -1,5 +1,6 @@
 package com.pbl5cnpm.airbnb_service.entity;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,14 @@ public class UserEntity extends BaseEntity {
     String phone;
     String password;
     String thumnailUrl;
+    
+    @ManyToOne
+    @JoinColumn(name = "country_id")
+    CountriesEntity country;
+    Boolean applyToHost;
+    String languages;
+    Integer didHostYear;
+    String description;
     @Column(nullable = false, unique = true)
     String username;
     @ManyToMany

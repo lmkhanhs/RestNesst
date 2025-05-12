@@ -18,6 +18,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
+import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
@@ -79,6 +80,7 @@ public class UserService {
         userEntity.setPassword(encodedPassword);
         userEntity.setRoles(roles);
         userEntity.setThumnailUrl(THUMNAIL);
+        userEntity.setApplyToHost(false);
         return mapper.toUserResponse(userRepository.save(userEntity));
     }
 
@@ -161,5 +163,9 @@ public class UserService {
         userEntity.setPassword(this.passwordEncoder.encode(request.getNewPassword()));
         return this.mapper.toUserInfor(this.userRepository.save(userEntity));
     }
-
+    public HostProfileResponse handlegetHost(Long id){
+        UserEntity entity = this.userRepository.findById(id)
+                        .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return this.mapper.toHostProfile(entity);
+    }
 }

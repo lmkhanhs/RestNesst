@@ -61,8 +61,8 @@ public class CoutriesService {
         CountriesEntity countriesEntityUpdate = this.mapper.toCoutriesEntityForUpdate(countryRequest);
         if(countriesEntityUpdate.getThumbnail() == null){
             countriesEntityUpdate.setThumbnail(countriesEntity.getThumbnail());
-            countriesEntityUpdate.setDeleted(false);
         }
+        countriesEntityUpdate.setDeleted(false);
         this.coutriesRepository.save(countriesEntityUpdate);
         return this.mapper.toCountryDetailResponse(countriesEntityUpdate);
     }
