@@ -187,7 +187,7 @@ public class UserService {
         entity.setDidHostYear(applyHostResquest.getDidHostYear());
         String country = applyHostResquest.getCountry();
         CountriesEntity countriesEntity = this.countriesRepository.findByName(country)
-                .orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
         entity.setCountry(countriesEntity);
         ApplyHostEntity entityApl = ApplyHostEntity.builder()
                 .hostId(entity.getId())
@@ -207,29 +207,40 @@ public class UserService {
                 .map(ApplyHostEntity::getHostId)
                 .collect(Collectors.toSet());
         List<HostProfileResponse> result = allUsers.stream()
-                    .filter(user -> appliedHostIds.contains(user.getId()))
-                    .map(user -> mapper.toHostProfile(user))
-                    .toList();
+                .filter(user -> appliedHostIds.contains(user.getId()))
+                .map(user -> mapper.toHostProfile(user))
+                .toList();
         return result;
     }
-    public boolean handleAccsetHost(Long host_id){
-        UserEntity userEntity = this.userRepository.findById(host_id)   
-                                .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+    public boolean handleAccsetHost(Long host_id) {
+        UserEntity userEntity = this.userRepository.findById(host_id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         Set<RoleEntity> roles = userEntity.getRoles();
         RoleEntity roleHost = this.roleRepository.findByRoleName(RoleName.HOST.toString()).get();
-        if( !roles.contains(roleHost)) {
+        if (!roles.contains(roleHost)) {
             roles.add(this.roleRepository.findByRoleName(RoleName.HOST.toString()).get());
             userEntity.setRoles(roles);
             userEntity = this.userRepository.save(userEntity);
 
             // xóa ra khỏi danh sach tohost
-            ApplyHostEntity applyHostEntity =  this.applyHostListRepository.findByHostId(userEntity.getId()).get();
-                                        applyHostEntity.setDeleted(true);
+            ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
+            applyHostEntity.setDeleted(true);
             this.applyHostListRepository.save(applyHostEntity);
             return true;
-        };
-        
+        }
+        ;
+
         return false;
+    }
+
+    public void handleRejectAccess(Long host_id) {
+        UserEntity userEntity = this.userRepository.findById(host_id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
+        applyHostEntity.setDeleted(true);
+        this.applyHostListRepository.save(applyHostEntity);
+
     }
 
 }

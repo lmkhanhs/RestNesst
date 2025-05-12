@@ -53,7 +53,8 @@ public abstract class ListingMapper {
             @Mapping(source = "countriesEntity.name", target = "country"),
             @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
             @Mapping(source = "amenitesEntities", target = "amenites", qualifiedByName = "mapAmenites"),
-            @Mapping(source = "reviews", target = "reviews", qualifiedByName = "mapReviews")
+            @Mapping(source = "reviews", target = "reviews", qualifiedByName = "mapReviews"),
+            @Mapping(source = "host.id", target = "hostId")
     })
     public abstract ListingDetailResponse toDetailResponse(ListingEntity entity);
 

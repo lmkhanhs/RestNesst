@@ -79,4 +79,16 @@ public class ListingsServices {
                 .map(data -> this.listingMapper.toResponse(data))
                 .toList();
     }
+    public boolean handleAccessStatus(boolean status, Long listingId){
+        ListingEntity listingEntity =  this.listingsRepository.findById(listingId)
+                                        .orElseThrow(()-> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        if(status == true){
+            listingEntity.setAccess(true);
+            this.listingsRepository.save(listingEntity);
+            return true;
+        }
+        listingEntity.setAccess(false);
+        this.listingsRepository.save(listingEntity);
+        return false;
+    }
 }

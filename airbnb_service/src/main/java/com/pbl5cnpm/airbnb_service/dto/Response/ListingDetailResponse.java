@@ -32,4 +32,5 @@ public class ListingDetailResponse {
     List<String> images;
     List<AmenitiesForListingRespose> amenites;
     List<ReviewResponse> reviews;
+    Long hostId;
 }

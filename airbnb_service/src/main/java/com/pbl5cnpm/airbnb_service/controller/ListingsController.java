@@ -90,18 +90,12 @@ public class ListingsController {
             @RequestParam Map<String, String> args,
             @RequestParam(name = "amenities", required = false) List<String> amenities) {
 
-        if (amenities != null) {
-            System.out.println("CHECK ------------>>>>");
-            for (int i = 0; i < amenities.size(); i++) {
-                System.out.println(amenities.get(i));
-            }
-        }
-
         return ApiResponse.<List<ListingsResponse>>builder()
                 .code(200)
                 .message("get listing by key")
-                .result(this.listingsServices.handlerfilter(args, amenities)) // truyền xuống service
+                .result(this.listingsServices.handlerfilter(args, amenities)) 
                 .build();
     }
+    
 
 }

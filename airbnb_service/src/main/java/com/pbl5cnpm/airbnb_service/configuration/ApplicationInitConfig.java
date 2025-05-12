@@ -68,6 +68,10 @@ public class ApplicationInitConfig {
                         .username("admin")
                         .password(encoder.encode("12345678"))
                         .roles(roles)
+                        .languages("Việt Nam, Thái Land, ....")
+                        .didHostYear(5)
+                        .description("Người Host là người dùng trong hệ thống có quyền đăng tải và quản lý các chỗ ở (listings) mà họ sở hữu hoặc cho thuê. Họ có trách nhiệm cung cấp thông tin chính xác về địa điểm, đảm bảo chất lượng dịch vụ và tương tác tích cực với khách thuê. Mỗi Host có thể cập nhật trạng thái chỗ ở, phản hồi đánh giá từ khách, và theo dõi hiệu suất hoạt động của tài khoản mình. Hệ thống cho phép Admin phê duyệt hoặc cấp quyền Host cho người dùng sau khi họ gửi yêu cầu và được xét duyệt.")
+
                         .build();
                 userRepository.save(userOrigin);
                 log.warn("User admin created with full Role");
@@ -75,13 +79,19 @@ public class ApplicationInitConfig {
 
             if (userRepository.findByUsername("host").isEmpty()) {
                 RoleEntity host = this.roleRepository.findByRoleName(RoleName.HOST.toString()).get();
+                RoleEntity guest = this.roleRepository.findByRoleName(RoleName.GUEST.toString()).get();
                 Set<RoleEntity> roless = new HashSet<>();
+                roless.add(guest);
                 roless.add(host);
 
                 UserEntity userOrigin = UserEntity.builder()
                         .username("host")
                         .password(encoder.encode("12345678"))
                         .roles(roless)
+                        .languages("Việt Nam, Thái Land, ....")
+                        .didHostYear(5)
+                        .description("Người Host là người dùng trong hệ thống có quyền đăng tải và quản lý các chỗ ở (listings) mà họ sở hữu hoặc cho thuê. Họ có trách nhiệm cung cấp thông tin chính xác về địa điểm, đảm bảo chất lượng dịch vụ và tương tác tích cực với khách thuê. Mỗi Host có thể cập nhật trạng thái chỗ ở, phản hồi đánh giá từ khách, và theo dõi hiệu suất hoạt động của tài khoản mình. Hệ thống cho phép Admin phê duyệt hoặc cấp quyền Host cho người dùng sau khi họ gửi yêu cầu và được xét duyệt.")
+
                         .build();
                 userRepository.save(userOrigin);
                 log.warn("User admin created with full Role");

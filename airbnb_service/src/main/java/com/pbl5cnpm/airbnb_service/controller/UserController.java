@@ -193,8 +193,20 @@ public class UserController {
         String str = status ? "add role host successfully" : "user had role host";
 
         return ApiResponse.<Void>builder()
-                    .code(200)
-                    .message(str)
-                    .build();
+                .code(200)
+                .message(str)
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/users/host/status/{id}")
+    public ApiResponse<Void> handleReject(@PathVariable Long id) {
+
+        this.userService.handleRejectAccess(id);
+
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Reject to host ")
+                .build();
     }
 }
