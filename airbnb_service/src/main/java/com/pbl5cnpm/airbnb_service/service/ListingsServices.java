@@ -104,4 +104,5 @@ public class ListingsServices {
         listingEntity.setDeleted(true);
         this.listingsRepository.save(listingEntity);
     }
+    
 }

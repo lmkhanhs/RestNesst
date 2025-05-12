@@ -122,6 +122,14 @@ public class ListingsController {
                 .result(this.listingsServices.handlegetfullAll())
                 .build();
     }
-     @PreAuthorize("hasAuthority('ADMIN')")
-    // @DeleteMapping()
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/listings/{id}")
+    public ApiResponse<Void> deletedListing(@PathVariable Long id){
+        this.listingsServices.handleDelete(id);
+        return ApiResponse.<Void>builder()
+                    .code(200)
+                    .message("delete success!")
+                    .build();
+    }
+
 }
