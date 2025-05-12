@@ -15,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ApplyHostResquest {
+    Long userId;
     String country;
     String language;
     Integer didHostYear;

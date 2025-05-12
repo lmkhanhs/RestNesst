@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nimbusds.jose.JOSEException;
+import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.FavoriteRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
@@ -106,6 +107,7 @@ public class UserController {
         this.favoriteService.addFavorite(listingId, username);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
     @DeleteMapping("/users/favorites") // xóa
     public ApiResponse<Void> handleDelete(@RequestBody FavoriteRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -158,10 +160,20 @@ public class UserController {
     @GetMapping("/users/host/{id}")
     public ApiResponse<HostProfileResponse> getMethodName(@PathVariable Long id) {
         return ApiResponse.<HostProfileResponse>builder()
-                            .code(200)
-                            .message("get profile host")
-                            .result(this.userService.handlegetHost(id))
-                            .build();
+                .code(200)
+                .message("get profile host")
+                .result(this.userService.handlegetHost(id))
+                .build();
     }
-    
+
+    @PostMapping("/users/host/apply")
+    public ApiResponse<Void> postMethodName(@RequestBody ApplyHostResquest applyHostResquest) {
+        this.userService.handleApply(applyHostResquest);
+
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Apply to host")
+                .build();
+    }
+
 }

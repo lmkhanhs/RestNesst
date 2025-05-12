@@ -15,6 +15,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.SignedJWT;
+import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
@@ -23,6 +24,7 @@ import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
+import com.pbl5cnpm.airbnb_service.entity.ApplyHostEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
@@ -31,6 +33,7 @@ import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
 import com.pbl5cnpm.airbnb_service.mapper.UserMapper;
+import com.pbl5cnpm.airbnb_service.repository.ApplyHostListRepository;
 import com.pbl5cnpm.airbnb_service.repository.RoleRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
 
@@ -42,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
+    private final ApplyHostListRepository applyHostListRepository;
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final UserMapper mapper;
@@ -80,7 +84,6 @@ public class UserService {
         userEntity.setPassword(encodedPassword);
         userEntity.setRoles(roles);
         userEntity.setThumnailUrl(THUMNAIL);
-        userEntity.setApplyToHost(false);
         return mapper.toUserResponse(userRepository.save(userEntity));
     }
 
@@ -149,7 +152,7 @@ public class UserService {
     public UserInfor handleChangePass(PasswordChangeRequest request) {
         String username = request.getUsername();
         UserEntity userEntity = this.userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID)); 
+                .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
 
         String oldPassword = request.getPassword();
         if (!this.passwordEncoder.matches(oldPassword, userEntity.getPassword())) {
@@ -163,9 +166,26 @@ public class UserService {
         userEntity.setPassword(this.passwordEncoder.encode(request.getNewPassword()));
         return this.mapper.toUserInfor(this.userRepository.save(userEntity));
     }
-    public HostProfileResponse handlegetHost(Long id){
+
+    public HostProfileResponse handlegetHost(Long id) {
         UserEntity entity = this.userRepository.findById(id)
-                        .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return this.mapper.toHostProfile(entity);
+    }
+
+    public Boolean handleApply(ApplyHostResquest applyHostResquest){
+        UserEntity entity = this.userRepository.findById(applyHostResquest.getUserId())
+                        .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+        entity.setDescription(applyHostResquest.getDescription());
+        entity.setLanguages(applyHostResquest.getLanguage());
+        entity.setLanguages(applyHostResquest.getLanguage());
+        entity.setDidHostYear(applyHostResquest.getDidHostYear());
+
+        ApplyHostEntity entityApl = ApplyHostEntity.builder()
+                            .hostId(entity.getId().toString())  
+                            .deleted(false)
+                            .build();
+        this.applyHostListRepository.save(entityApl);
+        return null;
     }
 }

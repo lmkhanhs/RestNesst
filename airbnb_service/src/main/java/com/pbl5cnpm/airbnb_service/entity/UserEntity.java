@@ -37,7 +37,7 @@ public class UserEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "country_id")
     CountriesEntity country;
-    Boolean applyToHost;
+   
     String languages;
     Integer didHostYear;
     String description;
