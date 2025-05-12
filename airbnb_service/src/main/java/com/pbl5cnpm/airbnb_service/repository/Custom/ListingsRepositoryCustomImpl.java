@@ -56,57 +56,58 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
     }
 
     @Override
-    public List<ListingEntity> filter(Map<String, String> args, List<String> amenities) {
-        StringBuilder sql = new StringBuilder("SELECT DISTINCT l.*");
+    public List<ListingEntity> filter(Map<String, String> args, List<String> amenityIds) {
+        StringBuilder sql = new StringBuilder("SELECT l.*");
         StringBuilder table = new StringBuilder(" FROM listings l ");
-        StringBuilder condition = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE ");
-        if (amenities != null && !amenities.isEmpty()) {
+        StringBuilder where = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE ");
+
+        boolean hasAmenityFilter = (amenityIds != null && !amenityIds.isEmpty());
+
+        if (hasAmenityFilter) {
             table.append(" INNER JOIN listing_amenites la ON l.id = la.listing_id ");
             table.append(" INNER JOIN amenites a ON la.amenites_id = a.id ");
-
-            String joined = amenities.stream()
-                    .map(String::trim)
-                    .collect(Collectors.joining(","));
-
-            condition.append(" AND a.id IN (" + joined + ")");
+            where.append(" AND a.id IN (");
+            for (int i = 0; i < amenityIds.size(); i++) {
+                where.append(amenityIds.get(i));
+                if (i < amenityIds.size() - 1) {
+                    where.append(", ");
+                }
+            }
+            where.append(")");
         }
-        
+
         if (args.containsKey("lowestPrice")) {
-            String lowestPrice = args.get("lowestPrice");
-            condition.append(" AND l.price >= " + lowestPrice);
+            where.append(" AND l.price >= ").append(args.get("lowestPrice"));
         }
         if (args.containsKey("highestPrice")) {
-            String highestPrice = args.get("highestPrice");
-            condition.append(" AND l.price <= " + highestPrice);
+            where.append(" AND l.price <= ").append(args.get("highestPrice"));
         }
         if (args.containsKey("country")) {
-            String country = args.get("country");
-            table.append(" INNER JOIN countries c ON l.country_id = c.id");
-            condition.append(" AND c.name = '" + country + "'");
+            table.append(" INNER JOIN countries c ON l.country_id = c.id ");
+            where.append(" AND c.name = '").append(args.get("country")).append("'");
         }
         if (args.containsKey("category")) {
-            String category = args.get("category");
-            table.append(" INNER JOIN listing_categories lc ON l.id = lc.listing_id");
-            table.append(" INNER JOIN categories cg ON lc.category_id = cg.id");
-            condition.append(" AND cg.name = '" + category + "'");
+            table.append(" INNER JOIN listing_categories lc ON l.id = lc.listing_id ");
+            table.append(" INNER JOIN categories cg ON lc.category_id = cg.id ");
+            where.append(" AND cg.name = '").append(args.get("category")).append("'");
         }
         if (args.containsKey("startDate")) {
-            String startDay = args.get("startDate");
-            condition.append(" AND l.start_date <= '" + startDay + "'");
+            where.append(" AND l.start_date <= '").append(args.get("startDate")).append("'");
         }
         if (args.containsKey("endDate")) {
-            String endDate = args.get("endDate");
-            condition.append(" AND l.end_date >= '" + endDate + "'");
+            where.append(" AND l.end_date >= '").append(args.get("endDate")).append("'");
         }
         if (args.containsKey("popular")) {
-            String popular = args.get("popular");
-            condition.append(" AND l.popular = " + popular);
+            where.append(" AND l.popular = ").append(args.get("popular"));
+        }
+        sql.append(table).append(where);
+        if (hasAmenityFilter) {
+            sql.append(" GROUP BY l.id");
+            sql.append(" HAVING COUNT(DISTINCT a.id) = ").append(amenityIds.size());
         }
 
-        sql.append(table).append(condition);
         Query query = entityManager.createNativeQuery(sql.toString(), ListingEntity.class);
         return query.getResultList();
-
     }
 
 }
