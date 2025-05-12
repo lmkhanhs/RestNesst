@@ -212,5 +212,19 @@ public class UserService {
                     .toList();
         return result;
     }
+    public boolean handleAccsetHost(Long host_id){
+        UserEntity userEntity = this.userRepository.findById(host_id)   
+                                .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Set<RoleEntity> roles = userEntity.getRoles();
+        RoleEntity roleHost = this.roleRepository.findByRoleName(RoleName.HOST.toString()).get();
+        if( !roles.contains(roleHost)) {
+            roles.add(this.roleRepository.findByRoleName(RoleName.HOST.toString()).get());
+            userEntity.setRoles(roles);
+            this.userRepository.save(userEntity);
+            return true;
+        };
+        
+        return false;
+    }
 
 }

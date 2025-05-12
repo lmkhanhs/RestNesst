@@ -175,13 +175,26 @@ public class UserController {
                 .message("Apply to host success")
                 .build();
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users/host/apply")
     public ApiResponse<List<HostProfileResponse>> getApplyPerson() {
         return ApiResponse.<List<HostProfileResponse>>builder()
-                        .code(200)
-                        .message("get user want to apply host")
-                        .result(this.userService.handleGetApplyPerson())
-                        .build();
+                .code(200)
+                .message("get user want to apply host")
+                .result(this.userService.handleGetApplyPerson())
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/users/host/status/{id}")
+    public ApiResponse<Void> updateStstusAccess(@PathVariable Long id) {
+        boolean status = this.userService.handleAccsetHost(id);
+        String str = status ? "add role host successfully" : "user had role host";
+
+        return ApiResponse.<Void>builder()
+                    .code(200)
+                    .message(str)
+                    .build();
     }
 }
