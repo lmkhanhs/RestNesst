@@ -3,6 +3,7 @@ package com.pbl5cnpm.airbnb_service.repository.Custom;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
@@ -59,14 +60,17 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         StringBuilder sql = new StringBuilder("SELECT DISTINCT l.*");
         StringBuilder table = new StringBuilder(" FROM listings l ");
         StringBuilder condition = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE ");
-        if (amenities != null) {
+        if (amenities != null && !amenities.isEmpty()) {
             table.append(" INNER JOIN listing_amenites la ON l.id = la.listing_id ");
             table.append(" INNER JOIN amenites a ON la.amenites_id = a.id ");
 
-            for (String string : amenities) {
-                condition.append(" AND a.name = '" + string + "'");
-            }
+            String joined = amenities.stream()
+                    .map(String::trim)
+                    .collect(Collectors.joining(","));
+
+            condition.append(" AND a.id IN (" + joined + ")");
         }
+        
         if (args.containsKey("lowestPrice")) {
             String lowestPrice = args.get("lowestPrice");
             condition.append(" AND l.price >= " + lowestPrice);
