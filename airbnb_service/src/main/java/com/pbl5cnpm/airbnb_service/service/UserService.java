@@ -220,7 +220,12 @@ public class UserService {
         if( !roles.contains(roleHost)) {
             roles.add(this.roleRepository.findByRoleName(RoleName.HOST.toString()).get());
             userEntity.setRoles(roles);
-            this.userRepository.save(userEntity);
+            userEntity = this.userRepository.save(userEntity);
+
+            // xóa ra khỏi danh sach tohost
+            ApplyHostEntity applyHostEntity =  this.applyHostListRepository.findByHostId(userEntity.getId()).get();
+                                        applyHostEntity.setDeleted(true);
+            this.applyHostListRepository.save(applyHostEntity);
             return true;
         };
         
