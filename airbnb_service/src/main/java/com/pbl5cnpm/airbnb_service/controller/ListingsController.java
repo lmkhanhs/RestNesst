@@ -131,5 +131,15 @@ public class ListingsController {
                     .message("delete success!")
                     .build();
     }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/listings/{id}/{position}")
+    public ApiResponse<Void> changPosition(@PathVariable Long id, @PathVariable Integer position) {
+        this.listingsServices.handleChangePosition(id, position);
+        
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("change position")
+                .build();
+    }
 
 }

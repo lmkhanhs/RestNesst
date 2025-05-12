@@ -48,10 +48,11 @@ public class ListingsServices {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         ListingEntity entity = this.listingMapper.toEntity(listingRequest);
-        
+
         entity.setHost(host);
         entity.setDeleted(false);
         entity.setStatus(ListingStatus.ACTIVE.toString());
+        entity.setAvgStart(4.9);
         if (entity.getImagesEntities() != null) {
             for (ImagesEntity img : entity.getImagesEntities()) {
                 img.setListingEntity(entity);
@@ -64,26 +65,29 @@ public class ListingsServices {
         var enti = this.listingsRepository.save(entity);
         return this.listingMapper.toResponse(enti);
     }
-    public Long getCount(){
+
+    public Long getCount() {
         return this.listingsRepository.count();
     }
-    public List<ListingsResponse> handlerSearch(String keyword){
+
+    public List<ListingsResponse> handlerSearch(String keyword) {
         List<ListingEntity> listingEntities = this.listingsRepository.searchByKey(keyword);
         return listingEntities.stream()
                 .map(data -> this.listingMapper.toResponse(data))
                 .toList();
     }
-    
-    public List<ListingsResponse> handlerfilter(Map<String, String> args, List<String> amenities){
+
+    public List<ListingsResponse> handlerfilter(Map<String, String> args, List<String> amenities) {
         List<ListingEntity> listingEntities = this.listingsRepository.filter(args, amenities);
         return listingEntities.stream()
                 .map(data -> this.listingMapper.toResponse(data))
                 .toList();
     }
-    public boolean handleAccessStatus(Boolean status, Long listingId){
-        ListingEntity listingEntity =  this.listingsRepository.findById(listingId)
-                                        .orElseThrow(()-> new AppException(ErrorCode.LISTING_NOT_EXISTED));
-        if(status == true){
+
+    public boolean handleAccessStatus(Boolean status, Long listingId) {
+        ListingEntity listingEntity = this.listingsRepository.findById(listingId)
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        if (status == true) {
             listingEntity.setAccess(true);
             this.listingsRepository.save(listingEntity);
             return true;
@@ -92,17 +96,26 @@ public class ListingsServices {
         this.listingsRepository.save(listingEntity);
         return false;
     }
-    public List<ListingResponseManager> handlegetfullAll(){
-        List<ListingEntity> entities = this.listingsRepository.findAllByDeleted(false);
+
+    public List<ListingResponseManager> handlegetfullAll() {
+        List<ListingEntity> entities = this.listingsRepository.findAllByDeletedOrderByPositionAsc(false);
         return entities.stream()
-                    .map(data -> this.listingMapper.toLisingResposeManager(data))
-                    .toList();
+                .map(data -> this.listingMapper.toLisingResposeManager(data))
+                .toList();
     }
-    public void handleDelete(Long listingId){
-        ListingEntity listingEntity =  this.listingsRepository.findById(listingId)
-                                        .orElseThrow(()-> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+
+    public void handleDelete(Long listingId) {
+        ListingEntity listingEntity = this.listingsRepository.findById(listingId)
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
         listingEntity.setDeleted(true);
         this.listingsRepository.save(listingEntity);
     }
-    
+
+    public void handleChangePosition(Long listingId, Integer position) {
+        ListingEntity listingEntity = this.listingsRepository.findById(listingId)
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        listingEntity.setPosition(position);
+        this.listingsRepository.save(listingEntity);
+    }
+
 }
