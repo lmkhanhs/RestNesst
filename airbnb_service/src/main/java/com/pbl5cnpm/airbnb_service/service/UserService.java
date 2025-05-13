@@ -1,15 +1,12 @@
 package com.pbl5cnpm.airbnb_service.service;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.hc.core5.net.Host;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -225,11 +222,9 @@ public class UserService {
 
             // xóa ra khỏi danh sach tohost
             ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
-            applyHostEntity.setDeleted(true);
-            this.applyHostListRepository.save(applyHostEntity);
+            this.applyHostListRepository.delete(applyHostEntity);
             return true;
         }
-        ;
 
         return false;
     }
@@ -237,9 +232,9 @@ public class UserService {
     public void handleRejectAccess(Long host_id) {
         UserEntity userEntity = this.userRepository.findById(host_id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        // ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
         ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
-        applyHostEntity.setDeleted(true);
-        this.applyHostListRepository.save(applyHostEntity);
+            this.applyHostListRepository.delete(applyHostEntity);
 
     }
 
