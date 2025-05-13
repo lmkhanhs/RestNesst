@@ -32,7 +32,7 @@ public class ListingsServices {
 
     public List<ListingsResponse> handleGetAll() {
         List<ListingEntity> entitys = this.listingsRepository.findAllAndStatus(ListingStatus.ACTIVE.toString(), false,
-                true, LocalDate.now());
+                true, LocalDate.now(), true);
 
         return entitys.stream().map(listingMapper::toResponse).toList();
     }

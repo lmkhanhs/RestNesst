@@ -19,11 +19,14 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
     private EntityManager entityManager;
 
     @Override
-    public List<ListingEntity> findAllAndStatus(String status, boolean deleted, boolean access, LocalDate now) {
+    public List<ListingEntity> findAllAndStatus(String status, boolean deleted, boolean access, LocalDate now,
+            boolean sort) {
         StringBuilder sql = new StringBuilder(
                 "SELECT * FROM listings WHERE status = :status AND deleted = :deleted AND access = :access");
         sql.append(" AND start_date <= :now AND end_date >= :now");
-
+        if (sort) {
+            sql.append(" ORDER BY position ASC");
+        }
         Query query = entityManager.createNativeQuery(sql.toString(), ListingEntity.class);
         query.setParameter("status", status);
         query.setParameter("deleted", deleted);
@@ -59,7 +62,8 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
     public List<ListingEntity> filter(Map<String, String> args, List<String> amenityIds) {
         StringBuilder sql = new StringBuilder("SELECT l.*");
         StringBuilder table = new StringBuilder(" FROM listings l ");
-        StringBuilder where = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE AND l.status = 'ACTIVE' ");
+        StringBuilder where = new StringBuilder(
+                " WHERE l.deleted = FALSE AND l.access = TRUE AND l.status = 'ACTIVE' ");
 
         boolean hasAmenityFilter = (amenityIds != null && !amenityIds.isEmpty());
 
