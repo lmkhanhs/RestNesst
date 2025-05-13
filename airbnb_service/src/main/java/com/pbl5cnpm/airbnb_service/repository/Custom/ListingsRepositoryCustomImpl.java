@@ -59,7 +59,7 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
     public List<ListingEntity> filter(Map<String, String> args, List<String> amenityIds) {
         StringBuilder sql = new StringBuilder("SELECT l.*");
         StringBuilder table = new StringBuilder(" FROM listings l ");
-        StringBuilder where = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE ");
+        StringBuilder where = new StringBuilder(" WHERE l.deleted = FALSE AND l.access = TRUE AND l.status = 'ACTIVE' ");
 
         boolean hasAmenityFilter = (amenityIds != null && !amenityIds.isEmpty());
 
