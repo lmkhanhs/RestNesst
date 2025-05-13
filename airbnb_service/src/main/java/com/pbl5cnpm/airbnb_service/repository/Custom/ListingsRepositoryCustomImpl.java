@@ -51,6 +51,8 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
                         OR LOWER(a.name) LIKE LOWER(CONCAT('%', :key, '%')))
                         AND l.deleted = FALSE
                         AND l.access = TRUE
+                        AND l.status = 'ACTIVE'
+                    ORDER BY l.position ASC;    
                 """;
 
         Query query = entityManager.createNativeQuery(sql, ListingEntity.class);
@@ -108,8 +110,9 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         if (hasAmenityFilter) {
             sql.append(" GROUP BY l.id");
             sql.append(" HAVING COUNT(DISTINCT a.id) = ").append(amenityIds.size());
-        }
 
+        }
+        sql.append(" ORDER BY l.position ASC");
         Query query = entityManager.createNativeQuery(sql.toString(), ListingEntity.class);
         return query.getResultList();
     }
