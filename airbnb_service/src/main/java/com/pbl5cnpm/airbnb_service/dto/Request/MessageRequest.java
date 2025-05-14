@@ -15,7 +15,7 @@
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public class MessageRequest {
-        String senderUsername;
-        String receiverUsername;
+        Long senderID;
+        Long receiverID;
         String content; 
     }

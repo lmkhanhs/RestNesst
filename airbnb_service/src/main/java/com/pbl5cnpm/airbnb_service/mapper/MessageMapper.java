@@ -21,8 +21,8 @@ public abstract class MessageMapper {
     private UserRepository userRepository;
 
     @Mappings({
-        @Mapping(source = "senderUsername", target = "sender", qualifiedByName = "toUserEntity"),
-        @Mapping(source = "receiverUsername", target = "receiver", qualifiedByName = "toUserEntity"),
+        @Mapping(source = "senderID", target = "sender", qualifiedByName = "toUserEntity"),
+        @Mapping(source = "receiverID", target = "receiver", qualifiedByName = "toUserEntity"),
         @Mapping(source = "content", target = "content")
     })
     public abstract MessageEntity toEntity(MessageRequest messageRequest);
@@ -32,9 +32,9 @@ public abstract class MessageMapper {
     public abstract MessageResponse toResponse(MessageEntity messageEntity); 
 //
     @Named("toUserEntity")
-    protected UserEntity toUserEntity(String username) {
-        if (username == null || username.isEmpty()) return null;
-        return userRepository.findByUsername(username)
+    protected UserEntity toUserEntity(Long id) {
+        if (id == null ) return null;
+        return userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
 }
