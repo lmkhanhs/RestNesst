@@ -24,6 +24,7 @@ public class ListingResponseManagerForHost {
     String city;
     String country;
     List<String> images;
+    List<AmenitiesForListingRespose> amenites;
     LocalDate startDate;
     LocalDate endDate;
     Double price;

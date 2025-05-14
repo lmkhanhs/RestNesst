@@ -62,7 +62,8 @@ public abstract class ListingMapper {
     @Mappings({
             @Mapping(source = "title", target = "name"),
             @Mapping(source = "countriesEntity.name", target = "country"),
-            @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages")
+            @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
+            @Mapping(source = "amenitesEntities", target = "amenites", qualifiedByName = "mapAmenites"),
     })
     public abstract ListingResponseManagerForHost toListingResponseManagerForHost(ListingEntity entity);
 
