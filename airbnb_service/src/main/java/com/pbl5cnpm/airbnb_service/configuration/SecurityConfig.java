@@ -39,6 +39,7 @@ public class SecurityConfig {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(request -> request
                                                 .requestMatchers("/uploads/**").permitAll()
+                                                .requestMatchers("/ws/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, PULIC_GET).permitAll()
                                                 .requestMatchers(HttpMethod.PUT, PULIC_PUT).permitAll()
                                                 .requestMatchers(HttpMethod.POST, PUBLIC_END_POINT_TEST).permitAll()
@@ -67,7 +68,7 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+                configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5000"));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setAllowCredentials(true);

@@ -40,10 +40,10 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         String sql = """
                     SELECT DISTINCT l.*
                     FROM listings l
-                    LEFT JOIN listing_categories lc ON l.id = lc.listing_id
-                    LEFT JOIN categories c ON lc.category_id = c.id
-                    LEFT JOIN listing_amenites la ON l.id = la.listing_id
-                    LEFT JOIN amenites a ON la.amenites_id = a.id
+                        LEFT JOIN listing_categories lc ON l.id = lc.listing_id
+                        LEFT JOIN categories c ON lc.category_id = c.id
+                        LEFT JOIN listing_amenites la ON l.id = la.listing_id
+                        LEFT JOIN amenites a ON la.amenites_id = a.id
                     WHERE
                         (LOWER(l.title) LIKE LOWER(CONCAT('%', :key, '%'))
                         OR LOWER(l.address) LIKE LOWER(CONCAT('%', :key, '%'))
@@ -52,7 +52,7 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
                         AND l.deleted = FALSE
                         AND l.access = TRUE
                         AND l.status = 'ACTIVE'
-                    ORDER BY l.position ASC;    
+                    ORDER BY l.position DESC;    
                 """;
 
         Query query = entityManager.createNativeQuery(sql, ListingEntity.class);
@@ -112,7 +112,7 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
             sql.append(" HAVING COUNT(DISTINCT a.id) = ").append(amenityIds.size());
 
         }
-        sql.append(" ORDER BY l.position ASC");
+        sql.append(" ORDER BY l.position DESC");
         Query query = entityManager.createNativeQuery(sql.toString(), ListingEntity.class);
         return query.getResultList();
     }

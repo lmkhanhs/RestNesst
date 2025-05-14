@@ -15,4 +15,6 @@ import com.pbl5cnpm.airbnb_service.repository.Custom.ListingsRepositoryCustom;
 public interface ListingsRepository extends JpaRepository<ListingEntity, Long>, ListingsRepositoryCustom {
     Page<ListingEntity> findAll(Pageable pageable);
     List<ListingEntity> findAllByDeletedOrderByPositionAsc(Boolean deleted);
+    Long countByDeletedFalse();
+
 }

@@ -54,6 +54,7 @@ public class ListingsServices {
         entity.setStatus(ListingStatus.ACTIVE.toString());
         entity.setAvgStart(4.9);
         entity.setPosition(this.listingsRepository.count());
+        entity.setPopular(true);
         if (entity.getImagesEntities() != null) {
             for (ImagesEntity img : entity.getImagesEntities()) {
                 img.setListingEntity(entity);
@@ -68,7 +69,7 @@ public class ListingsServices {
     }
 
     public Long getCount() {
-        return this.listingsRepository.count();
+        return this.listingsRepository.countByDeletedFalse();
     }
 
     public List<ListingsResponse> handlerSearch(String keyword) {
