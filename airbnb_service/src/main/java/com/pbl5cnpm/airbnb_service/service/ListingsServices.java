@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
@@ -64,22 +65,22 @@ public class ListingsServices {
         entity.setAccess(isAdmin);
         // UPDATE
         // cần xử lý save ảnh
-        List<ImagesEntity> imgEntitys = new ArrayList<>(); 
-        List<MultipartFile> imgs = listingRequest.getImgs();
-        for (MultipartFile multipartFile : imgs) {
-            try {
-                String url = this.imageService.saveImageFile(multipartFile);
-                ImagesEntity imagesEntity = ImagesEntity.builder()
-                                            .deleted(false)
-                                            .imageUrl(url)
-                                            .build();
-                imgEntitys.add(imagesEntity);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        // List<ImagesEntity> imgEntitys = new ArrayList<>(); 
+        // List<MultipartFile> imgs = listingRequest.getImgs();
+        // for (MultipartFile multipartFile : imgs) {
+        //     try {
+        //         String url = this.imageService.saveImageFile(multipartFile);
+        //         ImagesEntity imagesEntity = ImagesEntity.builder()
+        //                                     .deleted(false)
+        //                                     .imageUrl(url)
+        //                                     .build();
+        //         imgEntitys.add(imagesEntity);
+        //     } catch (IOException e) {
+        //         e.printStackTrace();
+        //     }
             
-        }
-        entity.setImagesEntities(imgEntitys);
+        // }
+        // entity.setImagesEntities(imgEntitys);
         // endupdATE
         if (entity.getImagesEntities() != null) {
             for (ImagesEntity img : entity.getImagesEntities()) {
@@ -143,5 +144,12 @@ public class ListingsServices {
         listingEntity.setPosition(position);
         this.listingsRepository.save(listingEntity);
     }
-
+    
+    public List<ListingResponseManagerForHost> getListingHost(String username){
+        UserEntity userEntity = this.userRepository.findByUsername(username).get();
+        List<ListingEntity> entities = this.listingsRepository.findByHostAndDeleted(userEntity, false);
+        return entities.stream()
+                .map(data -> this.listingMapper.toListingResponseManagerForHost(data))
+                .toList();
+    }
 }

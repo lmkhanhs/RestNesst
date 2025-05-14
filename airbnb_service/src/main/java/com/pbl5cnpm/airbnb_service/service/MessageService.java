@@ -91,19 +91,15 @@ public class MessageService {
         }
         List<UserResponse> result = new ArrayList<>();
 
-        if(user != adminEntity ){
+        if (user != adminEntity) {
             result.add(this.userMapper.toUserResponse(adminEntity));
         }
-
         partnerLastMessageMap.remove(adminEntity);
-
         List<UserResponse> sortedPartners = partnerLastMessageMap.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .map(entry -> this.userMapper.toUserResponse(entry.getKey()))
                 .toList();
-
         result.addAll(sortedPartners);
-
         return result;
     }
 

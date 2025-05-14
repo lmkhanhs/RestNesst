@@ -60,6 +60,11 @@ public class UserService {
     @Value("${image.customer}")
     private String THUMNAIL;
 
+    public UserResponse handleGetInforByID(Long id){
+        UserEntity entity = this.userRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return this.mapper.toUserResponse(entity);
+    }
+
     public UserResponse handleCreateUser(UserRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new AppException(ErrorCode.USERNAME_EXISTED);

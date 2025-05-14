@@ -209,4 +209,14 @@ public class UserController {
                 .message("Reject to host ")
                 .build();
     }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/users/{id}")
+    public ApiResponse<UserResponse> getById(@PathVariable Long id) {
+        return ApiResponse.<UserResponse>builder()
+                        .code(200)
+                        .message("get user by api")
+                        .result(this.userService.handleGetInforByID(id))
+                        .build();
+    }
+    
 }

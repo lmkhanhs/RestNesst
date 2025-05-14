@@ -22,6 +22,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.service.ListingsServices;
 
@@ -141,5 +142,16 @@ public class ListingsController {
                 .message("change position")
                 .build();
     }
+    @PreAuthorize("hasAuthority('HOST')")
+    @GetMapping("/listings/host")
+    public ApiResponse<List<ListingResponseManagerForHost>> getListingByHost(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
 
+        return ApiResponse.<List<ListingResponseManagerForHost>>builder()
+                        .code(200)
+                        .message("get listing by host")
+                        .result(this.listingsServices.getListingHost(username))
+                        .build();
+    }
 }
