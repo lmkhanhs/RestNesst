@@ -28,7 +28,6 @@ import com.pbl5cnpm.airbnb_service.enums.PaymentStatus;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.repository.BookingRepository;
-import com.pbl5cnpm.airbnb_service.repository.CreateInfoPaymentRepository;
 import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
 import com.pbl5cnpm.airbnb_service.repository.PaymentRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
