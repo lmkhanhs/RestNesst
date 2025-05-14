@@ -30,5 +30,6 @@ public class ListingRequest {
     LocalDate startDate;
     LocalDate endDate;
     List<String> amenites;
+    List<String> categories;
     List<MultipartFile> imgs;
 }

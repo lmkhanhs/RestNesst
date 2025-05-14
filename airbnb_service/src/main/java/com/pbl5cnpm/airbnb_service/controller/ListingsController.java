@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
@@ -153,5 +154,17 @@ public class ListingsController {
                         .message("get listing by host")
                         .result(this.listingsServices.getListingHost(username))
                         .build();
+    }
+    @PreAuthorize("hasAuthority('HOST')")
+    @PutMapping(value = "/listings/host", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ListingsResponse> update(@ModelAttribute UpdateListingRequest listingRequest){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        return ApiResponse.<ListingsResponse>builder()
+                    .code(200)
+                    .message("update listing by host")
+                    .result(this.listingsServices.handleUpdateListingByHost(username, listingRequest))
+                    .build();
     }
 }

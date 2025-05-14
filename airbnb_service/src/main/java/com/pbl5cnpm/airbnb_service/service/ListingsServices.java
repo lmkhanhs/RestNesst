@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
@@ -65,20 +66,20 @@ public class ListingsServices {
         entity.setAccess(isAdmin);
         // UPDATE
         // cần xử lý save ảnh
-        // List<ImagesEntity> imgEntitys = new ArrayList<>(); 
+        // List<ImagesEntity> imgEntitys = new ArrayList<>();
         // List<MultipartFile> imgs = listingRequest.getImgs();
         // for (MultipartFile multipartFile : imgs) {
-        //     try {
-        //         String url = this.imageService.saveImageFile(multipartFile);
-        //         ImagesEntity imagesEntity = ImagesEntity.builder()
-        //                                     .deleted(false)
-        //                                     .imageUrl(url)
-        //                                     .build();
-        //         imgEntitys.add(imagesEntity);
-        //     } catch (IOException e) {
-        //         e.printStackTrace();
-        //     }
-            
+        // try {
+        // String url = this.imageService.saveImageFile(multipartFile);
+        // ImagesEntity imagesEntity = ImagesEntity.builder()
+        // .deleted(false)
+        // .imageUrl(url)
+        // .build();
+        // imgEntitys.add(imagesEntity);
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+
         // }
         // entity.setImagesEntities(imgEntitys);
         // endupdATE
@@ -87,7 +88,6 @@ public class ListingsServices {
                 img.setListingEntity(entity);
             }
         }
-        
 
         var enti = this.listingsRepository.save(entity);
         return this.listingMapper.toResponse(enti);
@@ -144,12 +144,44 @@ public class ListingsServices {
         listingEntity.setPosition(position);
         this.listingsRepository.save(listingEntity);
     }
-    
-    public List<ListingResponseManagerForHost> getListingHost(String username){
+
+    public List<ListingResponseManagerForHost> getListingHost(String username) {
         UserEntity userEntity = this.userRepository.findByUsername(username).get();
         List<ListingEntity> entities = this.listingsRepository.findByHostAndDeleted(userEntity, false);
         return entities.stream()
                 .map(data -> this.listingMapper.toListingResponseManagerForHost(data))
                 .toList();
+    }
+
+    public ListingsResponse handleUpdateListingByHost(String username, UpdateListingRequest listingRequest) {
+        UserEntity host = this.userRepository.findByUsername(username).get();
+        ListingEntity listinginfor = this.listingMapper.toListingEntityForUpdate(listingRequest);
+
+        ListingEntity entity = this.listingsRepository.findById(listinginfor.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        String status = listinginfor.getStatus().equals(ListingStatus.ACTIVE.toString())
+                ? ListingStatus.ACTIVE.toString()
+                : ListingStatus.INACTIVE.toString();
+        entity.setTitle(listinginfor.getTitle());
+        entity.setDescription(listinginfor.getDescription());
+        entity.setAddress(listinginfor.getAddress());
+        entity.setCity(listinginfor.getCity());
+        entity.setArea(listinginfor.getArea());
+        entity.setCountriesEntity(listinginfor.getCountriesEntity());
+        /// check
+        if (listinginfor.getImagesEntities() == null) {
+
+        } else {
+            entity.setImagesEntities(listinginfor.getImagesEntities());
+        }
+        entity.setCategoriesEntities(listinginfor.getCategoriesEntities());
+        entity.setStartDate(listinginfor.getStartDate());
+        entity.setEndDate(listinginfor.getEndDate());
+        entity.setPrice(listinginfor.getPrice());
+        entity.setStatus(status);
+        boolean isAdmin = host.getRoles().stream()
+                .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN.toString()));
+        entity.setAccess(isAdmin);
+        return this.listingMapper.toResponse(this.listingsRepository.save(entity));
     }
 }

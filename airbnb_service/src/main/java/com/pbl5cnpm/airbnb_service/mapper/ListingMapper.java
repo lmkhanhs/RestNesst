@@ -1,6 +1,7 @@
 package com.pbl5cnpm.airbnb_service.mapper;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.AmenitiesForListingRespose;
 import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
@@ -15,6 +16,7 @@ import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.repository.AmenitiesRepository;
+import com.pbl5cnpm.airbnb_service.repository.CategoriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.ImageRepository;
 import com.pbl5cnpm.airbnb_service.service.CloudinaryService;
@@ -22,6 +24,7 @@ import com.pbl5cnpm.airbnb_service.service.CloudinaryService;
 import ch.qos.logback.core.spi.ErrorCodes;
 
 import com.pbl5cnpm.airbnb_service.entity.AmenitesEntity;
+import com.pbl5cnpm.airbnb_service.entity.CategoriesEntity;
 import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import org.mapstruct.*;
@@ -43,6 +46,8 @@ public abstract class ListingMapper {
     protected CloudinaryService cloudinaryService;
     @Autowired
     protected CountriesRepository countriesRepository;
+    @Autowired
+    protected CategoriesRepository categoriesRepository;
     @Mappings({
             @Mapping(source = "title", target = "name"),
             @Mapping(source = "countriesEntity.name", target = "country"),
@@ -130,10 +135,29 @@ public abstract class ListingMapper {
     @Mappings({
         @Mapping(source = "amenites", target = "amenitesEntities", qualifiedByName = "toAmenitesEntities"),
         @Mapping(source = "imgs",  target = "imagesEntities", qualifiedByName = "toImagesEntities" ),
-        @Mapping(source= "country", target = "countriesEntity", qualifiedByName = "toCountriesEntity" )
+        @Mapping(source= "country", target = "countriesEntity", qualifiedByName = "toCountriesEntity" ),
+         @Mapping(source = "categories", target = "categoriesEntities", qualifiedByName = "toCategoryEntities" )
     })
     public abstract ListingEntity toEntity(ListingRequest listingRequest);
-    
+
+    @Mappings({
+        @Mapping(source  = "amenites", target = "amenitesEntities", qualifiedByName = "toAmenitesEntities"),
+        @Mapping(source = "imgs",  target = "imagesEntities", qualifiedByName = "toImagesEntities" ),
+        @Mapping(source= "country", target = "countriesEntity", qualifiedByName = "toCountriesEntity" ),
+        @Mapping(source = "categories", target = "categoriesEntities", qualifiedByName = "toCategoryEntities" )
+    })
+// main
+    public abstract ListingEntity toListingEntityForUpdate(UpdateListingRequest listingRequest);
+// 
+    @Named("toCategoryEntities")
+    protected List<CategoriesEntity> categoriesEntities(List<String> categories){
+        if (categories == null) return null;
+        List<CategoriesEntity> results = new ArrayList<>();
+        for (String category : categories) {
+            categoriesRepository.findByName(category).ifPresent(results::add);
+        }
+        return results;
+    }
     @Named("toAmenitesEntities")
     protected List<AmenitesEntity> toAmenitesEntities(List<String> amenites){
         if (amenites == null) return null;
