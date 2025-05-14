@@ -29,13 +29,21 @@ public class MessageService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public List<MessageResponse> getMessageWithRecieve(String username, Long recieveId) {
-        UserEntity userEntity = this.userRepository.findByUsername(username).get();
+    public List<MessageResponse> getMessageWithPerson(String username, Long recieveId) {
+        UserEntity userEntity = this.userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         UserEntity recievEntity = this.userRepository.findById(recieveId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        var enti = this.messageRepository.findBySenderAndReceiver(userEntity, recievEntity);
-        return enti.stream()
-                .map(data -> this.messageMapper.toResponse(data))
+        List<MessageEntity> enti = this.messageRepository.findBySenderAndReceiver(userEntity, recievEntity);
+        List<MessageEntity> enti2 = this.messageRepository.findBySenderAndReceiver(recievEntity, userEntity);
+        enti.addAll(enti2);
+
+        List<MessageEntity> sortedMessages = enti.stream()
+                .sorted((m1, m2) -> m1.getTimestamp().compareTo(m2.getTimestamp()))
+                .toList();
+
+        return sortedMessages.stream()
+                .map(this.messageMapper::toResponse)
                 .toList();
     }
 
@@ -85,10 +93,10 @@ public class MessageService {
 
         result.add(this.userMapper.toUserResponse(adminEntity));
 
-        partnerLastMessageMap.remove(adminEntity); 
+        partnerLastMessageMap.remove(adminEntity);
 
         List<UserResponse> sortedPartners = partnerLastMessageMap.entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())) 
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .map(entry -> this.userMapper.toUserResponse(entry.getKey()))
                 .toList();
 

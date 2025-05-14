@@ -59,7 +59,7 @@ public class ChatController {
         return ApiResponse.<List<MessageResponse>>builder()
                 .code(200)
                 .message("get all message")
-                .result(this.messageService.getMessageWithRecieve(username, receiverId))
+                .result(this.messageService.getMessageWithPerson(username, receiverId))
                 .build();
     }
 

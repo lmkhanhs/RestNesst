@@ -19,10 +19,10 @@ public class ImageService {
     @Autowired
     private ImageRepository imageRepository;
 
-    @Value("${upload.directory}") 
+    @Value("${upload.directory}")
     private String UPLOAD_DIR;
 
-    public void handleSaveImage(MultipartFile file) throws IOException {
+    public String saveImageFile(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             throw new IOException("File is empty");
         }
@@ -35,14 +35,9 @@ public class ImageService {
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-        String fileName = UUID.randomUUID().toString()+"&"+file.getOriginalFilename();  
+        String fileName = UUID.randomUUID().toString() + "&" + file.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
         Files.copy(file.getInputStream(), filePath);
-        String imageUrl = "/uploads/" + fileName;
-        ImagesEntity imageEntity = ImagesEntity.builder()
-                .imageUrl(imageUrl)
-                .deleted(false)
-                .build();
-        this.imageRepository.save(imageEntity);
+        return "/uploads/" + fileName;
     }
 }

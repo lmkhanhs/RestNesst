@@ -1,10 +1,13 @@
 package com.pbl5cnpm.airbnb_service.service;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
@@ -29,6 +32,7 @@ public class ListingsServices {
     private final ListingsRepository listingsRepository;
     private final ListingMapper listingMapper;
     private final UserRepository userRepository;
+    private final ImageService imageService;
 
     public List<ListingsResponse> handleGetAll() {
         List<ListingEntity> entitys = this.listingsRepository.findAllAndStatus(ListingStatus.ACTIVE.toString(), false,
@@ -55,14 +59,34 @@ public class ListingsServices {
         entity.setAvgStart(4.9);
         entity.setPosition(this.listingsRepository.count());
         entity.setPopular(true);
+        boolean isAdmin = host.getRoles().stream()
+                .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN.toString()));
+        entity.setAccess(isAdmin);
+        // UPDATE
+        // cần xử lý save ảnh
+        List<ImagesEntity> imgEntitys = new ArrayList<>(); 
+        List<MultipartFile> imgs = listingRequest.getImgs();
+        for (MultipartFile multipartFile : imgs) {
+            try {
+                String url = this.imageService.saveImageFile(multipartFile);
+                ImagesEntity imagesEntity = ImagesEntity.builder()
+                                            .deleted(false)
+                                            .imageUrl(url)
+                                            .build();
+                imgEntitys.add(imagesEntity);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+        }
+        entity.setImagesEntities(imgEntitys);
+        // endupdATE
         if (entity.getImagesEntities() != null) {
             for (ImagesEntity img : entity.getImagesEntities()) {
                 img.setListingEntity(entity);
             }
         }
-        boolean isAdmin = host.getRoles().stream()
-                .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN.toString()));
-        entity.setAccess(isAdmin);
+        
 
         var enti = this.listingsRepository.save(entity);
         return this.listingMapper.toResponse(enti);
