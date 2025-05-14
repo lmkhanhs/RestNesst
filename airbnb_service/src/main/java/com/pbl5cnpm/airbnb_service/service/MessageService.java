@@ -64,7 +64,7 @@ public class MessageService {
         }
     }
 
-    public List<UserResponse> getRecievePersons(String username) {
+    public List<UserResponse> getMessageVPersons(String username) {
         UserEntity user = this.userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
@@ -91,7 +91,9 @@ public class MessageService {
         }
         List<UserResponse> result = new ArrayList<>();
 
-        result.add(this.userMapper.toUserResponse(adminEntity));
+        if(user != adminEntity ){
+            result.add(this.userMapper.toUserResponse(adminEntity));
+        }
 
         partnerLastMessageMap.remove(adminEntity);
 

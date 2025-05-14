@@ -67,7 +67,7 @@ public class ChatController {
     public ApiResponse<List<UserResponse>> getPerson() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        List<UserResponse> res = this.messageService.getRecievePersons(username);
+        List<UserResponse> res = this.messageService.getMessageVPersons(username);
 
         return ApiResponse.<List<UserResponse>>builder()
                     .code(200)
