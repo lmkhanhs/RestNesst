@@ -168,12 +168,14 @@ public class ListingsServices {
         entity.setCity(listinginfor.getCity());
         entity.setArea(listinginfor.getArea());
         entity.setCountriesEntity(listinginfor.getCountriesEntity());
+        entity.setCategoriesEntities(listinginfor.getCategoriesEntities());
         /// check
-        if (listinginfor.getImagesEntities() == null) {
-
-        } else {
+        if (listinginfor.getImagesEntities() != null) {
             entity.setImagesEntities(listinginfor.getImagesEntities());
-        }
+            for ( ImagesEntity imagesEntity : listinginfor.getImagesEntities()) {
+                imagesEntity.setListingEntity(entity);
+            }
+        } 
         entity.setCategoriesEntities(listinginfor.getCategoriesEntities());
         entity.setStartDate(listinginfor.getStartDate());
         entity.setEndDate(listinginfor.getEndDate());
