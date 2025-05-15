@@ -3,6 +3,7 @@ package com.pbl5cnpm.airbnb_service.mapper;
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.AmenitiesForListingRespose;
+import com.pbl5cnpm.airbnb_service.dto.Response.CategoryResponseForListing;
 import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
@@ -33,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -69,9 +71,11 @@ public abstract class ListingMapper {
             @Mapping(source = "countriesEntity.name", target = "country"),
             @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
             @Mapping(source = "amenitesEntities", target = "amenites", qualifiedByName = "mapAmenites"),
+            @Mapping(source = "reviews", target = "reviews", qualifiedByName = "mapReviews"),
+            @Mapping(source = "categoriesEntities", target = "categories", qualifiedByName="mapCategories")
     })
     public abstract ListingResponseManagerForHost toListingResponseManagerForHost(ListingEntity entity);
-
+/// v1
     @Mappings({
             @Mapping(source = "countriesEntity.name", target = "country"),
             @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
@@ -101,7 +105,16 @@ public abstract class ListingMapper {
                         .build())
                 .collect(Collectors.toList());
     }
-
+    @Named("mapCategories")
+    protected List<CategoryResponseForListing> mapCategories(List<CategoriesEntity> categoriesEntities){
+        if(categoriesEntities == null) return null;
+        return categoriesEntities.stream()
+                .map(category -> CategoryResponseForListing.builder()
+                                .name(category.getName())
+                                .thumnailUrl(category.getThumnailUrl())
+                            .build()
+                ).collect(Collectors.toList());
+    }
     @Named("mapReviews")
     protected List<ReviewResponse> mapReviews(List<ReviewEntity> reviewEntities) {
         if (reviewEntities == null)
