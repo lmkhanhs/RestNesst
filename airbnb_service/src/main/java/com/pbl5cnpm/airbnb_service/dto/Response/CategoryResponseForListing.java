@@ -16,4 +16,5 @@ import lombok.experimental.FieldDefaults;
 public class CategoryResponseForListing {
     String name;
     String thumnailUrl;
+    Long id;
 }

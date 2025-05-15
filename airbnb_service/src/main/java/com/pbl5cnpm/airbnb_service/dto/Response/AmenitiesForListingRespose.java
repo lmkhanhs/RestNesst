@@ -17,4 +17,5 @@ import lombok.experimental.FieldDefaults;
 public class AmenitiesForListingRespose {
     String thumnailUrl;
     String name;
+    Long id;
 }

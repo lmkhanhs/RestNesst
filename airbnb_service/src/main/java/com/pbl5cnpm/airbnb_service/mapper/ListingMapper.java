@@ -100,6 +100,7 @@ public abstract class ListingMapper {
             return null;
         return amenitesEntities.stream()
                 .map(amenitesEntitie -> AmenitiesForListingRespose.builder()
+                        .id(amenitesEntitie.getId())
                         .name(amenitesEntitie.getName())
                         .thumnailUrl(amenitesEntitie.getThumnailUrl())
                         .build())
@@ -110,6 +111,7 @@ public abstract class ListingMapper {
         if(categoriesEntities == null) return null;
         return categoriesEntities.stream()
                 .map(category -> CategoryResponseForListing.builder()
+                                .id(category.getId())
                                 .name(category.getName())
                                 .thumnailUrl(category.getThumnailUrl())
                             .build()
