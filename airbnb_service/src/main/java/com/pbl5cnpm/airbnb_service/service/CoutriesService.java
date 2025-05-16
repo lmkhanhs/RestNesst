@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import com.pbl5cnpm.airbnb_service.AirbnbServiceApplication;
 import com.pbl5cnpm.airbnb_service.dto.Request.CountryResquest;
-import com.pbl5cnpm.airbnb_service.dto.Request.CoutriesRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateCountryRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.CountryDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CoutriesResponse;

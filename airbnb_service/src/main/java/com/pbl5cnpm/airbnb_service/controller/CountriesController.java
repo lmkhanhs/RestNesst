@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.pbl5cnpm.airbnb_service.AirbnbServiceApplication;
 import com.pbl5cnpm.airbnb_service.dto.Request.CountryResquest;
-import com.pbl5cnpm.airbnb_service.dto.Request.CoutriesRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateCountryRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CountryDetailResponse;

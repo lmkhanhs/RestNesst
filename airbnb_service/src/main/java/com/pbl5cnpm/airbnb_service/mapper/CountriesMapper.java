@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.CountryResquest;
-import com.pbl5cnpm.airbnb_service.dto.Request.CoutriesRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateCountryRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.CountryDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.CoutriesResponse;

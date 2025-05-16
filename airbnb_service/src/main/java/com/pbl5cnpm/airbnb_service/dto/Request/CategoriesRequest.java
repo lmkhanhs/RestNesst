@@ -1,5 +1,7 @@
 package com.pbl5cnpm.airbnb_service.dto.Request;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,4 +18,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoriesRequest {
     String name;
+    MultipartFile image;
 }
