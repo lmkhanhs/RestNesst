@@ -18,5 +18,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoriesRequest {
     String name;
-    MultipartFile image;
+    MultipartFile thumbnail;
+    String description;
 }

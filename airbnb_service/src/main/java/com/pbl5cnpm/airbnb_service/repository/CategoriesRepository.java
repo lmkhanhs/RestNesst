@@ -11,5 +11,5 @@ import com.pbl5cnpm.airbnb_service.entity.CategoriesEntity;
 public interface CategoriesRepository extends JpaRepository<CategoriesEntity, Long> {
     Optional<CategoriesEntity> findByName(String name);
     List<CategoriesEntity> findByIsActiveTrueAndDeletedFalseOrderByPositionAsc();
-    List<CategoriesEntity> findAllByDeletedFalse();
+    List<CategoriesEntity> findAllByDeletedFalseOrderByPositionAsc();
 }

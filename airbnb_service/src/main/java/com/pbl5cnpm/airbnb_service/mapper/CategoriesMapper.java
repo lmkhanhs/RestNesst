@@ -20,6 +20,7 @@ public abstract class CategoriesMapper {
     protected CategoriesRepository categoriesRepository;
     @Autowired
     protected CloudinaryService cloudinaryService;
+    @Mapping(source = "thumbnail", target = "thumnailUrl", qualifiedByName = "mapThumbnail" )
     public abstract CategoriesEntity toCategoriesEntity(CategoriesRequest categoriesRequest);
     public abstract CategoriesResponse toCategoriesResponse (CategoriesEntity categoriesEntity);
     @Mapping(source = "thumbnail", target = "thumnailUrl", qualifiedByName = "mapThumbnail")
@@ -32,6 +33,5 @@ public abstract class CategoriesMapper {
         }
         return this.cloudinaryService.uploadImageCloddy(thumbnailFile);
     }
-    // new 
     public abstract CategoriesResponseForAdmin toCategoriesResponseForAdmin(CategoriesEntity entity);
 }

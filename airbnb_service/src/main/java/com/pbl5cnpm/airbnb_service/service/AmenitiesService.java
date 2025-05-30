@@ -75,4 +75,11 @@ public class AmenitiesService {
 
         return this.amenitiesMapper.toAmenitesForAdmin(this.amenitiesRepository.save(entity));
     }
+    public void handleDeleted(Long id){
+        AmenitesEntity entity = this.amenitiesRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.EMENITIES_NOT_EXIT));
+        entity.setDeleted(true);
+        this.amenitiesRepository.save(entity);
+        
+    }
 }

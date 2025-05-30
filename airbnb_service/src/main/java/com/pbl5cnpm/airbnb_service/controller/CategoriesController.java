@@ -31,10 +31,10 @@ public class CategoriesController {
     @Autowired
     private CategoriesService categoriesService;
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping("/api/categories")
-    public ResponseEntity<ApiResponse<CategoriesResponse>> createCategories(@RequestBody CategoriesRequest request) {
-        CategoriesResponse data = this.categoriesService.handleCreateCategories(request);
-        ApiResponse<CategoriesResponse> apiResponse = new ApiResponse<>();
+    @PostMapping(value =  "/api/categories", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<CategoriesResponseForAdmin>> createCategories(@ModelAttribute CategoriesRequest request) {
+        CategoriesResponseForAdmin data = this.categoriesService.handleCreateCategories(request);
+        ApiResponse<CategoriesResponseForAdmin> apiResponse = new ApiResponse<>();
                                     apiResponse.setResult(data);
                                     apiResponse.setCode(201);
                                     apiResponse.setMessage("Created categorry succcess!");

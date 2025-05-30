@@ -119,17 +119,17 @@ public class ApplicationInitConfig {
     }
 
     private void createBaseCategoies() {
-        createBaseCategory("Công viên quốc gia", "congvienquocgia.png", 1);
-        createBaseCategory("Biểu tượng", "bieutuong.png", 2);
-        createBaseCategory("Thiết kế", "thietke.png", 3);
-        createBaseCategory("Mới", "moi.png", 4);
-        createBaseCategory("Vui chơi", "vuichoi.png", 5);
-        createBaseCategory("Hướng biển", "huongbien.png", 6);
-        createBaseCategory("Phòng", "phong.png", 7);
-        createBaseCategory("Hồ bơi tuyệt đẹp", "hoboituyetdep.png", 8);
+        createBaseCategory("Công viên quốc gia", "congvienquocgia.png", 1l);
+        createBaseCategory("Biểu tượng", "bieutuong.png", 2l);
+        createBaseCategory("Thiết kế", "thietke.png", 3l);
+        createBaseCategory("Mới", "moi.png", 4l);
+        createBaseCategory("Vui chơi", "vuichoi.png", 5l);
+        createBaseCategory("Hướng biển", "huongbien.png", 6l);
+        createBaseCategory("Phòng", "phong.png", 7l);
+        createBaseCategory("Hồ bơi tuyệt đẹp", "hoboituyetdep.png", 8l);
     }
 
-    private void createBaseCategory(String name, String thumnailUrl, Integer position) {
+    private void createBaseCategory(String name, String thumnailUrl, Long position) {
         if (this.categoriesRepository.findByName(name).isEmpty()) {
             CategoriesEntity entity = CategoriesEntity.builder()
                     .name(name)

@@ -31,7 +31,7 @@ public class CategoriesEntity extends BaseEntity {
     @Column(nullable = false)
     String thumnailUrl;
     Boolean deleted;
-    Integer position;
+    Long position;
     Boolean isActive;
     @Column(columnDefinition = "TEXT")
     String description;

@@ -25,11 +25,12 @@ public class CategoriesService {
     CategoriesRepository categoriesRepository;
     CategoriesMapper categoriesMapper;
 
-    public CategoriesResponse handleCreateCategories(CategoriesRequest categoriesRequest){
+    public CategoriesResponseForAdmin handleCreateCategories(CategoriesRequest categoriesRequest){
         CategoriesEntity categoriesEntity = categoriesMapper.toCategoriesEntity(categoriesRequest);
                     categoriesEntity.setDeleted(false);
                     categoriesEntity.setIsActive(true);
-        return this.categoriesMapper.toCategoriesResponse(this.categoriesRepository.save(categoriesEntity));
+                    categoriesEntity.setPosition(this.categoriesRepository.count()+1);
+        return this.categoriesMapper.toCategoriesResponseForAdmin(this.categoriesRepository.save(categoriesEntity));
     }
 
     public List<CategoriesResponse> handleFindAll(){
@@ -61,7 +62,7 @@ public class CategoriesService {
     }
 
     public List<CategoriesResponseForAdmin> handleGetAllForAdmin(){
-        List<CategoriesEntity> entities = this.categoriesRepository.findAllByDeletedFalse();
+        List<CategoriesEntity> entities = this.categoriesRepository.findAllByDeletedFalseOrderByPositionAsc();
         return entities.stream()
                         .map(category -> this.categoriesMapper.toCategoriesResponseForAdmin(category))
                         .toList();
