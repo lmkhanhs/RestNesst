@@ -136,6 +136,7 @@ public class ApplicationInitConfig {
                     .thumnailUrl("/uploads/" + thumnailUrl)
                     .deleted(false)
                     .position(position)
+                    .isActive(true)
                     .build();
             this.categoriesRepository.save(entity);
         }

@@ -1,10 +1,6 @@
 package com.pbl5cnpm.airbnb_service.entity;
 
-
-import java.util.ArrayList;
 import java.util.List;
-
-import org.hibernate.annotations.CollectionId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 @Getter
 @Setter
 @Builder
@@ -35,6 +32,9 @@ public class CategoriesEntity extends BaseEntity {
     String thumnailUrl;
     Boolean deleted;
     Integer position;
+    Boolean isActive;
+    @Column(columnDefinition = "TEXT")
+    String description;
     @ManyToMany(mappedBy = "categoriesEntities")
     List<ListingEntity> listings;
 }

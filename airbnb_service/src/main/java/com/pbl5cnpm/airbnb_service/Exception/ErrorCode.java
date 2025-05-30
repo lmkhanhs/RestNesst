@@ -26,6 +26,7 @@ public enum ErrorCode {
     BOOKING_NOT_EXIT(1017,"booking not exits", HttpStatus.BAD_GATEWAY),
     BOOKING_DIFFERECES_PAID(1018,"booking not paid", HttpStatus.BAD_REQUEST),
     PAYMENT_NOT_EXIST(1019, "payment not exits", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_EXIT(1020, "catecory not exit", HttpStatus.BAD_REQUEST)
 
     ;
     ErrorCode(int code, String message, HttpStatus httpStatus){
