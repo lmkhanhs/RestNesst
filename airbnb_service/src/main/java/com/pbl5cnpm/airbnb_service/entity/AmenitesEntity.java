@@ -34,6 +34,9 @@ public class AmenitesEntity extends BaseEntity {
     String name;
     Boolean deleted;
     String thumnailUrl;
-    @ManyToMany(mappedBy = "amenitesEntities") 
+    @Column(columnDefinition = "TEXT")
+    String description;
+    Integer position;
+    @ManyToMany(mappedBy = "amenitesEntities")
     List<ListingEntity> listings = new ArrayList<>();
 }

@@ -1,6 +1,7 @@
 package com.pbl5cnpm.airbnb_service.dto.Request;
 
-import org.hibernate.annotations.Filter;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 public class AmenitiesRequest {
     String name;
-    String thumnailUrl;
+    MultipartFile thumbnail;
+    String description;
+    
 }

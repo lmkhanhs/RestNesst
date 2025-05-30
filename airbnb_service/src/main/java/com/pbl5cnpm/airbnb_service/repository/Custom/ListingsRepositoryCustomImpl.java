@@ -3,7 +3,7 @@ package com.pbl5cnpm.airbnb_service.repository.Custom;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 import org.springframework.stereotype.Repository;
 
@@ -92,7 +92,7 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
             table.append(" INNER JOIN countries c ON l.country_id = c.id ");
             where.append(" AND c.name = '").append(args.get("country")).append("'");
         }
-        if (args.containsKey("category")) {
+        if (args.containsKey("category_id")) {
             table.append(" INNER JOIN listing_categories lc ON l.id = lc.listing_id ");
             table.append(" INNER JOIN categories cg ON lc.category_id = cg.id ");
             where.append(" AND cg.id = '").append(args.get("category_id")).append("'");
