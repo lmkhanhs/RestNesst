@@ -36,4 +36,5 @@ public class UpdateListingRequest {
     LocalDate endDate;
     Double price;
     String status;
+    
 }

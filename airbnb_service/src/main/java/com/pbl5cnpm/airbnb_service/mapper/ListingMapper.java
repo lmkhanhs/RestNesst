@@ -1,19 +1,32 @@
 package com.pbl5cnpm.airbnb_service.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.AmenitiesForListingRespose;
 import com.pbl5cnpm.airbnb_service.dto.Response.CategoryResponseForListing;
-import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReviewResponse;
+import com.pbl5cnpm.airbnb_service.entity.AmenitesEntity;
+import com.pbl5cnpm.airbnb_service.entity.CategoriesEntity;
+import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
+import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.ReviewEntity;
-import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.repository.AmenitiesRepository;
@@ -21,21 +34,6 @@ import com.pbl5cnpm.airbnb_service.repository.CategoriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.ImageRepository;
 import com.pbl5cnpm.airbnb_service.service.CloudinaryService;
-
-import ch.qos.logback.core.spi.ErrorCodes;
-
-import com.pbl5cnpm.airbnb_service.entity.AmenitesEntity;
-import com.pbl5cnpm.airbnb_service.entity.CategoriesEntity;
-import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
-import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
-import org.mapstruct.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public abstract class ListingMapper {

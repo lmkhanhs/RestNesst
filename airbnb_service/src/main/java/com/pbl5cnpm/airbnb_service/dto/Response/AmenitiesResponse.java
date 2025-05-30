@@ -18,4 +18,5 @@ public class AmenitiesResponse {
     Long id;
     String name;
     String thumnailUrl;
+    Integer position;
 }

@@ -30,6 +30,8 @@ public class ListingResponseManagerForHost {
     Double price;
     Double avgStart;
     String status;
+    String area;
+    String description;
     List<CategoryResponseForListing> categories;
     List<ReviewResponse> reviews;
 }
