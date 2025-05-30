@@ -95,7 +95,7 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         if (args.containsKey("category")) {
             table.append(" INNER JOIN listing_categories lc ON l.id = lc.listing_id ");
             table.append(" INNER JOIN categories cg ON lc.category_id = cg.id ");
-            where.append(" AND cg.name = '").append(args.get("category")).append("'");
+            where.append(" AND cg.id = '").append(args.get("category_id")).append("'");
         }
         if (args.containsKey("startDate")) {
             where.append(" AND l.start_date <= '").append(args.get("startDate")).append("'");
