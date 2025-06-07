@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cloudinary.Api;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.RatingPersentage;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReveneuStatistic;
 import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
 import com.pbl5cnpm.airbnb_service.service.StatistcsService;
@@ -47,6 +49,15 @@ public class StatisticsController {
                 .code(200)
                 .message("Statistic revenue by day")
                 .result(this.statistcsService.handRevenueStatisticByDay(start, end))
+                .build();
+    }
+
+    @GetMapping("/statistic/rating")
+    public ApiResponse<List<RatingPersentage>> getRatingPersentage() {
+        return ApiResponse.<List<RatingPersentage>>builder()
+                .code(200)
+                .message("Statistic rating persentage")
+                .result(this.statistcsService.handleRatingPersentage())
                 .build();
     }
 

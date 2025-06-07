@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.pbl5cnpm.airbnb_service.dto.Response.RatingPersentage;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReveneuStatistic;
 import com.pbl5cnpm.airbnb_service.repository.Custom.StatisticsRepositoryCustom;
 
@@ -18,6 +19,7 @@ public class StatisticsRepositoryCustomImpl implements StatisticsRepositoryCusto
 
     @PersistenceContext
     private EntityManager entityManager;
+
     @Override
     public List<ReveneuStatistic> statisticSumRevenue(LocalDate startDate, LocalDate endDate) {
         StringBuilder sql = new StringBuilder();
@@ -34,15 +36,39 @@ public class StatisticsRepositoryCustomImpl implements StatisticsRepositoryCusto
         List<Object[]> rawResult = query.getResultList();
         List<ReveneuStatistic> result = new ArrayList<>();
         for (Object[] row : rawResult) {
-            LocalDate day =  ( (java.sql.Date) row[0]).toLocalDate();
+            LocalDate day = ((java.sql.Date) row[0]).toLocalDate();
             Double sum = ((Number) row[1]).doubleValue();
 
             result.add(ReveneuStatistic.builder()
-                        .day(day)
-                        .sumRevenue(sum)
-                        .build());
+                    .day(day)
+                    .sumRevenue(sum)
+                    .build());
         }
         return result;
     }
-    
+
+    @Override
+    public List<RatingPersentage> statisticRatingPersentage() {
+        StringBuilder sql = new StringBuilder();
+        sql.append(" SELECT rating , ");
+        sql.append("        ROUND(  COUNT(rating) * 100.0 / (SELECT COUNT(*) FROM reviews ), 2   ");
+        sql.append("              ) AS percentage ");
+        sql.append(" FROM reviews");
+        sql.append(" GROUP BY rating");
+
+        Query query = entityManager.createNativeQuery(sql.toString());
+        List<Object[]> rawResult = query.getResultList();
+        List<RatingPersentage> reuslt = new ArrayList<>();
+        for (Object[] row : rawResult) {
+            Integer rating = ((Number) row[0]).intValue();
+            Double persentage = ((Number) row[1]).doubleValue();
+
+            reuslt.add(RatingPersentage.builder()
+                    .rating(rating)
+                    .persentage(persentage)
+                    .build());
+        }
+        return reuslt;
+    }
+
 }
