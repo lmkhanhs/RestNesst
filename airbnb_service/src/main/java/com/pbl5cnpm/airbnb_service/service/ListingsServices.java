@@ -199,7 +199,8 @@ public class ListingsServices {
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_EXIT));
         UserEntity userEntity = this.userRepository.findByUsername(username).get();
         if (userEntity.equals(bookingEntity.getUser())
-                && bookingEntity.getBookingStatus().equals(BookingStatus.SUCCESS.toString())) {
+                && bookingEntity.getBookingStatus().equals(BookingStatus.SUCCESS.toString())
+                && bookingEntity.getCommented() == false) {
             ListingEntity listingEntity = bookingEntity.getListing();
             // List<ReviewEntity> lists = listingEntity.getReviews();
 
@@ -208,6 +209,7 @@ public class ListingsServices {
             reviewEntity.setListingEntity(listingEntity);
 
             this.reviewsRepository.save(reviewEntity);
+            bookingEntity.setCommented(true);
         } else {
             throw new AppException(ErrorCode.INVALID);
         }

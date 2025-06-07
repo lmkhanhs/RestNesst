@@ -30,4 +30,5 @@ public class BookingResponse {
     Double totalPrice;
     String content;
     String bookingStatus;
+    Boolean commented;
 }

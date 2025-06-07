@@ -28,6 +28,8 @@ public class BookingEntity extends BaseEntity {
     LocalDate checkOutDate;
     Double totalPrice;
 
+    Boolean commented;
+
     String content;
     String bookingStatus;
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)

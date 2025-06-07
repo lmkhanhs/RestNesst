@@ -51,7 +51,7 @@ public abstract class BookingMapper {
         if (listing == null || listing.getImagesEntities() == null || listing.getImagesEntities().isEmpty()) {
             return null;
         }
-        return listing.getImagesEntities().get(0).getImageUrl(); // đảm bảo ImagesEntity có phương thức getUrl()
+        return listing.getImagesEntities().get(0).getImageUrl(); 
     }
 
 }

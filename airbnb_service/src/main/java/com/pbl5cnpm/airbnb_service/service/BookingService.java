@@ -37,6 +37,7 @@ public class BookingService {
         BookingEntity bookingEntity = bookingMapper.toBookingEntity(bookingRequest);
         bookingEntity.setBookingStatus("PENDING");
         bookingEntity.setUser(userEntity);
+        bookingEntity.setCommented(false);
         BookingEntity savedEntity = bookingRepository.save(bookingEntity);
 
         return bookingMapper.toBookingResponse(savedEntity);
