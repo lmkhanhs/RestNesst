@@ -1,4 +1,4 @@
-package com.pbl5cnpm.airbnb_service.repository.Custom;
+package com.pbl5cnpm.airbnb_service.repository.Custom.impl;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.stereotype.Repository;
 
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
+import com.pbl5cnpm.airbnb_service.repository.Custom.ListingsRepositoryCustom;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

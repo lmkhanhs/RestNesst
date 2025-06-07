@@ -1,6 +1,7 @@
 package com.pbl5cnpm.airbnb_service.service;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
+import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
@@ -60,8 +62,9 @@ public class UserService {
     @Value("${image.customer}")
     private String THUMNAIL;
 
-    public UserResponse handleGetInforByID(Long id){
-        UserEntity entity = this.userRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+    public UserResponse handleGetInforByID(Long id) {
+        UserEntity entity = this.userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return this.mapper.toUserResponse(entity);
     }
 
@@ -237,9 +240,10 @@ public class UserService {
     public void handleRejectAccess(Long host_id) {
         UserEntity userEntity = this.userRepository.findById(host_id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        // ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
+        // ApplyHostEntity applyHostEntity =
+        // this.applyHostListRepository.findByHostId(userEntity.getId()).get();
         ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
-            this.applyHostListRepository.delete(applyHostEntity);
+        this.applyHostListRepository.delete(applyHostEntity);
 
     }
 

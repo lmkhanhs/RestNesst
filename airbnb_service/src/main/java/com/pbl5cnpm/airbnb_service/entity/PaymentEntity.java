@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
-import java.util.Date;
 
 @Getter
 @Setter
@@ -25,7 +23,7 @@ public class PaymentEntity extends BaseEntity {
     String transactionId;
     String content;
     String code ;
-    // Quan hệ 1-1 với Booking
+ 
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false, unique = true)
     private BookingEntity booking;
