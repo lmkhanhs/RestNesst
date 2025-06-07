@@ -210,6 +210,7 @@ public class ListingsServices {
 
             this.reviewsRepository.save(reviewEntity);
             bookingEntity.setCommented(true);
+            this.bookingRepository.save(bookingEntity);
         } else {
             throw new AppException(ErrorCode.INVALID);
         }

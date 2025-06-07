@@ -1,5 +1,7 @@
 package com.pbl5cnpm.airbnb_service.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -13,7 +15,7 @@ import lombok.experimental.FieldDefaults;
 @Entity
 @Table(name = "payments")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PaymentEntity extends BaseEntity {
+public class PaymentEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +25,7 @@ public class PaymentEntity extends BaseEntity {
     String transactionId;
     String content;
     String code ;
- 
+    LocalDateTime createDate;
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false, unique = true)
     private BookingEntity booking;

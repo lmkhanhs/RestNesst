@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -13,6 +14,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pbl5cnpm.airbnb_service.assistants.HMACutill;
 import com.pbl5cnpm.airbnb_service.dto.Request.PaymentRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.PaymentResponse;
 import com.pbl5cnpm.airbnb_service.entity.BookingEntity;
 import com.pbl5cnpm.airbnb_service.entity.PaymentEntity;
 import com.pbl5cnpm.airbnb_service.enums.BookingStatus;
@@ -63,19 +68,33 @@ public class PaymentController {
     @GetMapping("/counts")
     public ApiResponse<Long> getCounts() {
         return ApiResponse.<Long>builder()
-                        .code(200)
-                        .message("get counts payments")
-                        .result(this.paymentService.counts())
-                        .build();
+                .code(200)
+                .message("get counts payments")
+                .result(this.paymentService.counts())
+                .build();
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/amount")
-    public ApiResponse<Double> getAount(){
+    public ApiResponse<Double> getAount() {
         return ApiResponse.<Double>builder()
-                        .code(200)
-                        .message("Get total invoice amount")
-                        .result(this.paymentService.getTotePayment())
-                        .build();
+                .code(200)
+                .message("Get total invoice amount")
+                .result(this.paymentService.getTotePayment())
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/data")
+    public ApiResponse<List<PaymentResponse>> getPayment(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createDate").descending());
+        return ApiResponse.<List<PaymentResponse>>builder()
+                .code(200)
+                .message("Get payment by page")
+                .result(this.paymentService.handleGetPayment(pageable))
+                .build();
     }
 
     @PostMapping("/create-payment")
@@ -127,10 +146,11 @@ public class PaymentController {
         PaymentEntity entity = PaymentEntity.builder()
                 .payMethod(PaymentMethod.VNPAY.toString())
                 .status(PaymentStatus.PENDING.toString())
-                .booking(bookingEntity) 
-                .transactionId(UUID.randomUUID().toString()) 
+                .booking(bookingEntity)
+                .transactionId(UUID.randomUUID().toString())
                 .content(body.getContent())
                 .code(UUID.randomUUID().toString())
+                .createDate(LocalDateTime.now())
                 .build();
         entity = this.paymentRepository.save(entity);
         //
