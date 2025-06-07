@@ -31,7 +31,7 @@ public class ReviewEntity {
     String imageUrl;
     @CreationTimestamp
     LocalDate reviewDate;
-
+    
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     UserEntity userEntity;

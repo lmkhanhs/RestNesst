@@ -127,7 +127,8 @@ public abstract class ListingMapper {
                     .comment(reviewEntity.getComment())
                     .rating(reviewEntity.getRating())
                     .reviewDate(reviewEntity.getReviewDate())
-                    .thumnailUrl(reviewEntity.getUserEntity().getThumnailUrl())
+                    .avatarlUrl(reviewEntity.getUserEntity().getThumnailUrl())
+                    .reviewUrl(reviewEntity.getImageUrl())
                     .build();
             result.add(res);
         }

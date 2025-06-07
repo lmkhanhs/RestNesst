@@ -20,5 +20,6 @@ public class ReviewResponse {
     String comment;
     Double rating;
     LocalDate reviewDate;
-    String thumnailUrl;
+    String avatarlUrl;
+    String reviewUrl;
 }
