@@ -18,7 +18,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Table(name = "reviews")
 public class ReviewEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -27,8 +27,8 @@ public class ReviewEntity {
     String comment;
 
     @Column(nullable = false)
-    Double rating; 
-
+    Double rating;
+    String imageUrl;
     @CreationTimestamp
     LocalDate reviewDate;
 
@@ -36,7 +36,6 @@ public class ReviewEntity {
     @JoinColumn(name = "user_id", nullable = false)
     UserEntity userEntity;
 
-   
     @ManyToOne
     @JoinColumn(name = "listing_id", nullable = false)
     ListingEntity listingEntity;

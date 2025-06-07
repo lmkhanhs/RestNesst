@@ -55,13 +55,14 @@ public class BookingController {
     }
 
     @PutMapping("/bookings/{id}")
-    public ApiResponse<Void> pressReturn(@PathVariable Long id) {
+    public ApiResponse<BookingResponse> pressReturn(@PathVariable Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        this.bookingService.handlePressReturn(username, id);
-        return ApiResponse.<Void>builder()
+        BookingResponse res = this.bookingService.handlePressReturn(username, id);
+        return ApiResponse.<BookingResponse>builder()
                 .code(200)
                 .message("return listing succcsessfully!")
+                .result(res)
                 .build();
     }
 

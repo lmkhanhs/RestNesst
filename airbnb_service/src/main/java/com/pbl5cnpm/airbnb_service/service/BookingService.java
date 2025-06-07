@@ -51,21 +51,24 @@ public class BookingService {
                 .toList();
     }
 
-    public void handlePressReturn(String username, Long booking_id) {
+    public BookingResponse handlePressReturn(String username, Long booking_id) {
         UserEntity userEntity = this.userRepository.findByUsername(username).get();
         BookingEntity bookingEntity = this.bookingRepository.findById(booking_id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_EXIT));
 
-        if (userEntity == bookingEntity.getUser() && bookingEntity.getBookingStatus() != BookingStatus.PAID.toString()) {
+        if (userEntity.equals(bookingEntity.getUser())
+                && !BookingStatus.PAID.toString().equals(bookingEntity.getBookingStatus())) {
             bookingEntity.setBookingStatus(BookingStatus.SUCCESS.toString());
             ListingEntity listingEntity = bookingEntity.getListing();
             listingEntity.setStatus(ListingStatus.AVAILABLE.toString());
 
-            this.bookingRepository.save(bookingEntity);
+            bookingEntity = this.bookingRepository.save(bookingEntity);
             this.listingsRepository.save(listingEntity);
 
+            return this.bookingMapper.toBookingResponse(bookingEntity);
         } else {
-            new AppException(ErrorCode.INVALID);
+            throw new AppException(ErrorCode.INVALID);
         }
     }
+
 }
