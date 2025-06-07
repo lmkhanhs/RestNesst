@@ -1,29 +1,32 @@
 package com.pbl5cnpm.airbnb_service.service;
 
-import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.ReviewRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
+import com.pbl5cnpm.airbnb_service.entity.BookingEntity;
 import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
+import com.pbl5cnpm.airbnb_service.entity.ReviewEntity;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
+import com.pbl5cnpm.airbnb_service.enums.BookingStatus;
 import com.pbl5cnpm.airbnb_service.enums.ListingStatus;
 import com.pbl5cnpm.airbnb_service.enums.RoleName;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
+import com.pbl5cnpm.airbnb_service.repository.BookingRepository;
 import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
+import com.pbl5cnpm.airbnb_service.repository.ReviewsRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,9 @@ public class ListingsServices {
     private final ListingMapper listingMapper;
     private final UserRepository userRepository;
     private final ImageService imageService;
+    private final BookingRepository bookingRepository;
+    private final CloudinaryService cloudinaryService;
+    private final ReviewsRepository reviewsRepository;
 
     public List<ListingsResponse> handleGetAll() {
         List<ListingEntity> entitys = this.listingsRepository.findAllAndStatus(ListingStatus.ACTIVE.toString(), false,
@@ -186,5 +192,34 @@ public class ListingsServices {
                 .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN.toString()));
         entity.setAccess(isAdmin);
         return this.listingMapper.toResponse(this.listingsRepository.save(entity));
+    }
+
+    public void handleAddReview(ReviewRequest reviewRequest, String username, Long id_booking) {
+        BookingEntity bookingEntity = this.bookingRepository.findById(id_booking)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_EXIT));
+        UserEntity userEntity = this.userRepository.findByUsername(username).get();
+        if (userEntity.equals(bookingEntity.getUser())
+                && bookingEntity.getBookingStatus().equals(BookingStatus.SUCCESS.toString())) {
+            ListingEntity listingEntity = bookingEntity.getListing();
+            // List<ReviewEntity> lists = listingEntity.getReviews();
+
+            ReviewEntity reviewEntity = convertoReviewEntity(reviewRequest);
+            reviewEntity.setUserEntity(userEntity);
+            reviewEntity.setListingEntity(listingEntity);
+
+            this.reviewsRepository.save(reviewEntity);
+        } else {
+            throw new AppException(ErrorCode.INVALID);
+        }
+    }
+
+    private ReviewEntity convertoReviewEntity(ReviewRequest request) {
+        ReviewEntity reviewEntity = new ReviewEntity();
+        reviewEntity.setComment(request.getComment());
+        reviewEntity.setRating(request.getRating());
+        String imageURL = this.cloudinaryService.uploadImageCloddy(request.getImage());
+        reviewEntity.setImageUrl(imageURL);
+        reviewEntity.setReviewDate(LocalDate.now());
+        return reviewEntity;
     }
 }

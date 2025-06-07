@@ -219,11 +219,4 @@ public class UserController {
                 .build();
     }
     
-    @PostMapping("/users/reviews/{id}")
-    public String createCommnet(@RequestBody String entity) {
-       
-        
-        return entity;
-    }
-    
 }

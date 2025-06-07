@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.ReviewRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
@@ -124,47 +125,62 @@ public class ListingsController {
                 .result(this.listingsServices.handlegetfullAll())
                 .build();
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/listings/{id}")
-    public ApiResponse<Void> deletedListing(@PathVariable Long id){
+    public ApiResponse<Void> deletedListing(@PathVariable Long id) {
         this.listingsServices.handleDelete(id);
         return ApiResponse.<Void>builder()
-                    .code(200)
-                    .message("delete success!")
-                    .build();
+                .code(200)
+                .message("delete success!")
+                .build();
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/listings/{id}/{position}")
     public ApiResponse<Void> changPosition(@PathVariable Long id, @PathVariable Long position) {
         this.listingsServices.handleChangePosition(id, position);
-        
+
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("change position")
                 .build();
     }
+
     @PreAuthorize("hasAuthority('HOST')")
     @GetMapping("/listings/host")
-    public ApiResponse<List<ListingResponseManagerForHost>> getListingByHost(){
+    public ApiResponse<List<ListingResponseManagerForHost>> getListingByHost() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
         return ApiResponse.<List<ListingResponseManagerForHost>>builder()
-                        .code(200)
-                        .message("get listing by host")
-                        .result(this.listingsServices.getListingHost(username))
-                        .build();
+                .code(200)
+                .message("get listing by host")
+                .result(this.listingsServices.getListingHost(username))
+                .build();
     }
+
     @PreAuthorize("hasAuthority('HOST')")
     @PutMapping(value = "/listings/host", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<ListingsResponse> update(@ModelAttribute UpdateListingRequest listingRequest){
+    public ApiResponse<ListingsResponse> update(@ModelAttribute UpdateListingRequest listingRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
         return ApiResponse.<ListingsResponse>builder()
-                    .code(200)
-                    .message("update listing by host")
-                    .result(this.listingsServices.handleUpdateListingByHost(username, listingRequest))
-                    .build();
+                .code(200)
+                .message("update listing by host")
+                .result(this.listingsServices.handleUpdateListingByHost(username, listingRequest))
+                .build();
+    }
+
+    @PostMapping(value = "/listings/reviews/{id}",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> createCommnet(@ModelAttribute ReviewRequest request, @PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        this.listingsServices.handleAddReview(request, username, id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Add comment successfully!")
+                .build();
     }
 }
