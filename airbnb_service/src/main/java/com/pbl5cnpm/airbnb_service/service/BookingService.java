@@ -57,7 +57,7 @@ public class BookingService {
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_EXIT));
 
         if (userEntity.equals(bookingEntity.getUser())
-                && !BookingStatus.PAID.toString().equals(bookingEntity.getBookingStatus())) {
+                && BookingStatus.PAID.toString().equals(bookingEntity.getBookingStatus()) == true ) {
             bookingEntity.setBookingStatus(BookingStatus.SUCCESS.toString());
             ListingEntity listingEntity = bookingEntity.getListing();
             listingEntity.setStatus(ListingStatus.AVAILABLE.toString());
