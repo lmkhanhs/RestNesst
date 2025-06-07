@@ -15,12 +15,12 @@ import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.repository.ImageRepository;
 
 @Service
-public class ImageService {
-    @Autowired
-    private ImageRepository imageRepository;
+public class FileImageService {
 
     @Value("${upload.directory}")
     private String UPLOAD_DIR;
+    @Value("${upload.prefix}")
+    private String DIR_PREFIX;
 
     public String saveImageFile(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
@@ -40,4 +40,21 @@ public class ImageService {
         Files.copy(file.getInputStream(), filePath);
         return "/uploads/" + fileName;
     }
+
+    public void deleteImageFile(String fileName) throws IOException {
+        if (fileName == null || fileName.isBlank()) {
+            throw new IllegalArgumentException("Tên file không được để trống");
+        }
+
+       
+        Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
+
+        if (Files.exists(filePath)) {
+            Files.delete(filePath);
+            System.out.println("File đã được xóa: " + filePath.toAbsolutePath());
+        } else {
+            System.out.println("File không tồn tại: " + filePath.toAbsolutePath());
+        }
+    }
+
 }

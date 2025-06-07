@@ -148,7 +148,7 @@ public abstract class ListingMapper {
 
     @Mappings({
         @Mapping(source = "amenites", target = "amenitesEntities", qualifiedByName = "toAmenitesEntities"),
-        @Mapping(source = "imgs",  target = "imagesEntities", qualifiedByName = "toImagesEntities" ),
+       // @Mapping(source = "imgs",  target = "imagesEntities", qualifiedByName = "toImagesEntities" ),
         @Mapping(source= "country", target = "countriesEntity", qualifiedByName = "toCountriesEntity" ),
          @Mapping(source = "categories", target = "categoriesEntities", qualifiedByName = "toCategoryEntities" )
     })

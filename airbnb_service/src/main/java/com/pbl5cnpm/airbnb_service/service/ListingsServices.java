@@ -1,10 +1,17 @@
 package com.pbl5cnpm.airbnb_service.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.ReviewRequest;
@@ -25,6 +32,7 @@ import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
 import com.pbl5cnpm.airbnb_service.repository.BookingRepository;
+import com.pbl5cnpm.airbnb_service.repository.ImageRepository;
 import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
 import com.pbl5cnpm.airbnb_service.repository.ReviewsRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
@@ -37,10 +45,13 @@ public class ListingsServices {
     private final ListingsRepository listingsRepository;
     private final ListingMapper listingMapper;
     private final UserRepository userRepository;
-    private final ImageService imageService;
+    private final FileImageService fileImageService;
     private final BookingRepository bookingRepository;
     private final CloudinaryService cloudinaryService;
     private final ReviewsRepository reviewsRepository;
+    private final ImageRepository imageRepository;
+    @Value("${upload.directory}")
+    private String UPLOAD_DIR;
 
     public List<ListingsResponse> handleGetAll() {
         List<ListingEntity> entitys = this.listingsRepository.findAllAndStatus(ListingStatus.ACTIVE.toString(), false,
@@ -55,7 +66,7 @@ public class ListingsServices {
         return this.listingMapper.toDetailResponse(entity);
     }
 
-    public ListingsResponse handlleCreate(ListingRequest listingRequest, String username) {
+    public ListingsResponse handlleCreate(ListingRequest listingRequest, String username) throws IOException {
         UserEntity host = this.userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
@@ -71,32 +82,53 @@ public class ListingsServices {
                 .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN.toString()));
         entity.setAccess(isAdmin);
         // UPDATE
-        // cần xử lý save ảnh
-        // List<ImagesEntity> imgEntitys = new ArrayList<>();
-        // List<MultipartFile> imgs = listingRequest.getImgs();
-        // for (MultipartFile multipartFile : imgs) {
-        // try {
-        // String url = this.imageService.saveImageFile(multipartFile);
-        // ImagesEntity imagesEntity = ImagesEntity.builder()
-        // .deleted(false)
-        // .imageUrl(url)
-        // .build();
-        // imgEntitys.add(imagesEntity);
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
+        List<ImagesEntity> imagesEntities = new ArrayList<>();
+        List<MultipartFile> imgs = listingRequest.getImgs();
+        for (MultipartFile multipartFile : imgs) {
+            ImagesEntity imagesEntity = ImagesEntity.builder()
+                    .imageUrl(this.fileImageService.saveImageFile(multipartFile))
+                    .deleted(false)
+                    .listingEntity(entity)
+                    .build();
 
-        // }
-        // entity.setImagesEntities(imgEntitys);
-        // endupdATE
-        if (entity.getImagesEntities() != null) {
-            for (ImagesEntity img : entity.getImagesEntities()) {
-                img.setListingEntity(entity);
-            }
+            imagesEntities.add(imagesEntity);
         }
+        entity.setImagesEntities(imagesEntities);
+        new Thread(() -> {
+            try {
+                handleThread(entity, imagesEntities);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
 
         var enti = this.listingsRepository.save(entity);
         return this.listingMapper.toResponse(enti);
+    }
+
+    private void handleThread(ListingEntity listingEntity, List<ImagesEntity> imagesEntities) throws IOException {
+        System.out.println("checkkk");
+        for (int i = 0; i < imagesEntities.size(); i++) {
+            ImagesEntity imagesEntity = imagesEntities.get(i);
+
+            // Lấy file từ DB
+            String imageUrl = imagesEntity.getImageUrl();
+            String fileName = Paths.get(imageUrl).getFileName().toString();
+            Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
+            File file = filePath.toFile();
+
+            if (!file.exists()) {
+                System.out.println("File not exits " + filePath.toAbsolutePath());
+                continue;
+            }
+            // add file lên server
+            String newUrl = this.cloudinaryService.uploadImageCloddy(file);
+            imagesEntity.setImageUrl(newUrl);
+            // delete file after uplaod
+            this.fileImageService.deleteImageFile(fileName);
+        }
+
+        this.imageRepository.saveAll(imagesEntities);
     }
 
     public Long getCount() {

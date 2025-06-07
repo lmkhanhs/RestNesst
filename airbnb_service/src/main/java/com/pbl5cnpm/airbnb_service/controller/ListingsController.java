@@ -1,5 +1,6 @@
 package com.pbl5cnpm.airbnb_service.controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,8 +32,6 @@ import com.pbl5cnpm.airbnb_service.service.ListingsServices;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("${api.base.path}")
@@ -61,7 +61,7 @@ public class ListingsController {
 
     @PreAuthorize("hasAuthority('HOST') or hasAuthority('ADMIN')")
     @PostMapping(value = "/listings", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<ListingsResponse>> creaeListing(@ModelAttribute ListingRequest request) {
+    public ResponseEntity<ApiResponse<ListingsResponse>> creaeListing(@ModelAttribute ListingRequest request) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         ApiResponse<ListingsResponse> apiResponse = ApiResponse.<ListingsResponse>builder()
