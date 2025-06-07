@@ -116,9 +116,8 @@ public class PaymentControllerReturn {
             this.bookingRepository.save(booking);
             // update to inactive listing
             ListingEntity listingEntity = paymentEntity.getBooking().getListing();
-            listingEntity.setStatus(ListingStatus.INACTIVE.toString());
+            listingEntity.setStatus(ListingStatus.OCCUPIED.toString());
             this.listingsRepository.save(listingEntity);
-
             return "vnpay-success";
         } else {
             paymentEntity.setStatus(PaymentStatus.FAILED.toString());

@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.pbl5cnpm.airbnb_service.dto.Response.AmenitiesForListingRespose;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,5 +34,4 @@ public class UpdateListingRequest {
     LocalDate endDate;
     Double price;
     String status;
-    
 }

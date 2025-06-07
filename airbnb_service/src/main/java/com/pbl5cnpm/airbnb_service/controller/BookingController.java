@@ -15,11 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
+import org.eclipse.angus.mail.handlers.message_rfc822;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api")
@@ -50,5 +53,16 @@ public class BookingController {
                 .result(responses)
                 .build();
     }
-    
+
+    @PutMapping("/bookings/{id}")
+    public ApiResponse<Void> pressReturn(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        this.bookingService.handlePressReturn(username, id);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("return listing succcsessfully!")
+                .build();
+    }
+
 }
