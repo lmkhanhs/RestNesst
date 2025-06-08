@@ -150,7 +150,7 @@ public class PaymentController {
                 .transactionId(UUID.randomUUID().toString())
                 .content(body.getContent())
                 .code(UUID.randomUUID().toString())
-                .createDate(LocalDateTime.now())
+                .createdDate(LocalDateTime.now())
                 .build();
         entity = this.paymentRepository.save(entity);
         //
