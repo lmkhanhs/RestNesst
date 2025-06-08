@@ -70,12 +70,13 @@ public class ApplicationInitConfig {
                         .roles(roles)
                         .languages("Việt Nam, Thái Land, ....")
                         .didHostYear(5)
-                        .description("Người Host là người dùng trong hệ thống có quyền đăng tải và quản lý các chỗ ở (listings) mà họ sở hữu hoặc cho thuê. Họ có trách nhiệm cung cấp thông tin chính xác về địa điểm, đảm bảo chất lượng dịch vụ và tương tác tích cực với khách thuê. Mỗi Host có thể cập nhật trạng thái chỗ ở, phản hồi đánh giá từ khách, và theo dõi hiệu suất hoạt động của tài khoản mình. Hệ thống cho phép Admin phê duyệt hoặc cấp quyền Host cho người dùng sau khi họ gửi yêu cầu và được xét duyệt.")
+                        .description(
+                                "Người Host là người dùng trong hệ thống có quyền đăng tải và quản lý các chỗ ở (listings) mà họ sở hữu hoặc cho thuê. Họ có trách nhiệm cung cấp thông tin chính xác về địa điểm, đảm bảo chất lượng dịch vụ và tương tác tích cực với khách thuê. Mỗi Host có thể cập nhật trạng thái chỗ ở, phản hồi đánh giá từ khách, và theo dõi hiệu suất hoạt động của tài khoản mình. Hệ thống cho phép Admin phê duyệt hoặc cấp quyền Host cho người dùng sau khi họ gửi yêu cầu và được xét duyệt.")
 
                         .build();
                 userRepository.save(userOrigin);
                 log.warn("User admin created with full Role");
-            }//
+            } //
 
             if (userRepository.findByUsername("host").isEmpty()) {
                 RoleEntity host = this.roleRepository.findByRoleName(RoleName.HOST.toString()).get();
@@ -90,18 +91,19 @@ public class ApplicationInitConfig {
                         .roles(roless)
                         .languages("Việt Nam, Thái Land, ....")
                         .didHostYear(5)
-                        .description("Người Host là người dùng trong hệ thống có quyền đăng tải và quản lý các chỗ ở (listings) mà họ sở hữu hoặc cho thuê. Họ có trách nhiệm cung cấp thông tin chính xác về địa điểm, đảm bảo chất lượng dịch vụ và tương tác tích cực với khách thuê. Mỗi Host có thể cập nhật trạng thái chỗ ở, phản hồi đánh giá từ khách, và theo dõi hiệu suất hoạt động của tài khoản mình. Hệ thống cho phép Admin phê duyệt hoặc cấp quyền Host cho người dùng sau khi họ gửi yêu cầu và được xét duyệt.")
+                        .description(
+                                "Người Host là người dùng trong hệ thống có quyền đăng tải và quản lý các chỗ ở (listings) mà họ sở hữu hoặc cho thuê. Họ có trách nhiệm cung cấp thông tin chính xác về địa điểm, đảm bảo chất lượng dịch vụ và tương tác tích cực với khách thuê. Mỗi Host có thể cập nhật trạng thái chỗ ở, phản hồi đánh giá từ khách, và theo dõi hiệu suất hoạt động của tài khoản mình. Hệ thống cho phép Admin phê duyệt hoặc cấp quyền Host cho người dùng sau khi họ gửi yêu cầu và được xét duyệt.")
 
                         .build();
                 userRepository.save(userOrigin);
                 log.warn("User admin created with full Role");
             }
             //
-            if (this.listingsRepository.findAll().size() == 0) {
-                createdBaseListing();
-                createdBaseListing2();
-                createdReview();
-            }
+            // if (this.listingsRepository.findAll().size() == 0) {
+            // createdBaseListing();
+            // createdBaseListing2();
+            // createdReview();
+            // }
 
         };
     }
@@ -172,8 +174,10 @@ public class ApplicationInitConfig {
         if (this.countriesRepository.findByName(name).isEmpty()) {
             CountriesEntity entity = CountriesEntity.builder()
                     .name(name)
-                    .thumbnail("https://dynamic-media-cdn.tripadvisor.com/media/photo-o/18/19/a5/0c/get-relaxing-with-your.jpg?w=700&h=700&s=1")
-                    .description("Du lịch Việt Nam là một trải nghiệm phong phú và đa dạng, thu hút du khách bởi vẻ đẹp thiên nhiên hùng vĩ, nền văn hóa đậm đà bản sắc dân tộc và ẩm thực độc đáo. Từ vịnh Hạ Long – di sản thiên nhiên thế giới với hàng ngàn đảo đá vôi kỳ thú, đến phố cổ Hội An cổ kính, hay cố đô Huế trầm mặc mang đậm dấu ấn lịch sử, mỗi vùng miền đều mang một vẻ đẹp riêng. Việt Nam còn nổi tiếng với những bãi biển trải dài như Nha Trang, Đà Nẵng, Phú Quốc và những vùng cao nguyên thơ mộng như Đà Lạt, Sa Pa. Không chỉ có phong cảnh, du khách còn được hòa mình vào những lễ hội truyền thống đặc sắc, khám phá nền ẩm thực đa dạng với các món ăn như phở, bún chả, bánh mì, gỏi cuốn... Du lịch Việt Nam đang ngày càng phát triển, trở thành điểm đến hấp dẫn đối với cả du khách trong nước và quốc tế.")
+                    .thumbnail(
+                            "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/18/19/a5/0c/get-relaxing-with-your.jpg?w=700&h=700&s=1")
+                    .description(
+                            "Du lịch Việt Nam là một trải nghiệm phong phú và đa dạng, thu hút du khách bởi vẻ đẹp thiên nhiên hùng vĩ, nền văn hóa đậm đà bản sắc dân tộc và ẩm thực độc đáo. Từ vịnh Hạ Long – di sản thiên nhiên thế giới với hàng ngàn đảo đá vôi kỳ thú, đến phố cổ Hội An cổ kính, hay cố đô Huế trầm mặc mang đậm dấu ấn lịch sử, mỗi vùng miền đều mang một vẻ đẹp riêng. Việt Nam còn nổi tiếng với những bãi biển trải dài như Nha Trang, Đà Nẵng, Phú Quốc và những vùng cao nguyên thơ mộng như Đà Lạt, Sa Pa. Không chỉ có phong cảnh, du khách còn được hòa mình vào những lễ hội truyền thống đặc sắc, khám phá nền ẩm thực đa dạng với các món ăn như phở, bún chả, bánh mì, gỏi cuốn... Du lịch Việt Nam đang ngày càng phát triển, trở thành điểm đến hấp dẫn đối với cả du khách trong nước và quốc tế.")
                     .deleted(false)
                     .isActive(true)
                     .build();
@@ -181,112 +185,122 @@ public class ApplicationInitConfig {
         }
     }
 
-    private void createdBaseListing() {
-        ImagesEntity image1 = ImagesEntity.builder()
-                .imageUrl("uploads/anh1.png")
-                .deleted(false)
-                .build();
-        ImagesEntity image2 = ImagesEntity.builder()
-                .imageUrl("uploads/anh2.png")
-                .deleted(false)
-                .build();
-        UserEntity host = this.userRepository.findByUsername("admin")
-                .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
-        List<CategoriesEntity> categoriesEntities = this.categoriesRepository.findAll();
-        List<AmenitesEntity> amenitesEntities = null;
-        List<ImagesEntity> imagesEntities = List.of(image1, image2);
-        CountriesEntity countriesEntity = this.countriesRepository.findByName("Việt Nam")
-                .orElseThrow(() -> new RuntimeException("k tim thay country viet nam trong database"));
-        ListingEntity entity = ListingEntity.builder()
-                .title("Nhà cho thuê")
-                .address(" Số 140 Võ Nguyên Giáp, Ngũ Hành Sơn")
-                .city("Đà Nẵng")
-                .price(450000.0)
-                .access(true)
-                .area("50 m2")
-                .deleted(false)
-                .popular(true)
-                .startDate(LocalDate.parse("2025-04-15"))
-                .endDate(LocalDate.parse("2025-07-01"))
-                .host(host)
-                .status(ListingStatus.ACTIVE.toString())
-                .categoriesEntities(categoriesEntities)
-                .amenitesEntities(amenitesEntities)
-                .imagesEntities(imagesEntities)
-                .countriesEntity(countriesEntity)
-                .position(1L)
-                .avgStart(4.9)
-                .build();
-        // Gán listing cho từng ảnh
-        imagesEntities.forEach(img -> img.setListingEntity(entity));
-        entity.setImagesEntities(imagesEntities);
+    // private void createdBaseListing() {
+    // ImagesEntity image1 = ImagesEntity.builder()
+    // .imageUrl("uploads/anh1.png")
+    // .deleted(false)
+    // .build();
+    // ImagesEntity image2 = ImagesEntity.builder()
+    // .imageUrl("uploads/anh2.png")
+    // .deleted(false)
+    // .build();
+    // UserEntity host = this.userRepository.findByUsername("admin")
+    // .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
+    // List<CategoriesEntity> categoriesEntities =
+    // this.categoriesRepository.findAll();
+    // List<AmenitesEntity> amenitesEntities = null;
+    // List<ImagesEntity> imagesEntities = List.of(image1, image2);
+    // CountriesEntity countriesEntity = this.countriesRepository.findByName("Việt
+    // Nam")
+    // .orElseThrow(() -> new RuntimeException("k tim thay country viet nam trong
+    // database"));
+    // ListingEntity entity = ListingEntity.builder()
+    // .title("Nhà cho thuê")
+    // .address(" Số 140 Võ Nguyên Giáp, Ngũ Hành Sơn")
+    // .city("Đà Nẵng")
+    // .price(450000.0)
+    // .access(true)
+    // .area("50 m2")
+    // .deleted(false)
+    // .popular(true)
+    // .startDate(LocalDate.parse("2025-04-15"))
+    // .endDate(LocalDate.parse("2025-07-01"))
+    // .host(host)
+    // .status(ListingStatus.ACTIVE.toString())
+    // .categoriesEntities(categoriesEntities)
+    // .amenitesEntities(amenitesEntities)
+    // .imagesEntities(imagesEntities)
+    // .countriesEntity(countriesEntity)
+    // .position(1L)
+    // .avgStart(4.9)
+    // .build();
+    // // Gán listing cho từng ảnh
+    // imagesEntities.forEach(img -> img.setListingEntity(entity));
+    // entity.setImagesEntities(imagesEntities);
 
-        // Lưu listing (và cascade ảnh nếu có)
-        this.listingsRepository.save(entity);
-    }
+    // // Lưu listing (và cascade ảnh nếu có)
+    // this.listingsRepository.save(entity);
+    // }
 
-    private void createdBaseListing2() {
-        String description = """
-                Có 5 loại phòng trong biệt thự Ngân Phú: Phòng đôi, phòng 3 người, phòng đơn, phòng 2 giường đơn và phòng 4 người.
-                Nằm ở vị trí lý tưởng ở một vị trí tuyệt vời chỉ cách trung tâm Hội An 2 km và cách bãi biển Cửa Đại 2 km,
-                với phòng hiện đại đẹp mắt và hiện đại yên tĩnh tuyệt đẹp, nhà của chúng tôi là nơi tốt nhất ở Hội An
-                cho những ai muốn tận hưởng một kỳ nghỉ thoải mái trong bầu không khí ấm cúng như ở nhà.
-                """;
-        ImagesEntity image1 = ImagesEntity.builder()
-                .imageUrl("uploads/anh11.png")
-                .deleted(false)
-                .build();
-        ImagesEntity image2 = ImagesEntity.builder()
-                .imageUrl("uploads/anh22.png")
-                .deleted(false)
-                .build();
-        UserEntity host = this.userRepository.findByUsername("admin")
-                .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
-        List<CategoriesEntity> categoriesEntities = this.categoriesRepository.findAll();
-        List<AmenitesEntity> amenitesEntities = this.amenitiesRepository.findAll();
-        List<ImagesEntity> imagesEntities = List.of(image1, image2);
-        CountriesEntity countriesEntity = this.countriesRepository.findByName("Việt Nam")
-                .orElseThrow(() -> new RuntimeException("k tim thay country viet nam trong database"));
-        ListingEntity entity = ListingEntity.builder()
-                .title("Nhà cho thuê")
-                .address("Phố Cổ Hội An")
-                .city("Quảng Nam")
-                .price(300000.0)
-                .access(true)
-                .area("75 m2")
-                .deleted(false)
-                .popular(true)
-                .startDate(LocalDate.parse("2025-04-13"))
-                .endDate(LocalDate.parse("2025-07-01"))
-                .host(host)
-                .status(ListingStatus.ACTIVE.toString())
-                .categoriesEntities(categoriesEntities)
-                .amenitesEntities(amenitesEntities)
-                .imagesEntities(imagesEntities)
-                .countriesEntity(countriesEntity)
-                .position(2L)
-                .avgStart(4.5)
-                .description(description)
-                .build();
+    // private void createdBaseListing2() {
+    // String description = """
+    // Có 5 loại phòng trong biệt thự Ngân Phú: Phòng đôi, phòng 3 người, phòng đơn,
+    // phòng 2 giường đơn và phòng 4 người.
+    // Nằm ở vị trí lý tưởng ở một vị trí tuyệt vời chỉ cách trung tâm Hội An 2 km
+    // và cách bãi biển Cửa Đại 2 km,
+    // với phòng hiện đại đẹp mắt và hiện đại yên tĩnh tuyệt đẹp, nhà của chúng tôi
+    // là nơi tốt nhất ở Hội An
+    // cho những ai muốn tận hưởng một kỳ nghỉ thoải mái trong bầu không khí ấm cúng
+    // như ở nhà.
+    // """;
+    // ImagesEntity image1 = ImagesEntity.builder()
+    // .imageUrl("uploads/anh11.png")
+    // .deleted(false)
+    // .build();
+    // ImagesEntity image2 = ImagesEntity.builder()
+    // .imageUrl("uploads/anh22.png")
+    // .deleted(false)
+    // .build();
+    // UserEntity host = this.userRepository.findByUsername("admin")
+    // .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
+    // List<CategoriesEntity> categoriesEntities =
+    // this.categoriesRepository.findAll();
+    // List<AmenitesEntity> amenitesEntities = this.amenitiesRepository.findAll();
+    // List<ImagesEntity> imagesEntities = List.of(image1, image2);
+    // CountriesEntity countriesEntity = this.countriesRepository.findByName("Việt
+    // Nam")
+    // .orElseThrow(() -> new RuntimeException("k tim thay country viet nam trong
+    // database"));
+    // ListingEntity entity = ListingEntity.builder()
+    // .title("Nhà cho thuê")
+    // .address("Phố Cổ Hội An")
+    // .city("Quảng Nam")
+    // .price(300000.0)
+    // .access(true)
+    // .area("75 m2")
+    // .deleted(false)
+    // .popular(true)
+    // .startDate(LocalDate.parse("2025-04-13"))
+    // .endDate(LocalDate.parse("2025-07-01"))
+    // .host(host)
+    // .status(ListingStatus.ACTIVE.toString())
+    // .categoriesEntities(categoriesEntities)
+    // .amenitesEntities(amenitesEntities)
+    // .imagesEntities(imagesEntities)
+    // .countriesEntity(countriesEntity)
+    // .position(2L)
+    // .avgStart(4.5)
+    // .description(description)
+    // .build();
 
-        imagesEntities.forEach(img -> img.setListingEntity(entity));
-        entity.setImagesEntities(imagesEntities);
+    // imagesEntities.forEach(img -> img.setListingEntity(entity));
+    // entity.setImagesEntities(imagesEntities);
 
-        // Lưu listing (và cascade ảnh nếu có)
-        this.listingsRepository.save(entity);
-    }
+    // // Lưu listing (và cascade ảnh nếu có)
+    // this.listingsRepository.save(entity);
+    // }
 
-    private void createdReview() {
-        UserEntity host = this.userRepository.findByUsername("admin")
-                .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
-        ListingEntity listingEntity = this.listingsRepository.findById(2L)
-                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
-        ReviewEntity reviewEntity = ReviewEntity.builder()
-                .comment("Phòng đẹp, thoáng mát")
-                .rating(5.0)
-                .userEntity(host)
-                .listingEntity(listingEntity)
-                .build();
-        this.reviewsRepository.save(reviewEntity);
-    }
+    // private void createdReview() {
+    // UserEntity host = this.userRepository.findByUsername("admin")
+    // .orElseThrow(() -> new AppException(ErrorCode.USERNAME_VALID));
+    // ListingEntity listingEntity = this.listingsRepository.findById(2L)
+    // .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+    // ReviewEntity reviewEntity = ReviewEntity.builder()
+    // .comment("Phòng đẹp, thoáng mát")
+    // .rating(5.0)
+    // .userEntity(host)
+    // .listingEntity(listingEntity)
+    // .build();
+    // this.reviewsRepository.save(reviewEntity);
+    // }
 }

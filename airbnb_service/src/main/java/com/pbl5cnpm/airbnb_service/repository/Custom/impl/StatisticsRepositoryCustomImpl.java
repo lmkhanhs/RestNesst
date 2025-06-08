@@ -23,10 +23,10 @@ public class StatisticsRepositoryCustomImpl implements StatisticsRepositoryCusto
     @Override
     public List<ReveneuStatistic> statisticSumRevenue(LocalDate startDate, LocalDate endDate) {
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT DATE(p.created_at) AS day, SUM(b.total_price) ");
+        sql.append(" SELECT DATE(p.created_date) AS day, SUM(b.total_price) ");
         sql.append(" FROM booked AS b JOIN payments AS p ON b.id = p.booking_id ");
-        sql.append(" WHERE DATE(p.created_at) BETWEEN :startDate and :endDate ");
-        sql.append(" GROUP BY DATE(p.created_at) ");
+        sql.append(" WHERE DATE(p.created_date) BETWEEN :startDate and :endDate ");
+        sql.append(" GROUP BY DATE(p.created_date) ");
         sql.append(" ORDER BY day ASC ");
 
         Query query = entityManager.createNativeQuery(sql.toString());

@@ -25,7 +25,7 @@ public class PaymentEntity  {
     String transactionId;
     String content;
     String code ;
-    LocalDateTime createDate;
+    LocalDateTime createdDate;
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false, unique = true)
     private BookingEntity booking;
