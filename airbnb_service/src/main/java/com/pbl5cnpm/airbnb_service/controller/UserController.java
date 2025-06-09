@@ -242,12 +242,12 @@ public class UserController {
                 .build();
     }
 
-
-    @PutMapping(value = "users/host/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('HOST')")
+    @PutMapping(value = "/users/host/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Void> putMethodName(@ModelAttribute UpdateProFileHost proFileHost) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        this.userService.handleUpdateHost(proFileHost,username);
+        this.userService.handleUpdateHost(proFileHost, username);
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("update profile host")
