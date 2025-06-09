@@ -24,6 +24,7 @@ import com.nimbusds.jose.JOSEException;
 import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.FavoriteRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateUserProfileByAdminiRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
@@ -227,6 +228,15 @@ public class UserController {
                 .code(200)
                 .message("chang status access")
                 .result(this.userService.handleChangeActive(id, status))
+                .build();
+    }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/users/admin/change/profile")
+     public ApiResponse<UserResponse> changeProfile( @RequestBody UpdateUserProfileByAdminiRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .code(200)
+                .message("chang profile access")
+                .result(this.userService.handleChangeProfileUser(request))
                 .build();
     }
 

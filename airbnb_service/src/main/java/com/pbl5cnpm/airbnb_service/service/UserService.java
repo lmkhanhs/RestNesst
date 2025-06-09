@@ -17,6 +17,7 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateUserProfileByAdminiRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
@@ -262,12 +263,38 @@ public class UserService {
         listingEntitys = listingEntitys.stream()
                 .map(item -> {
                     item.setAccess(false);
-                    return item; 
+                    return item;
                 })
                 .collect(Collectors.toList());
         this.listingsRepository.saveAll(listingEntitys);
         return this.mapper.toUserResponse(userEntity);
 
+    }
+
+    public UserResponse handleChangeProfileUser(UpdateUserProfileByAdminiRequest newProfile) {
+        UserEntity userEntity = this.userRepository.findById(newProfile.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (newProfile.getAddress() != null) {
+            userEntity.setAddress(newProfile.getAddress());
+        }
+        if (newProfile.getEmail() != null) {
+            userEntity.setEmail(newProfile.getEmail());
+        }
+        if (newProfile.getFullname() != null) {
+            userEntity.setFullname(userEntity.getFullname());
+        }
+        if (newProfile.getPhone() != null) {
+            userEntity.setPhone(newProfile.getPhone());
+        }
+        if (newProfile.getRole().equals("HOST")) {
+            Set<RoleEntity> roles = userEntity.getRoles();
+            RoleEntity host = this.roleRepository.findByRoleName(RoleName.HOST.toString()).get();
+
+            roles.add(host);
+            userEntity.setRoles(roles);
+        }
+
+        return this.mapper.toUserResponse(this.userRepository.save(userEntity));
     }
 
 }
