@@ -17,6 +17,7 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateProFileHost;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateUserProfileByAdminiRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
@@ -295,6 +296,33 @@ public class UserService {
         }
 
         return this.mapper.toUserResponse(this.userRepository.save(userEntity));
+    }
+    public void handleUpdateHost(UpdateProFileHost fileHost, String username ){
+        UserEntity entity = this.userRepository.findByUsername(username).get();
+        if (fileHost.getCountry() != null) {
+            var coutry = this.countriesRepository.findByName(fileHost.getCountry() )
+                    .orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
+            entity.setCountry(coutry);
+        }
+        if (fileHost.getEmail() != null) {
+            entity.setEmail(fileHost.getEmail());
+        }
+        if (fileHost.getPhone() != null) {
+            entity.setEmail(fileHost.getEmail());
+        }
+        if (fileHost.getLanguages() != null) {
+            entity.setLanguages(fileHost.getLanguages());
+        }
+        if (fileHost.getDidHostYear() != null) {
+            entity.setDidHostYear(fileHost.getDidHostYear());
+        }
+        if (fileHost.getDescription() != null) {
+            entity.setDescription(fileHost.getDescription());
+        }
+        if (fileHost.getThumnail() != null) {
+            entity.setThumnailUrl(this.cloudinaryService.uploadImageCloddy(fileHost.getThumnail()));
+        }
+        this.userRepository.save(entity);
     }
 
 }

@@ -24,6 +24,7 @@ import com.nimbusds.jose.JOSEException;
 import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
 import com.pbl5cnpm.airbnb_service.dto.Request.FavoriteRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.UpdateProFileHost;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateUserProfileByAdminiRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
@@ -230,9 +231,10 @@ public class UserController {
                 .result(this.userService.handleChangeActive(id, status))
                 .build();
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/users/admin/change/profile")
-     public ApiResponse<UserResponse> changeProfile( @RequestBody UpdateUserProfileByAdminiRequest request) {
+    public ApiResponse<UserResponse> changeProfile(@RequestBody UpdateUserProfileByAdminiRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .code(200)
                 .message("chang profile access")
@@ -240,4 +242,15 @@ public class UserController {
                 .build();
     }
 
+
+    @PutMapping(value = "users/host/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> putMethodName(@ModelAttribute UpdateProFileHost proFileHost) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        this.userService.handleUpdateHost(proFileHost,username);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("update profile host")
+                .build();
+    }
 }
