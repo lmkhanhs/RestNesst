@@ -1,11 +1,8 @@
 package com.pbl5cnpm.airbnb_service.configuration;
 
-import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,15 +11,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.pbl5cnpm.airbnb_service.entity.AmenitesEntity;
 import com.pbl5cnpm.airbnb_service.entity.CategoriesEntity;
 import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
-import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
-import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
-import com.pbl5cnpm.airbnb_service.entity.ReviewEntity;
 import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
-import com.pbl5cnpm.airbnb_service.enums.ListingStatus;
 import com.pbl5cnpm.airbnb_service.enums.RoleName;
-import com.pbl5cnpm.airbnb_service.exception.AppException;
-import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.repository.AmenitiesRepository;
 import com.pbl5cnpm.airbnb_service.repository.CategoriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;

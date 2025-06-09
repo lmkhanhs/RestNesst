@@ -89,7 +89,7 @@ public class PaymentController {
     public ApiResponse<List<PaymentResponse>> getPayment(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createDate").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
         return ApiResponse.<List<PaymentResponse>>builder()
                 .code(200)
                 .message("Get payment by page")
