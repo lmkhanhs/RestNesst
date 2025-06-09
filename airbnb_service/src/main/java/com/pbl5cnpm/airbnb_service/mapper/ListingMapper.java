@@ -129,6 +129,7 @@ public abstract class ListingMapper {
                     .reviewDate(reviewEntity.getReviewDate())
                     .avatarlUrl(reviewEntity.getUserEntity().getThumnailUrl())
                     .reviewUrl(reviewEntity.getImageUrl())
+                    .status(reviewEntity.getStatus())
                     .build();
             result.add(res);
         }

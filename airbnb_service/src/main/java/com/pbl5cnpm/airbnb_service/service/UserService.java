@@ -293,6 +293,11 @@ public class UserService {
 
             roles.add(host);
             userEntity.setRoles(roles);
+        }else if (newProfile.getRole().equals("GUEST")) {
+            Set<RoleEntity> roles = new HashSet<>();
+            RoleEntity host = this.roleRepository.findByRoleName(RoleName.GUEST.toString()).get();
+            roles.add(host);
+            userEntity.setRoles(roles);
         }
 
         return this.mapper.toUserResponse(this.userRepository.save(userEntity));
