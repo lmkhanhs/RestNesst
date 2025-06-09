@@ -218,5 +218,16 @@ public class UserController {
                 .result(this.userService.handleGetInforByID(id))
                 .build();
     }
-    
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/users/active/{id}/{status}")
+    public ApiResponse<UserResponse> changeStatusAccess(@PathVariable Long id, @PathVariable Boolean status) {
+
+        return ApiResponse.<UserResponse>builder()
+                .code(200)
+                .message("chang status access")
+                .result(this.userService.handleChangeActive(id, status))
+                .build();
+    }
+
 }

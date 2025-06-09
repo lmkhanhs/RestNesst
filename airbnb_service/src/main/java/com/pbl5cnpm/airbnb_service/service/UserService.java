@@ -94,6 +94,7 @@ public class UserService {
         userEntity.setPassword(encodedPassword);
         userEntity.setRoles(roles);
         userEntity.setThumnailUrl(THUMNAIL);
+        userEntity.setIsActive(true);
         return mapper.toUserResponse(userRepository.save(userEntity));
     }
 
@@ -243,11 +244,18 @@ public class UserService {
     public void handleRejectAccess(Long host_id) {
         UserEntity userEntity = this.userRepository.findById(host_id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        // ApplyHostEntity applyHostEntity =
-        // this.applyHostListRepository.findByHostId(userEntity.getId()).get();
         ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
         this.applyHostListRepository.delete(applyHostEntity);
 
+    }
+
+    public UserResponse handleChangeActive( Long user_id ,boolean status){
+        UserEntity userEntity = this.userRepository.findById(user_id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        userEntity.setIsActive(status);
+        
+        userEntity = this.userRepository.save(userEntity);
+        return this.mapper.toUserResponse(userEntity);
     }
 
 }

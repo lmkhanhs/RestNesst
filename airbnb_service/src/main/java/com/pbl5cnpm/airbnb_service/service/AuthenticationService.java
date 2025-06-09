@@ -66,7 +66,7 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationResquest resquest) throws JOSEException {
         UserEntity userEntity = this.userRepository.findByUsername(resquest.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
-        if (userEntity.getIsAccess() == false) {
+        if (userEntity.getIsActive() == false) {
             throw new AppException(ErrorCode.ACCOUNT_NOT_ACCESS); 
         }
         Boolean status = this.passwordEncoder.matches(resquest.getPassword(), userEntity.getPassword());

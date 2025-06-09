@@ -30,4 +30,5 @@ public class UserResponse {
     String address;
     String thumnailUrl;
     LocalDateTime createdAt;
+    Boolean isActive;
 }

@@ -40,7 +40,7 @@ public class UserEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "country_id")
     CountriesEntity country;
-    Boolean isAccess;
+    Boolean isActive;
     String languages;
     Integer didHostYear;
     @Column(columnDefinition = "TEXT")
