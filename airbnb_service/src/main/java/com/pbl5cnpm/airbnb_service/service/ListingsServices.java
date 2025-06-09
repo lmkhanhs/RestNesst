@@ -28,6 +28,7 @@ import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.enums.BookingStatus;
 import com.pbl5cnpm.airbnb_service.enums.ListingStatus;
 import com.pbl5cnpm.airbnb_service.enums.RoleName;
+import com.pbl5cnpm.airbnb_service.enums.StatusComment;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
@@ -234,12 +235,11 @@ public class ListingsServices {
                 && bookingEntity.getBookingStatus().equals(BookingStatus.SUCCESS.toString())
                 && bookingEntity.getCommented() == false) {
             ListingEntity listingEntity = bookingEntity.getListing();
-            // List<ReviewEntity> lists = listingEntity.getReviews();
 
             ReviewEntity reviewEntity = convertoReviewEntity(reviewRequest);
             reviewEntity.setUserEntity(userEntity);
             reviewEntity.setListingEntity(listingEntity);
-
+            
             this.reviewsRepository.save(reviewEntity);
             bookingEntity.setCommented(true);
             this.bookingRepository.save(bookingEntity);
@@ -255,6 +255,12 @@ public class ListingsServices {
         String imageURL = this.cloudinaryService.uploadImageCloddy(request.getImage());
         reviewEntity.setImageUrl(imageURL);
         reviewEntity.setReviewDate(LocalDate.now());
+        if (request.getStatus().equals(StatusComment.NEGATIVE.toString())) {
+            reviewEntity.setStatus("NEGATIVE");
+        }
+        if (request.getStatus().equals(StatusComment.POSITIVE.toString())) {
+            reviewEntity.setStatus("POSITIVE");
+        }
         return reviewEntity;
     }
 }

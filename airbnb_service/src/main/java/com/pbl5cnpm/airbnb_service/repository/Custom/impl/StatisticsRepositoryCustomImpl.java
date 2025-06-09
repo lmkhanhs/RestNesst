@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.pbl5cnpm.airbnb_service.dto.Response.RatingPersentage;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReveneuStatistic;
+import com.pbl5cnpm.airbnb_service.dto.Response.StatusReview;
 import com.pbl5cnpm.airbnb_service.repository.Custom.StatisticsRepositoryCustom;
 
 import jakarta.persistence.EntityManager;
@@ -65,6 +66,30 @@ public class StatisticsRepositoryCustomImpl implements StatisticsRepositoryCusto
 
             reuslt.add(RatingPersentage.builder()
                     .rating(rating)
+                    .persentage(persentage)
+                    .build());
+        }
+        return reuslt;
+    }
+
+    @Override
+    public List<StatusReview> statisticStatusReviewPersentage() {
+        StringBuilder sql = new StringBuilder();
+        sql.append(" SELECT status , ");
+        sql.append("      ROUND( COUNT(reviews) * 100.0 / ( SELECT COUNT(*) FROM reviews  ), 2  ) AS percentage  ");
+        sql.append("         ");
+        sql.append(" FROM  reviews AS r ");
+        sql.append(" GROUP BU reviews ");
+
+        Query query = entityManager.createNativeQuery(sql.toString());
+        List<Object[]> rawResult = query.getResultList();
+        List<StatusReview> reuslt = new ArrayList<>();
+        for (Object[] row : rawResult) {
+            String status = ((String) row[0]).toString();
+            Double persentage = ((Number) row[1]).doubleValue();
+
+            reuslt.add(StatusReview.builder()
+                    .status(status)
                     .persentage(persentage)
                     .build());
         }

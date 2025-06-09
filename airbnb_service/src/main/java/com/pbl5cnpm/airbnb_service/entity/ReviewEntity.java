@@ -25,7 +25,7 @@ public class ReviewEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     String comment;
-
+    String status;
     @Column(nullable = false)
     Double rating;
     String imageUrl;

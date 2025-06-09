@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.pbl5cnpm.airbnb_service.dto.Response.RatingPersentage;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReveneuStatistic;
 import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
+import com.pbl5cnpm.airbnb_service.dto.Response.StatusReview;
 import com.pbl5cnpm.airbnb_service.repository.StatisticRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
 
@@ -34,5 +35,9 @@ public class StatistcsService {
 
     public List<RatingPersentage> handleRatingPersentage() {
         return this.statisticRepository.statisticRatingPersentage();
+    }
+
+    public List<StatusReview> handleStatusReview(){
+        return this.statisticRepository.statisticStatusReviewPersentage();
     }
 }

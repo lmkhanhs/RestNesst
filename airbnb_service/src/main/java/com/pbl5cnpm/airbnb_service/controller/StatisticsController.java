@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cloudinary.Api;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.RatingPersentage;
 import com.pbl5cnpm.airbnb_service.dto.Response.ReveneuStatistic;
 import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
+import com.pbl5cnpm.airbnb_service.dto.Response.StatusReview;
 import com.pbl5cnpm.airbnb_service.service.StatistcsService;
 
 import lombok.RequiredArgsConstructor;
@@ -58,6 +58,15 @@ public class StatisticsController {
                 .code(200)
                 .message("Statistic rating persentage")
                 .result(this.statistcsService.handleRatingPersentage())
+                .build();
+    }
+
+    @GetMapping("/statistic/reviews/status")
+    public ApiResponse<List<StatusReview>> handleStatisReviews(@RequestParam String param) {
+        return ApiResponse.<List<StatusReview>>builder()
+                .code(200)
+                .message("Statisic status review")
+                .result(this.statistcsService.handleStatusReview())
                 .build();
     }
 

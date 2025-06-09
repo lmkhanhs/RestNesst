@@ -20,4 +20,5 @@ public class ReviewRequest {
     String comment;
     Double rating;
     MultipartFile image;
+    String status;
 }
