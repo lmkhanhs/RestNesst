@@ -37,6 +37,7 @@ import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
 import com.pbl5cnpm.airbnb_service.mapper.UserMapper;
 import com.pbl5cnpm.airbnb_service.repository.ApplyHostListRepository;
 import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
+import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
 import com.pbl5cnpm.airbnb_service.repository.RoleRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
 
@@ -57,6 +58,7 @@ public class UserService {
     private final ListingMapper listingMapper;
     private final CloudinaryService cloudinaryService;
     private final CountriesRepository countriesRepository;
+    private final ListingsRepository listingsRepository;
     @Value("${security.secret}")
     private String SIGNER_KEY;
     @Value("${image.customer}")
@@ -249,13 +251,23 @@ public class UserService {
 
     }
 
-    public UserResponse handleChangeActive( Long user_id ,boolean status){
+    public UserResponse handleChangeActive(Long user_id, boolean status) {
         UserEntity userEntity = this.userRepository.findById(user_id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         userEntity.setIsActive(status);
-        
+
         userEntity = this.userRepository.save(userEntity);
+
+        List<ListingEntity> listingEntitys = this.listingsRepository.findByHostAndDeleted(userEntity, false);
+        listingEntitys = listingEntitys.stream()
+                .map(item -> {
+                    item.setAccess(false);
+                    return item; 
+                })
+                .collect(Collectors.toList());
+        this.listingsRepository.saveAll(listingEntitys);
         return this.mapper.toUserResponse(userEntity);
+
     }
 
 }

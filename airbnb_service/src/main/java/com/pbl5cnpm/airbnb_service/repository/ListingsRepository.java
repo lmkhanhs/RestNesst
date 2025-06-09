@@ -18,5 +18,4 @@ public interface ListingsRepository extends JpaRepository<ListingEntity, Long>, 
     List<ListingEntity> findAllByDeletedOrderByPositionAsc(Boolean deleted);
     Long countByDeletedFalse();
     List<ListingEntity> findByHostAndDeleted(UserEntity host, Boolean deleted);
-
 }
