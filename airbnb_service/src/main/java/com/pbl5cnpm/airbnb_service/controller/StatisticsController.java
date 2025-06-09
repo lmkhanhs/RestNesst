@@ -62,7 +62,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/statistic/reviews/status")
-    public ApiResponse<List<StatusReview>> handleStatisReviews(@RequestParam String param) {
+    public ApiResponse<List<StatusReview>> handleStatisReviews( ) {
         return ApiResponse.<List<StatusReview>>builder()
                 .code(200)
                 .message("Statisic status review")

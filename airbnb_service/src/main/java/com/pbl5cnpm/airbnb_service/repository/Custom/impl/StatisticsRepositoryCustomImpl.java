@@ -76,10 +76,9 @@ public class StatisticsRepositoryCustomImpl implements StatisticsRepositoryCusto
     public List<StatusReview> statisticStatusReviewPersentage() {
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT status , ");
-        sql.append("      ROUND( COUNT(reviews) * 100.0 / ( SELECT COUNT(*) FROM reviews  ), 2  ) AS percentage  ");
-        sql.append("         ");
-        sql.append(" FROM  reviews AS r ");
-        sql.append(" GROUP BU reviews ");
+        sql.append("      ROUND( COUNT(*) * 100.0 / ( SELECT COUNT(*) FROM reviews ), 2 ) AS percentage ");
+        sql.append(" FROM reviews AS r ");
+        sql.append(" GROUP BY status ");
 
         Query query = entityManager.createNativeQuery(sql.toString());
         List<Object[]> rawResult = query.getResultList();
