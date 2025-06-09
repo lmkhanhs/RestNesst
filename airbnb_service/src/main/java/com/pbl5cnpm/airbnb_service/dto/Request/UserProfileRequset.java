@@ -20,5 +20,6 @@ public class UserProfileRequset {
     String fullname;
     String email;
     String phone;
+    String address;
     MultipartFile thumnail; 
 }

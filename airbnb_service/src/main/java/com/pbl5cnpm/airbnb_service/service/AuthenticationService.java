@@ -2,6 +2,8 @@ package com.pbl5cnpm.airbnb_service.service;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -64,13 +66,17 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationResquest resquest) throws JOSEException {
         UserEntity userEntity = this.userRepository.findByUsername(resquest.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
+        if (userEntity.getIsAccess() == false) {
+            throw new AppException(ErrorCode.ACCOUNT_NOT_ACCESS); 
+        }
         Boolean status = this.passwordEncoder.matches(resquest.getPassword(), userEntity.getPassword());
         if (!status) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         String access_token = generationToken(userEntity, false);
         String refresh_token = generationToken(userEntity, true);
-
+        userEntity.setLastLogin(LocalDateTime.now());
+        this.userRepository.save(userEntity);
         return AuthenticationResponse.builder()
                 .access_token(access_token)
                 .refresh_token(refresh_token)

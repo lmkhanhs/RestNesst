@@ -27,7 +27,7 @@ public class BookingEntity extends BaseEntity {
     LocalDate checkInDate;
     LocalDate checkOutDate;
     Double totalPrice;
-
+    Boolean deleted;
     Boolean commented;
 
     String content;

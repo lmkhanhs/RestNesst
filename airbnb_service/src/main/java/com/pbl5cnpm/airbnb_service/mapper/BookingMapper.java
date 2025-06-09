@@ -44,6 +44,7 @@ public abstract class BookingMapper {
     @Mapping(source = "checkOutDate", target = "checkOutDate")
     @Mapping(source = "totalPrice", target = "totalPrice")
     @Mapping(source = "content", target = "content")
+    @Mapping(source = "payment.status", target = "paymentStatus")
     public abstract BookingResponse toBookingResponse(BookingEntity bookingEntity);
 
     @Named("toPrimaryUrl")

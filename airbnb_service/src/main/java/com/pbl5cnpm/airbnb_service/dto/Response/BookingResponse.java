@@ -31,4 +31,5 @@ public class BookingResponse {
     String content;
     String bookingStatus;
     Boolean commented;
+    String paymentStatus;
 }

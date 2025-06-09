@@ -22,6 +22,7 @@ public class UserInfor {
     String fullname;
     String email;
     String phone;
+    String address;
     String thumnailUrl;
     Set<String> roles;
 }

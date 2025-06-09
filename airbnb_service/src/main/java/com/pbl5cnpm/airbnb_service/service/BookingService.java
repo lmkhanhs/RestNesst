@@ -2,6 +2,7 @@ package com.pbl5cnpm.airbnb_service.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +59,7 @@ public class BookingService {
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_EXIT));
 
         if (userEntity.equals(bookingEntity.getUser())
-                && BookingStatus.PAID.toString().equals(bookingEntity.getBookingStatus()) == true ) {
+                && BookingStatus.PAID.toString().equals(bookingEntity.getBookingStatus()) == true) {
             bookingEntity.setBookingStatus(BookingStatus.SUCCESS.toString());
             ListingEntity listingEntity = bookingEntity.getListing();
             listingEntity.setStatus(ListingStatus.AVAILABLE.toString());
@@ -70,6 +71,14 @@ public class BookingService {
         } else {
             throw new AppException(ErrorCode.INVALID);
         }
+    }
+
+    public List<BookingResponse> handlerGetBookingForAdmin(Pageable pageable) {
+        var entyties = this.bookingRepository.findAllByDeleted(false, pageable);
+        List<BookingEntity> bookings = entyties.getContent();
+        return bookings.stream()
+                .map(item -> this.bookingMapper.toBookingResponse(item))
+                .toList();
     }
 
 }

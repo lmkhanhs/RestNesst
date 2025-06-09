@@ -152,6 +152,9 @@ public class UserService {
             var url = this.cloudinaryService.uploadImageCloddy(profileRequset.getThumnail());
             userEntity.setThumnailUrl(url);
         }
+        if (profileRequset.getAddress() != null) {
+            userEntity.setAddress(profileRequset.getAddress());
+        }
         return this.mapper.toUserInfor(this.userRepository.save(userEntity));
     }
 

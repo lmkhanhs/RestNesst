@@ -1,4 +1,6 @@
 package com.pbl5cnpm.airbnb_service.dto.Response;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.pbl5cnpm.airbnb_service.enums.RoleName;
@@ -24,4 +26,8 @@ public class UserResponse {
     String email;
     String phone;
     Set<String> roles;
+    LocalDateTime lastLogin;
+    String address;
+    String thumnailUrl;
+    LocalDateTime createdAt;
 }
