@@ -22,4 +22,5 @@ public class ReviewResponse {
     LocalDate reviewDate;
     String avatarlUrl;
     String reviewUrl;
+    String status;
 }
