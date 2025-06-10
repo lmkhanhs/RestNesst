@@ -261,11 +261,15 @@ public class UserService {
         userEntity = this.userRepository.save(userEntity);
 
         List<ListingEntity> listingEntitys = this.listingsRepository.findByHostAndDeleted(userEntity, false);
-        for (ListingEntity listingEntity : listingEntitys) {
-            listingEntity.setAccess(false);
-            this.listingsRepository.save(listingEntity);
-        }
+        listingEntitys = listingEntitys.stream()
+                .map(item -> {
+                    item.setAccess(false);
+                    return item;
+                })
+                .collect(Collectors.toList());
+        this.listingsRepository.saveAll(listingEntitys);
         return this.mapper.toUserResponse(userEntity);
+
     }
 
     public UserResponse handleChangeProfileUser(UpdateUserProfileByAdminiRequest newProfile) {
@@ -289,11 +293,20 @@ public class UserService {
 
             roles.add(host);
             userEntity.setRoles(roles);
+
         } else if (newProfile.getRole().equals("GUEST")) {
             Set<RoleEntity> roles = new HashSet<>();
             RoleEntity host = this.roleRepository.findByRoleName(RoleName.GUEST.toString()).get();
             roles.add(host);
             userEntity.setRoles(roles);
+            List<ListingEntity> listingEntitys = this.listingsRepository.findByHostAndDeleted(userEntity, false);
+            listingEntitys = listingEntitys.stream()
+                    .map(item -> {
+                        item.setAccess(false);
+                        return item;
+                    })
+                    .collect(Collectors.toList());
+            this.listingsRepository.saveAll(listingEntitys);
         }
 
         return this.mapper.toUserResponse(this.userRepository.save(userEntity));
