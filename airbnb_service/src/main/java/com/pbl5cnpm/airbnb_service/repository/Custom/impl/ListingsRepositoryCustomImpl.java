@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-
 import org.springframework.stereotype.Repository;
 
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
@@ -53,7 +52,7 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
                         AND l.deleted = FALSE
                         AND l.access = TRUE
                         AND l.status = 'ACTIVE'
-                    ORDER BY l.position DESC;    
+                    ORDER BY l.position DESC;
                 """;
 
         Query query = entityManager.createNativeQuery(sql, ListingEntity.class);
@@ -118,4 +117,37 @@ public class ListingsRepositoryCustomImpl implements ListingsRepositoryCustom {
         return query.getResultList();
     }
 
+    @Override
+    public void updateAvgStart() {
+        StringBuilder sql = new StringBuilder();
+        sql.append("""
+                    UPDATE listings l
+                    SET avg_start = (
+                        SELECT COALESCE(AVG(r.rating), 0)
+                        FROM reviews r
+                        WHERE r.listing_id = l.id
+                    )
+                    WHERE l.id IN (
+                        SELECT DISTINCT r.listing_id FROM reviews r
+                    )
+                """);
+        Query query = entityManager.createNativeQuery(sql.toString());
+        query.executeUpdate();
+    }
+
+    @Override
+    public void updatePopular() {
+        String sql = """
+                        UPDATE listings l
+                        SET l.popular = true
+                        WHERE l.id IN (
+                                SELECT r.id
+                                FROM reviews r
+                                GROUP BY r.id
+                                HAVING COUNT(r.id) > 5
+                            )
+                """;
+        Query query = entityManager.createNativeQuery(sql.toString());
+        query.executeUpdate();
+    }
 }

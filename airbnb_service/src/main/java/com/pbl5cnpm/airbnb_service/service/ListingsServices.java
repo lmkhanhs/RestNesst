@@ -8,9 +8,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
@@ -24,6 +27,7 @@ import com.pbl5cnpm.airbnb_service.entity.BookingEntity;
 import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.ReviewEntity;
+import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.enums.BookingStatus;
 import com.pbl5cnpm.airbnb_service.enums.ListingStatus;
@@ -36,12 +40,14 @@ import com.pbl5cnpm.airbnb_service.repository.BookingRepository;
 import com.pbl5cnpm.airbnb_service.repository.ImageRepository;
 import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
 import com.pbl5cnpm.airbnb_service.repository.ReviewsRepository;
+import com.pbl5cnpm.airbnb_service.repository.RoleRepository;
 import com.pbl5cnpm.airbnb_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ListingsServices {
     private final ListingsRepository listingsRepository;
     private final ListingMapper listingMapper;
@@ -51,6 +57,7 @@ public class ListingsServices {
     private final CloudinaryService cloudinaryService;
     private final ReviewsRepository reviewsRepository;
     private final ImageRepository imageRepository;
+    private final RoleRepository roleRepository;
     @Value("${upload.directory}")
     private String UPLOAD_DIR;
 
@@ -153,7 +160,18 @@ public class ListingsServices {
     public boolean handleAccessStatus(Boolean status, Long listingId) {
         ListingEntity listingEntity = this.listingsRepository.findById(listingId)
                 .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        UserEntity userEntity = listingEntity.getHost();
+        Set<RoleEntity> roles = userEntity.getRoles();
+        RoleEntity admin = this.roleRepository.findByRoleName(RoleName.ADMIN.toString())
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        RoleEntity host = this.roleRepository.findByRoleName(RoleName.HOST.toString())
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
         if (status == true) {
+            // v1
+            if (roles.contains(host) == false && roles.contains(admin) == false) {
+                throw new AppException(ErrorCode.LISTING_NOT_ADMIN_OR_HOST);
+            }
+            // v1
             listingEntity.setAccess(true);
             this.listingsRepository.save(listingEntity);
             return true;
@@ -239,7 +257,7 @@ public class ListingsServices {
             ReviewEntity reviewEntity = convertoReviewEntity(reviewRequest);
             reviewEntity.setUserEntity(userEntity);
             reviewEntity.setListingEntity(listingEntity);
-            
+
             this.reviewsRepository.save(reviewEntity);
             bookingEntity.setCommented(true);
             this.bookingRepository.save(bookingEntity);
@@ -263,4 +281,15 @@ public class ListingsServices {
         }
         return reviewEntity;
     }
+
+    @Scheduled(fixedRateString = "${schedule.AvgStart}")
+    public void updateAvgStart() {
+        this.listingsRepository.updateAvgStart();
+    }
+
+    @Scheduled(fixedRateString = "${schedule.Popular}")
+    public void updatePopular() {
+        this.listingsRepository.updatePopular();
+    }
+
 }

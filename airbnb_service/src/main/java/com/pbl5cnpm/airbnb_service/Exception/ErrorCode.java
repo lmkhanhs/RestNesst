@@ -28,7 +28,8 @@ public enum ErrorCode {
     PAYMENT_NOT_EXIST(1019, "payment not exits", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_EXIT(1020, "catecory not exit", HttpStatus.BAD_REQUEST),
     EMENITIES_NOT_EXIT(1021, "amenities not exit", HttpStatus.BAD_REQUEST),
-    ACCOUNT_NOT_ACCESS(1022,"account not acccess", HttpStatus.BAD_GATEWAY)
+    ACCOUNT_NOT_ACCESS(1022,"account not acccess", HttpStatus.BAD_REQUEST),
+    LISTING_NOT_ADMIN_OR_HOST(1023, "listing not of admin or host", HttpStatus.BAD_REQUEST)
     ;
     ErrorCode(int code, String message, HttpStatus httpStatus){
         this.code = code;
