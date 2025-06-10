@@ -261,15 +261,11 @@ public class UserService {
         userEntity = this.userRepository.save(userEntity);
 
         List<ListingEntity> listingEntitys = this.listingsRepository.findByHostAndDeleted(userEntity, false);
-        listingEntitys = listingEntitys.stream()
-                .map(item -> {
-                    item.setAccess(false);
-                    return item;
-                })
-                .collect(Collectors.toList());
-        this.listingsRepository.saveAll(listingEntitys);
+        for (ListingEntity listingEntity : listingEntitys) {
+            listingEntity.setAccess(false);
+            this.listingsRepository.save(listingEntity);
+        }
         return this.mapper.toUserResponse(userEntity);
-
     }
 
     public UserResponse handleChangeProfileUser(UpdateUserProfileByAdminiRequest newProfile) {
@@ -293,7 +289,7 @@ public class UserService {
 
             roles.add(host);
             userEntity.setRoles(roles);
-        }else if (newProfile.getRole().equals("GUEST")) {
+        } else if (newProfile.getRole().equals("GUEST")) {
             Set<RoleEntity> roles = new HashSet<>();
             RoleEntity host = this.roleRepository.findByRoleName(RoleName.GUEST.toString()).get();
             roles.add(host);
@@ -302,11 +298,12 @@ public class UserService {
 
         return this.mapper.toUserResponse(this.userRepository.save(userEntity));
     }
-    public void handleUpdateHost(UpdateProFileHost fileHost, String username ){
+
+    public void handleUpdateHost(UpdateProFileHost fileHost, String username) {
         UserEntity entity = this.userRepository.findByUsername(username).get();
         if (fileHost.getCountry() != null) {
-            var coutry = this.countriesRepository.findByName(fileHost.getCountry() )
-                    .orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
+            var coutry = this.countriesRepository.findByName(fileHost.getCountry())
+                    .orElseThrow(() -> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
             entity.setCountry(coutry);
         }
         if (fileHost.getEmail() != null) {
