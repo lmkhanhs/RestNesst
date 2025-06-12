@@ -1,0 +1,42 @@
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.mapboxgl-map {
+  border-radius: 16px;
+}
+
+/* MapTiler specific styles */
+.maplibregl-map {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.maplibregl-popup {
+  max-width: 300px;
+}
+
+.maplibregl-popup-content {
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.maplibregl-marker {
+  cursor: pointer;
+}
+
+/* Custom marker styles */
+.marker {
+  background-image: url("https://api.maptiler.com/maps/markers/marker.png");
+  background-size: cover;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.marker:hover {
+  transform: scale(1.1);
+}

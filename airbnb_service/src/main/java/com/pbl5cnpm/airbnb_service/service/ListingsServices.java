@@ -180,10 +180,11 @@ public class ListingsServices {
         this.listingsRepository.save(listingEntity);
         return false;
     }
-
+//update
     public List<ListingResponseManager> handlegetfullAll() {
         List<ListingEntity> entities = this.listingsRepository.findAllByDeletedOrderByPositionAsc(false);
         return entities.stream()
+            
                 .map(data -> this.listingMapper.toLisingResposeManager(data))
                 .toList();
     }

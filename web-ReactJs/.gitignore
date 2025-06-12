@@ -1,0 +1,11 @@
+# Bỏ qua thư mục venv
+Gan_Nhan_Danh_Gia/venv/
+
+# Bỏ qua các file mô hình
+Gan_Nhan_Danh_Gia/*.h5
+Gan_Nhan_Danh_Gia/*.pyd
+Gan_Nhan_Danh_Gia/*.dll
+Gan_Nhan_Danh_Gia/*.lib
+
+# (Tùy chọn) Bỏ luôn thư mục .idea nếu dùng JetBrains
+.idea/
