@@ -34,7 +34,7 @@ export const ICON = {
   NAVBAR_ITEM_HORIZONTAL: 20,
 };
 
-export const HOST_API = "";
+export const HOST_API = "http://localhost:8080";
 
 export const MAPTILER_API_KEY = "M9RgBxrNRXsSBqSCkgme";
 
