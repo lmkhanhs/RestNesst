@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { BACKEND_URL } from "@/shared/config/environment.js";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -52,6 +53,20 @@ const ReservationPage = () => {
 
   const totalSteps = 2;
   const progress = (currentStep / totalSteps) * 100;
+
+  const fetchFavoriteRooms = useCallback(async () => {
+    try {
+      const res = await axiosInstance.get("/api/users/favorites");
+      if (res.data?.result?.favorites) {
+        setFavoriteRooms(res.data.result.favorites);
+        setFavoriteIds(res.data.result.favorites.map((fav) => fav.id || fav));
+      }
+    } catch (err) {}
+  }, []);
+
+  useEffect(() => {
+    if (roomData && localStorage.getItem("accessToken")) fetchFavoriteRooms();
+  }, [roomData, fetchFavoriteRooms]);
 
   if (!roomData) {
     return (
@@ -313,9 +328,6 @@ const ReservationPage = () => {
                   sx={{
                     mt: 2,
                     backgroundColor: "#FF385C",
-                    "&:hover": {
-                      backgroundColor: "#E61E4D",
-                    },
                     padding: "14px",
                     fontSize: "16px",
                     fontWeight: 600,
@@ -324,6 +336,7 @@ const ReservationPage = () => {
                     boxShadow: "0 4px 12px rgba(255, 56, 92, 0.3)",
                     transition: "all 0.2s ease-in-out",
                     "&:hover": {
+                      backgroundColor: "#E61E4D",
                       transform: "translateY(-1px)",
                       boxShadow: "0 6px 16px rgba(255, 56, 92, 0.4)",
                     },
@@ -360,20 +373,6 @@ const ReservationPage = () => {
       </Box>
     );
   };
-
-  const fetchFavoriteRooms = async () => {
-    try {
-      const res = await axiosInstance.get("/api/users/favorites");
-      if (res.data?.result?.favorites) {
-        setFavoriteRooms(res.data.result.favorites);
-        setFavoriteIds(res.data.result.favorites.map((fav) => fav.id || fav));
-      }
-    } catch (err) {}
-  };
-
-  useEffect(() => {
-    fetchFavoriteRooms();
-  }, []);
 
   const addFavorite = async (listingId) => {
     try {
@@ -414,7 +413,7 @@ const ReservationPage = () => {
                   src={
                     room.primaryThumbnail.startsWith("http")
                       ? room.primaryThumbnail
-                      : `http://175.41.233.105:8080/${room.primaryThumbnail}`
+                      : `${BACKEND_URL}/${room.primaryThumbnail}`
                   }
                   alt={room.title}
                   sx={{
@@ -529,7 +528,7 @@ const ReservationPage = () => {
                     roomData?.images?.[0]
                       ? roomData.images[0].startsWith("http")
                         ? roomData.images[0]
-                        : `http://175.41.233.105:8080/${roomData.images[0]}`
+                        : `${BACKEND_URL}/${roomData.images[0]}`
                       : ""
                   }
                   alt="Room Preview"

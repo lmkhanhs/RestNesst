@@ -1,34 +1,32 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useEffect, useState } from "react";
 import {
   Stack,
   Checkbox,
   Grid,
-  InputLabel,
   Avatar,
   Typography,
   Box,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import axios from "axios";
 
 const Amenities = ({ value = [], onChange, showIcon }) => {
   const [amenitiesList, setAmenitiesList] = useState([]);
   const [selected, setSelected] = useState(value || []);
 
-  // Lấy danh sách amenities từ API khi mount
   useEffect(() => {
     const fetchAmenities = async () => {
-      const res = await axios.get("http://175.41.233.105:8080/api/amenities");
-      setAmenitiesList(res.data.result);
+      const res = await axios.get(BACKEND_URL + "/api/amenities");
+      setAmenitiesList(Array.isArray(res.data?.result) ? res.data.result : []);
     };
-    fetchAmenities();
+    fetchAmenities().catch(() => setAmenitiesList([]));
   }, []);
 
-  // Khi value từ props thay đổi (ví dụ reset filter), cập nhật lại selected
   useEffect(() => {
     setSelected(value || []);
   }, [value]);
 
-  // Xử lý khi chọn/bỏ chọn
   const handleChange = (id) => {
     let newSelected;
     if (selected.includes(id)) {
@@ -41,48 +39,80 @@ const Amenities = ({ value = [], onChange, showIcon }) => {
   };
 
   return (
-    <Stack spacing={2}>
-      <Stack spacing={1}>
-        <InputLabel sx={{ fontSize: 14, fontWeight: 600 }}>
-          Tiện nghi
-        </InputLabel>
-      </Stack>
+    <Stack spacing={1.25}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "text.primary" }}>
+        Tiện nghi phòng
+      </Typography>
+      {!amenitiesList.length && (
+        <Typography variant="body2" color="text.secondary">
+          Chưa có tiện nghi để lọc.
+        </Typography>
+      )}
       <Grid container spacing={1}>
-        {amenitiesList.map((amenity) => (
-          <Grid item xs={12} key={amenity.id}>
-            <Box
-              display="flex"
-              alignItems="center"
-              gap={2}
-              p={1}
-              borderRadius={2}
-            >
-              {showIcon && amenity.thumnailUrl && (
-                <Avatar
-                  src={`http://175.41.233.105:8080${amenity.thumnailUrl}`}
-                  alt={amenity.name}
-                  sx={{ width: 25, height: 25, bgcolor: "#fff" }}
-                  variant="rounded"
-                />
-              )}
-              <Typography
-                flex={1}
-                variant="body2"
-                sx={{ fontWeight: 400, color: "text.primary" }}
+        {amenitiesList.map((amenity) => {
+          const isChecked = selected.includes(amenity.id);
+          return (
+            <Grid item xs={12} key={amenity.id}>
+              <Box
+                component="label"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  minHeight: 44,
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 2,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: isChecked ? "primary.main" : "divider",
+                  bgcolor: isChecked ? "rgba(217, 27, 66, 0.05)" : "background.paper",
+                  transition: "border-color 150ms ease, background-color 150ms ease",
+                  "&:hover": {
+                    borderColor: isChecked ? "primary.main" : "text.secondary",
+                  },
+                }}
               >
-                {amenity.name}
-              </Typography>
-              <Checkbox
-                checked={selected.includes(amenity.id)}
-                onChange={() => handleChange(amenity.id)}
-                color="primary"
-              />
-            </Box>
-          </Grid>
-        ))}
+                {showIcon && amenity.thumnailUrl && (
+                  <Avatar
+                    src={`${BACKEND_URL}${amenity.thumnailUrl}`}
+                    alt=""
+                    aria-hidden="true"
+                    sx={{ width: 22, height: 22, bgcolor: "transparent" }}
+                    variant="rounded"
+                  />
+                )}
+                <Typography
+                  flex={1}
+                  variant="body2"
+                  sx={{
+                    fontWeight: isChecked ? 600 : 500,
+                    color: "text.primary",
+                  }}
+                >
+                  {amenity.name}
+                </Typography>
+                <Checkbox
+                  inputProps={{ "aria-label": amenity.name }}
+                  checked={isChecked}
+                  onChange={() => handleChange(amenity.id)}
+                  color="primary"
+                  size="small"
+                  sx={{ p: 0.5 }}
+                />
+              </Box>
+            </Grid>
+          );
+        })}
       </Grid>
     </Stack>
   );
+};
+
+Amenities.propTypes = {
+  value: PropTypes.array,
+  onChange: PropTypes.func,
+  showIcon: PropTypes.bool,
 };
 
 export default Amenities;

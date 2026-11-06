@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -647,7 +648,7 @@ const UserProfile = () => {
                         room.primaryUrl
                           ? room.primaryUrl.startsWith("http")
                             ? room.primaryUrl
-                            : `http://175.41.233.105:8080/${room.primaryUrl}`
+                            : `${BACKEND_URL}/${room.primaryUrl}`
                           : "/default-room.jpg"
                       }
                       alt={room.title}
@@ -849,7 +850,7 @@ const UserProfile = () => {
                         room.primaryUrl
                           ? room.primaryUrl.startsWith("http")
                             ? room.primaryUrl
-                            : `http://175.41.233.105:8080/${room.primaryUrl}`  
+                            : `${BACKEND_URL}/${room.primaryUrl}`
                           : "/default-room.jpg"
                       }
                       alt={room.title}

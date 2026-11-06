@@ -23,9 +23,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.UpdateUserProfileByAdminiRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserProfileRequset;
 import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
-import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
 import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
-import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
 import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
@@ -35,7 +33,6 @@ import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.enums.RoleName;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
-import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
 import com.pbl5cnpm.airbnb_service.mapper.UserMapper;
 import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
@@ -55,7 +52,6 @@ public class UserService {
     private final UserMapper mapper;
     private final MailerService mailerService;
     private final PasswordEncoder passwordEncoder;
-    private final ListingMapper listingMapper;
     private final CloudinaryService cloudinaryService;
     private final CountriesRepository countriesRepository;
     private final ListingsRepository listingsRepository;
@@ -123,20 +119,6 @@ public class UserService {
         UserEntity user = this.userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return this.mapper.toUserInfor(user);
-    }
-
-    public UserFavoriteResponse getFavorites(String username) {
-        UserEntity user = this.userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        Long userId = user.getId();
-        List<ListingEntity> favoriteEntity = this.userRepository.findFavorites(userId);
-        List<ListingFavorite> favorites = favoriteEntity.stream()
-                .map(data -> this.listingMapper.toLitingFavorite(data))
-                .toList();
-        return UserFavoriteResponse.builder()
-                .userId(userId)
-                .favorites(favorites)
-                .build();
     }
 
     public UserInfor handleUpdateProfile(UserProfileRequset profileRequset, String username) {

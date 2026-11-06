@@ -1,93 +1,127 @@
-import { Box, Card, IconButton, TextField } from "@mui/material";
+import { Box, Button, CircularProgress, IconButton, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { styled } from "@mui/material/styles";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import { useState, useContext } from "react";
-import axios from "axios";
+import axiosInstance from "@/shared/api/httpClient.js";
 import { SearchContext } from "@/features/search/context/SearchContext.jsx";
 
-const StyledIconButton = styled(IconButton)(({ theme }) => ({
-  background: theme.palette.primary.main,
-  color: "white",
-  "&:hover": {
-    backgroundColor: theme.palette.primary.dark,
-  },
-  height: 48,
-  width: 48,
-  borderRadius: "50%",
-  boxShadow: "0 2px 8px rgba(255,56,92,0.15)",
-  fontSize: 22,
-  marginLeft: 12,
-  transition: "background 0.2s",
-}));
-
-const SearchBar = () => {
-  const { updateSearchResults } = useContext(SearchContext);
+export default function SearchBar() {
+  const { updateSearchResults, beginSearch, failSearch, isSearchLoading } = useContext(SearchContext);
   const [keyword, setKeyword] = useState("");
 
-  const handleSearch = async () => {
+  const handleSearch = async (event) => {
+    event.preventDefault();
+    beginSearch();
     try {
-      let url = "http://175.41.233.105:8080/api/listings/search?";
-      const params = new URLSearchParams();
-      if (keyword) params.append("keyword", keyword);
-      const response = await axios.get(`${url}${params.toString()}`);
+      const response = await axiosInstance.get("/api/listings/search", { params: { keyword: keyword.trim() } });
       updateSearchResults(response.data.result, true);
-    } catch (error) {
-      console.error("Lỗi khi tìm kiếm:", error);
-      updateSearchResults([], false);
+    } catch {
+      failSearch("Không thể tìm kiếm lúc này. Vui lòng thử lại.");
     }
   };
 
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      handleSearch();
-    }
+  const handleClear = () => {
+    setKeyword("");
+    updateSearchResults([], false);
   };
 
   return (
     <Box
-      sx={{ width: "50%", maxWidth: 1400, mx: "auto", mt: 0.5, maxHeight: 70 }}
+      component="form"
+      role="search"
+      aria-label="Tìm kiếm phòng và điểm đến"
+      onSubmit={handleSearch}
+      sx={{
+        order: { xs: 3, sm: 0 },
+        flex: { sm: 1 },
+        width: { xs: "100%", sm: "auto" },
+        minWidth: 0,
+        maxWidth: 680,
+        mx: "auto",
+        p: 0.625,
+        pl: { xs: 1.25, sm: 1.75 },
+        display: "flex",
+        alignItems: "center",
+        gap: 0.75,
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: "999px",
+        bgcolor: "background.paper",
+        boxShadow: "0 2px 10px rgba(15, 23, 42, 0.05)",
+        transition: "border-color 180ms ease, box-shadow 180ms ease",
+        "&:focus-within": {
+          borderColor: "primary.main",
+          boxShadow: "0 4px 16px rgba(217, 27, 66, 0.12)",
+        },
+      }}
     >
-      <Card
+      <PlaceOutlinedIcon
+        aria-hidden="true"
+        sx={{ color: "primary.main", fontSize: 22, flexShrink: 0 }}
+      />
+      <TextField
+        variant="standard"
+        fullWidth
+        placeholder="Tìm theo thành phố, địa chỉ hoặc tên chỗ ở..."
+        value={keyword}
+        onChange={(event) => setKeyword(event.target.value)}
+        inputProps={{ "aria-label": "Tìm kiếm chỗ ở" }}
+        InputProps={{
+          disableUnderline: true,
+          sx: {
+            px: 0.75,
+            fontSize: { xs: "0.9375rem", sm: "0.975rem" },
+            fontWeight: 500,
+            color: "text.primary",
+          },
+        }}
+      />
+      {keyword && (
+        <IconButton
+          type="button"
+          aria-label="Xóa từ khóa tìm kiếm"
+          onClick={handleClear}
+          size="small"
+          sx={{
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            color: "text.secondary",
+          }}
+        >
+          <CloseRoundedIcon fontSize="small" />
+        </IconButton>
+      )}
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        aria-label="Tìm kiếm"
+        disabled={isSearchLoading}
+        className="rn-interactive-btn"
         sx={{
-          p: 1.5,
-          borderRadius: 8,
-          boxShadow: 3,
-          maxWidth: 1400,
-          width: "100%",
-          maxHeight: 880,
-          mx: "auto",
-          display: "flex",
-          alignItems: "center",
-          background: "rgba(24,24,24,0.95)",
+          minWidth: { xs: 44, sm: 112 },
+          height: 44,
+          px: { xs: 1.25, sm: 2.25 },
+          borderRadius: "999px",
+          flexShrink: 0,
+          fontWeight: 700,
+          gap: 0.75,
+          boxShadow: "none",
         }}
       >
-        <TextField
-          variant="outlined"
-          fullWidth
-          placeholder="Tìm kiếm địa điểm, tên phòng, ..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyPress={handleKeyPress}
-          InputProps={{
-            sx: {
-              borderRadius: 8,
-              background: "#181818",
-              color: "#fff",
-              fontWeight: 500,
-              fontSize: 18,
-              maxHeight: 50,
-              px: 2,
-              boxShadow: "0 2px 8px rgba(255,56,92,0.08)",
-              height: 56,
-            },
-          }}
-        />
-        <StyledIconButton onClick={handleSearch}>
-          <SearchIcon />
-        </StyledIconButton>
-      </Card>
+        {isSearchLoading ? (
+          <CircularProgress size={20} color="inherit" />
+        ) : (
+          <>
+            <SearchIcon sx={{ fontSize: 20 }} />
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+              Tìm phòng
+            </Box>
+          </>
+        )}
+      </Button>
     </Box>
   );
-};
-
-export default SearchBar;
+}

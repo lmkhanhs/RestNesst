@@ -5,10 +5,10 @@ import ChatBot from "@/features/chat/components/ChatBot.jsx";
 
 const MainLayout = () => {
   return (
-    <Stack spacing={2}>
+    <Stack sx={{ minHeight: "100dvh", minWidth: 0 }}>
       {/* Header */}
       <Header />
-      <Box sx={{ overflowY: "scroll", height: "Calc(100vh-150px)" }}>
+      <Box component="main" sx={{ flex: 1, minWidth: 0 }}>
         {/* Main Content */}
         <Outlet />
       </Box>

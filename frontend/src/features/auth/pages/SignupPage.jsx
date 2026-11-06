@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Logo from "@/shared/components/Logo.jsx";
-import axios from "axios";
+import axiosInstance from "@/shared/api/httpClient.js";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -43,7 +43,7 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         "/api/users",
         {
           username: formData.username,
@@ -69,7 +69,7 @@ const SignUp = () => {
 
       // After successful registration, try to login
       try {
-        const loginResponse = await axios.post(
+        const loginResponse = await axiosInstance.post(
           "/auth/login",
           {
             username: formData.username,
@@ -83,25 +83,17 @@ const SignUp = () => {
           }
         );
 
-        console.log("Login response:", loginResponse.data); // Debug log
 
         if (loginResponse.data.code === 200) {
-          const { accessToken, refreshToken } = loginResponse.data.result;
+          const { access_token, refresh_token } = loginResponse.data.result;
 
           // Store tokens
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
+          localStorage.setItem("accessToken", access_token);
+          localStorage.setItem("refreshToken", refresh_token);
 
-          // Set default authorization header
-          axios.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${accessToken}`;
-
-          // Store user data
-          localStorage.setItem(
-            "user",
-            JSON.stringify(loginResponse.data.result)
-          );
+          const profileResponse = await axiosInstance.get("/api/users/myInformation");
+          localStorage.setItem("user", JSON.stringify(profileResponse.data.result));
+          localStorage.setItem("userName", profileResponse.data.result.username);
 
           // Use window.location for full page refresh
           window.location.href = "/";
@@ -131,10 +123,10 @@ const SignUp = () => {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container component="main" maxWidth="sm">
       <Box
         sx={{
-          py: 12,
+          py: { xs: 4, sm: 8 },
           maxWidth: 480,
           mx: "auto",
           display: "flex",
@@ -145,19 +137,19 @@ const SignUp = () => {
           bgcolor: "background.default", // Add dark theme background
         }}
       >
-        <Logo sx={{ mb: 5 }} />
+        <Logo sx={{ mb: 3 }} />
 
-        <Typography variant="h4" paragraph sx={{ color: "text.primary" }}>
-          Get started with Rhythm
+        <Typography component="h1" variant="h4" paragraph sx={{ color: "text.primary" }}>
+          Tạo tài khoản RestNesst
         </Typography>
 
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 5 }}>
-          Already have an account? {""}
+        <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+          Bạn đã có tài khoản? {""}
           <RouterLink
             to="/login"
-            style={{ color: "primary.main", textDecoration: "none" }}
+            style={{ color: "primary.main", textDecoration: "underline" }}
           >
-            Sign in
+            Đăng nhập
           </RouterLink>
         </Typography>
 
@@ -180,7 +172,8 @@ const SignUp = () => {
               <TextField
                 fullWidth
                 name="username"
-                label="Username"
+                label="Tên đăng nhập"
+                autoComplete="username"
                 value={formData.username}
                 onChange={handleChange}
                 disabled={loading}
@@ -189,10 +182,10 @@ const SignUp = () => {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.23)",
+                      borderColor: "divider",
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.4)",
+                      borderColor: "text.primary",
                     },
                   },
                 }}
@@ -201,7 +194,8 @@ const SignUp = () => {
               <TextField
                 fullWidth
                 name="fullname"
-                label="Full Name"
+                label="Họ và tên"
+                autoComplete="name"
                 value={formData.fullname}
                 onChange={handleChange}
                 disabled={loading}
@@ -210,10 +204,10 @@ const SignUp = () => {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.23)",
+                      borderColor: "divider",
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.4)",
+                      borderColor: "text.primary",
                     },
                   },
                 }}
@@ -223,6 +217,7 @@ const SignUp = () => {
                 fullWidth
                 name="email"
                 label="Email"
+                autoComplete="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -230,10 +225,10 @@ const SignUp = () => {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.23)",
+                      borderColor: "divider",
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.4)",
+                      borderColor: "text.primary",
                     },
                   },
                 }}
@@ -242,17 +237,18 @@ const SignUp = () => {
               <TextField
                 fullWidth
                 name="phone"
-                label="Phone Number"
+                label="Số điện thoại"
+                autoComplete="tel"
                 value={formData.phone}
                 onChange={handleChange}
                 required
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.23)",
+                      borderColor: "divider",
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.4)",
+                      borderColor: "text.primary",
                     },
                   },
                 }}
@@ -261,7 +257,8 @@ const SignUp = () => {
               <TextField
                 fullWidth
                 name="password"
-                label="Password"
+                label="Mật khẩu"
+                autoComplete="new-password"
                 value={formData.password}
                 onChange={handleChange}
                 type={showPassword ? "text" : "password"}
@@ -272,6 +269,7 @@ const SignUp = () => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
+                        aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                         disabled={loading}
@@ -284,10 +282,10 @@ const SignUp = () => {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.23)",
+                      borderColor: "divider",
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.4)",
+                      borderColor: "text.primary",
                     },
                   },
                 }}
@@ -312,7 +310,7 @@ const SignUp = () => {
               {loading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                "Create Account"
+                "Tạo tài khoản"
               )}
             </Button>
           </form>

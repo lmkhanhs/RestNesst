@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nimbusds.jose.JOSEException;
 import com.pbl5cnpm.airbnb_service.dto.Request.ApplyHostResquest;
-import com.pbl5cnpm.airbnb_service.dto.Request.FavoriteRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.PasswordChangeRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateProFileHost;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateUserProfileByAdminiRequest;
@@ -31,10 +30,8 @@ import com.pbl5cnpm.airbnb_service.dto.Request.UserRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.HostProfileResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
-import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
-import com.pbl5cnpm.airbnb_service.service.FavoriteService;
 import com.pbl5cnpm.airbnb_service.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +43,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final FavoriteService favoriteService;
     private final UserService userService;
 
     @PostMapping("/users")
@@ -85,40 +81,6 @@ public class UserController {
         }
         return ApiResponse.<UserInfor>builder()
                 .result(this.userService.handleInfor(token))
-                .build();
-    }
-
-    @GetMapping("/users/favorites") // lây full
-    public ApiResponse<UserFavoriteResponse> getMethodName() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        var UserFavoriteResponse = this.userService.getFavorites(username);
-        return ApiResponse.<UserFavoriteResponse>builder()
-                .message("fetch favorite for user")
-                .code(200)
-                .result(UserFavoriteResponse)
-                .build();
-    }
-
-    @PostMapping("/users/favorites") // tạo
-    public ResponseEntity<Void> postMethodName(@RequestBody FavoriteRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        Long listingId = request.getListingId();
-        this.favoriteService.addFavorite(listingId, username);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @DeleteMapping("/users/favorites") // xóa
-    public ApiResponse<Void> handleDelete(@RequestBody FavoriteRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        Long listingId = request.getListingId();
-        this.favoriteService.deleteFavorite(listingId, username);
-
-        return ApiResponse.<Void>builder()
-                .code(200)
-                .message("delete succesfully")
                 .build();
     }
 

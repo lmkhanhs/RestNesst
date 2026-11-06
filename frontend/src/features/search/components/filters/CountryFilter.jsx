@@ -1,5 +1,7 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { Box, Typography, Autocomplete, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
 
 const CountryFilter = ({ value, onChange }) => {
@@ -7,20 +9,24 @@ const CountryFilter = ({ value, onChange }) => {
 
   useEffect(() => {
     const fetchCountries = async () => {
-      const res = await axios.get("http://175.41.233.105:8080/api/countries");
-      setOptions(res.data.result.map((item) => item.name));
+      const res = await axios.get(BACKEND_URL + "/api/countries");
+      setOptions(
+        Array.isArray(res.data?.result)
+          ? res.data.result.map((item) => item.name)
+          : []
+      );
     };
-    fetchCountries();
+    fetchCountries().catch(() => setOptions([]));
   }, []);
 
   return (
-    <Box sx={{ mb: 1 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-        Quốc gia
+    <Box>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: "text.primary" }}>
+        Quốc gia / Khu vực
       </Typography>
       <Autocomplete
         options={options}
-        value={value || ""}
+        value={value || null}
         onChange={(_, newValue) => onChange && onChange(newValue || "")}
         renderInput={(params) => (
           <TextField
@@ -28,10 +34,14 @@ const CountryFilter = ({ value, onChange }) => {
             placeholder="Chọn quốc gia..."
             size="small"
             fullWidth
+            inputProps={{
+              ...params.inputProps,
+              "aria-label": "Chọn quốc gia",
+            }}
             sx={{ borderRadius: 2, bgcolor: "background.paper" }}
             InputProps={{
               ...params.InputProps,
-              sx: { borderRadius: 2 },
+              sx: { borderRadius: 2, minHeight: 44 },
             }}
           />
         )}
@@ -41,6 +51,11 @@ const CountryFilter = ({ value, onChange }) => {
       />
     </Box>
   );
+};
+
+CountryFilter.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func,
 };
 
 export default CountryFilter;

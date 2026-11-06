@@ -1,0 +1,23 @@
+
+
+# Project-only MCP Toolbox for the RestNesst MySQL dev database.
+[mcp_servers.restnesst_mysql]
+command = "python3"
+args = ["/home/lmkhanhs/workspace/RestNesst/tools/database-toolbox/run.py"]
+cwd = "/home/lmkhanhs/workspace/RestNesst"
+startup_timeout_sec = 30
+tool_timeout_sec = 30
+env_vars = ["RESTNESST_MYSQL_PASSWORD"]
+default_tools_approval_mode = "writes"
+enabled_tools = [
+  "mysql-connection-info",
+  "mysql-current-grants",
+  "mysql-list-tables",
+  "mysql-describe-table",
+  "mysql-list-foreign-keys",
+  "countries-list",
+  "countries-get-by-id",
+  "countries-create",
+  "countries-update-details",
+  "countries-delete-unused",
+]

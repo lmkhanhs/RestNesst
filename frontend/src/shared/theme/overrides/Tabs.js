@@ -13,7 +13,7 @@ export default function Tabs(theme) {
             color: theme.palette.text.primary,
           },
           '&:not(:last-of-type)': {
-            marginRight: theme.spacing(5),
+            marginRight: theme.spacing(1.5),
           },
           '@media (min-width: 600px)': {
             minWidth: 48,

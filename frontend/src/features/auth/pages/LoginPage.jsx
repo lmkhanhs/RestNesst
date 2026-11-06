@@ -62,7 +62,7 @@ const Login = () => {
           },
         });
   
-        if (userResponse.data.code === 200) {
+        if (userResponse.data.code === 200 || userResponse.data.code === 0) {
           const userData = userResponse.data.result;
           localStorage.setItem("user", JSON.stringify(userData));
           localStorage.setItem("userName", userData.username);
@@ -77,11 +77,11 @@ const Login = () => {
     } catch (err) {
       console.error("Login error:", err);
       if (err.response?.status === 401) {
-        setError("Invalid username or password");
+        setError("Tên đăng nhập hoặc mật khẩu không đúng.");
       } else if (err.response?.status === 404) {
         setError("API endpoint not found");
       } else {
-        setError("Login failed. Please try again.");
+        setError("Đăng nhập thất bại. Vui lòng thử lại.");
       }
     } finally {
       setLoading(false);
@@ -89,10 +89,10 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container component="main" maxWidth="sm">
       <Box
         sx={{
-          py: 12,
+          py: { xs: 4, sm: 8 },
           maxWidth: 480,
           mx: "auto",
           display: "flex",
@@ -102,19 +102,19 @@ const Login = () => {
           flexDirection: "column",
         }}
       >
-        <Logo sx={{ mb: 5 }} />
+        <Logo sx={{ mb: 3 }} />
 
-        <Typography variant="h4" paragraph>
-          Sign in to Rhythm
+        <Typography component="h1" variant="h4" paragraph>
+          Đăng nhập RestNesst
         </Typography>
 
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 5 }}>
-          Don&apos;t have an account? {""}
+        <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+          Bạn chưa có tài khoản? {""}
           <RouterLink
             to="/signup"
-            style={{ color: "primary.main", textDecoration: "none" }}
+            style={{ color: "primary.main", textDecoration: "underline" }}
           >
-            Get started
+            Tạo tài khoản
           </RouterLink>
         </Typography>
 
@@ -126,7 +126,7 @@ const Login = () => {
           )}
           {success && (
             <Alert severity="success" sx={{ mb: 3 }}>
-              Login successful! Redirecting to home page...
+              Đăng nhập thành công! Đang chuyển tới trang chủ...
             </Alert>
           )}
 
@@ -135,7 +135,9 @@ const Login = () => {
               <TextField
                 fullWidth
                 name="username"
-                label="Username"
+                label="Tên đăng nhập"
+                autoComplete="username"
+                required
                 value={formData.username}
                 onChange={handleChange}
                 disabled={loading}
@@ -145,7 +147,9 @@ const Login = () => {
               <TextField
                 fullWidth
                 name="password"
-                label="Password"
+                label="Mật khẩu"
+                autoComplete="current-password"
+                required
                 value={formData.password}
                 onChange={handleChange}
                 type={showPassword ? "text" : "password"}
@@ -155,6 +159,7 @@ const Login = () => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
+                        aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                         disabled={loading}
@@ -182,14 +187,14 @@ const Login = () => {
                     disabled={loading}
                   />
                 }
-                label="Remember me"
+                label="Ghi nhớ đăng nhập"
               />
 
               <RouterLink
                 to="/reset-password"
-                style={{ color: "primary.main", textDecoration: "none" }}
+                style={{ color: "primary.main", textDecoration: "underline" }}
               >
-                Forgot password?
+                Quên mật khẩu?
               </RouterLink>
             </Stack>
 
@@ -210,7 +215,7 @@ const Login = () => {
               {loading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                "Login"
+                "Đăng nhập"
               )}
             </Button>
           </form>

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import {
   Box,
   Button,
@@ -15,7 +16,7 @@ import { useState } from "react";
 const getImageUrl = (img) => {
   if (!img) return "/default-image.png";
   if (img.startsWith("http")) return img;
-  return `http://175.41.233.105:8080/${img}`;
+  return `${BACKEND_URL}/${img}`;
 };
 
 const Images = ({ images }) => {

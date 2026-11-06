@@ -1,11 +1,10 @@
-import { Chip, Typography } from "@mui/material";
-import { Box, Grid, Stack } from "@mui/material";
-import { useState, useEffect } from "react";
+import { Alert, Box, Button, Grid, Stack, Typography } from "@mui/material";
+import { useState, useEffect, useMemo, useContext } from "react";
 import PropTypes from "prop-types";
-import useResponsive from "@/shared/hooks/useResponsive.js";
 import CardView from "./ListingTabs.jsx";
 import { FaColumns, FaMap } from "react-icons/fa";
 import Map from "./SearchMap.jsx";
+import { SearchContext } from "@/features/search/context/SearchContext.jsx";
 
 const Result = ({
   properties: defaultProperties,
@@ -13,14 +12,20 @@ const Result = ({
   isSearching,
   setIsSearching,
   setSearchResults,
+  loading = false,
+  error = "",
+  retryAction,
 }) => {
   const [view, setView] = useState("card");
   const [tabValue, setTabValue] = useState(0);
   const [mapProperties, setMapProperties] = useState([]);
-  const isDesktop = useResponsive("up", "md");
+  const searchCtx = useContext(SearchContext);
 
   // Ưu tiên hiển thị searchResults nếu đang tìm kiếm
-  const properties = isSearching ? searchResults : defaultProperties || [];
+  const properties = useMemo(
+    () => (isSearching ? searchResults : defaultProperties) || [],
+    [isSearching, searchResults, defaultProperties]
+  );
 
   const handleChangeTab = (event, newValue) => {
     setTabValue(newValue);
@@ -28,13 +33,20 @@ const Result = ({
     if (setSearchResults) setSearchResults([]);
   };
 
+  const handleClearSearch = () => {
+    setTabValue(0);
+    if (searchCtx?.updateSearchResults) {
+      searchCtx.updateSearchResults([], false);
+    }
+    if (setIsSearching) setIsSearching(false);
+    if (setSearchResults) setSearchResults([]);
+  };
+
   // Process properties data for the map
   useEffect(() => {
     if (properties && properties.length > 0) {
-      // Make sure each property has the required fields for the map
       const processedProperties = properties.map((property) => ({
         ...property,
-        // Ensure these fields exist
         id: property.id || "",
         latitude: property.latitude || DEFAULT_CENTER.lat,
         longitude: property.longitude || DEFAULT_CENTER.lng,
@@ -48,64 +60,174 @@ const Result = ({
     }
   }, [properties]);
 
+  const resultCount = isSearching
+    ? searchResults?.length || 0
+    : defaultProperties?.length || 0;
+
   return (
-    <Stack sx={{ px: 3, py: 2 }} spacing={2}>
-      <Box>
-        <Grid container>
-          <Grid item md={6} xs={12}>
+    <Stack sx={{ minWidth: 0 }} spacing={2}>
+      {error && (
+        <Alert
+          severity="error"
+          action={retryAction}
+          sx={{
+            borderRadius: 2.5,
+            alignItems: "center",
+            border: "1px solid",
+            borderColor: "error.light",
+          }}
+        >
+          {error}
+        </Alert>
+      )}
+
+      {/* Listing Header Bar */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          justifyContent: "space-between",
+          gap: 1.5,
+          p: { xs: 1.75, sm: 2 },
+          bgcolor: "background.paper",
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: 3,
+        }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            component="h2"
+            variant="h6"
+            sx={{ fontSize: { xs: "1.05rem", sm: "1.15rem" }, fontWeight: 700 }}
+          >
+            {isSearching ? "Kết quả tìm kiếm & lọc phòng" : "Danh sách phòng nghỉ"}
+          </Typography>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1.25}
+            flexWrap="wrap"
+            sx={{ mt: 0.25 }}
+          >
             <Typography
               variant="body2"
-              textAlign={{ xs: "center", md: "start" }}
-              sx={{ fontWeight: 600 }}
+              color="text.secondary"
+              sx={{ fontWeight: 500 }}
+              aria-live="polite"
             >
-              {isSearching
-                ? `Tìm thấy ${
-                    searchResults?.length || 0
-                  } kết quả dựa trên tìm kiếm của bạn`
-                : `Hiển thị ${defaultProperties?.length || 0} phòng`}
+              {loading
+                ? "Đang cập nhật danh sách chỗ ở..."
+                : isSearching
+                ? `Tìm thấy ${resultCount} chỗ ở phù hợp với tiêu chí của bạn`
+                : `Hiển thị ${resultCount} phòng sẵn sàng đặt ngay`}
             </Typography>
-          </Grid>
-          <Grid
-            item
-            container
-            justifyContent={isDesktop ? "flex-end" : "center"}
-            md={6}
-            xs={12}
+            {isSearching && !loading && (
+              <Button
+                type="button"
+                size="small"
+                color="primary"
+                onClick={handleClearSearch}
+                sx={{
+                  fontWeight: 700,
+                  minHeight: 32,
+                  px: 1,
+                  textDecoration: "underline",
+                }}
+              >
+                Bỏ lọc / Xem tất cả
+              </Button>
+            )}
+          </Stack>
+        </Box>
+
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          role="group"
+          aria-label="Chế độ hiển thị danh sách"
+          sx={{
+            bgcolor: "#F1F5F9",
+            p: 0.5,
+            borderRadius: "12px",
+            alignSelf: { xs: "flex-start", sm: "center" },
+          }}
+        >
+          <Button
+            type="button"
+            onClick={() => setView("card")}
+            aria-pressed={view === "card"}
+            startIcon={<FaColumns size={15} aria-hidden="true" />}
+            className="rn-interactive-btn"
+            sx={{
+              minHeight: 40,
+              px: 1.75,
+              borderRadius: "9px",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              bgcolor: view === "card" ? "background.paper" : "transparent",
+              color: view === "card" ? "primary.main" : "text.secondary",
+              boxShadow:
+                view === "card"
+                  ? "0 1px 3px rgba(15, 23, 42, 0.1)"
+                  : "none",
+              "&:hover": {
+                bgcolor:
+                  view === "card"
+                    ? "background.paper"
+                    : "rgba(15, 23, 42, 0.05)",
+              },
+            }}
           >
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Chip
-                onClick={() => setView("map")}
-                sx={{ p: 1 }}
-                color="primary"
-                variant={view === "map" ? "filled" : "outlined"}
-                label={<Typography variant="subtitle2">Xem bản đồ</Typography>}
-                icon={<FaMap size={20} weight="bold" />}
-              />
-              <Chip
-                onClick={() => setView("card")}
-                sx={{ p: 1 }}
-                color="primary"
-                variant={view === "card" ? "filled" : "outlined"}
-                label={<Typography variant="subtitle2">Xem thẻ</Typography>}
-                icon={<FaColumns size={20} />}
-              />
-            </Stack>
-          </Grid>
-        </Grid>
+            Xem thẻ
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setView("map")}
+            aria-pressed={view === "map"}
+            startIcon={<FaMap size={15} aria-hidden="true" />}
+            className="rn-interactive-btn"
+            sx={{
+              minHeight: 40,
+              px: 1.75,
+              borderRadius: "9px",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              bgcolor: view === "map" ? "background.paper" : "transparent",
+              color: view === "map" ? "primary.main" : "text.secondary",
+              boxShadow:
+                view === "map"
+                  ? "0 1px 3px rgba(15, 23, 42, 0.1)"
+                  : "none",
+              "&:hover": {
+                bgcolor:
+                  view === "map"
+                    ? "background.paper"
+                    : "rgba(15, 23, 42, 0.05)",
+              },
+            }}
+          >
+            Xem bản đồ
+          </Button>
+        </Stack>
       </Box>
+
       {view === "map" ? (
-        <Box sx={{ width: "100%" }}>
-          <Grid container spacing={2}>
-            <Grid item md={6} xs={12}>
+        <Box sx={{ width: "100%", minWidth: 0 }}>
+          <Grid container spacing={2.5}>
+            <Grid item lg={7} xs={12} sx={{ minWidth: 0 }}>
               <CardView
                 searchResults={properties}
                 isSearching={isSearching}
                 view={view}
+                loading={loading}
                 value={tabValue}
                 handleChangeTab={handleChangeTab}
               />
             </Grid>
-            <Grid item md={6} xs={12}>
+            <Grid item lg={5} xs={12} sx={{ minWidth: 0 }}>
               <Map data={mapProperties} />
             </Grid>
           </Grid>
@@ -115,6 +237,7 @@ const Result = ({
           searchResults={properties}
           isSearching={isSearching}
           view={view}
+          loading={loading}
           value={tabValue}
           handleChangeTab={handleChangeTab}
         />
@@ -135,6 +258,9 @@ Result.propTypes = {
   isSearching: PropTypes.bool,
   setIsSearching: PropTypes.func,
   setSearchResults: PropTypes.func,
+  loading: PropTypes.bool,
+  error: PropTypes.string,
+  retryAction: PropTypes.node,
 };
 
 export default Result;

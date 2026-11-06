@@ -1,14 +1,18 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { Box, Card, Stack, Typography, Button, Divider } from "@mui/material";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import PriceRange from "./PriceRange.jsx";
 import Amenities from "./AmenitiesFilter.jsx";
 import CountryFilter from "./CountryFilter.jsx";
 import DateRangeFilter from "./DateRangeFilter.jsx";
 import PopularFilter from "./PopularFilter.jsx";
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { useFilter } from "@/features/search/hooks/useFilter.js";
 import axios from "axios";
 
-const Filter = () => {
+const Filter = ({ onCloseMobile }) => {
   const { filterListings } = useFilter();
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
   const [filterState, setFilterState] = useState({
@@ -21,13 +25,15 @@ const Filter = () => {
     popular: false,
     category_id: "",
   });
-  const [amenitiesList, setAmenitiesList] = useState([]);
 
   // Khi mount, lấy min/max giá từ API
   useEffect(() => {
     const fetchPriceRange = async () => {
-      const res = await axios.get("http://175.41.233.105:8080/api/listings");
-      const prices = res.data.result.map((item) => item.price);
+      const res = await axios.get(BACKEND_URL + "/api/listings");
+      const prices = (res.data.result || [])
+        .map((item) => Number(item.price))
+        .filter(Number.isFinite);
+      if (!prices.length) return;
       const min = Math.min(...prices);
       const max = Math.max(...prices);
       setPriceRange({ min, max });
@@ -36,27 +42,21 @@ const Filter = () => {
         lowestPrice: min,
         highestPrice: max,
       }));
-      // Gọi filter lần đầu với min/max thực tế
-      filterListings({
-        lowestPrice: min,
-        highestPrice: max,
-      });
     };
-    fetchPriceRange();
-    // eslint-disable-next-line
+    fetchPriceRange().catch(() => {
+      /* The main results panel reports connection failures. */
+    });
   }, []);
 
   // Gọi API filter mỗi khi filterState thay đổi
   const updateFilter = (newFields) => {
     let newState = { ...filterState, ...newFields };
-    // Đảm bảo lowestPrice và highestPrice nằm trong min/max
     if (newState.lowestPrice < priceRange.min)
       newState.lowestPrice = priceRange.min;
     if (newState.highestPrice > priceRange.max)
       newState.highestPrice = priceRange.max;
     setFilterState(newState);
 
-    // Tạo object filter sạch, chỉ truyền trường có giá trị thực sự
     const filterObj = {
       lowestPrice: newState.lowestPrice,
       highestPrice: newState.highestPrice,
@@ -73,7 +73,6 @@ const Filter = () => {
     if (newState.popular) filterObj.popular = true;
     if (newState.category_id) filterObj.category_id = newState.category_id;
 
-    console.log("Gọi filter với:", filterObj);
     filterListings(filterObj);
   };
 
@@ -85,7 +84,6 @@ const Filter = () => {
     updateFilter({ amenities: amenitiesObj });
   };
 
-  // Các handler cho filter con
   const handleCountryChange = (country) => {
     updateFilter({ country });
   };
@@ -96,83 +94,158 @@ const Filter = () => {
     updateFilter({ popular });
   };
 
+  const handleResetFilters = () => {
+    setFilterState({
+      amenities: [],
+      lowestPrice: priceRange.min,
+      highestPrice: priceRange.max,
+      country: "",
+      startDate: "",
+      endDate: "",
+      popular: false,
+      category_id: "",
+    });
+    filterListings({
+      lowestPrice: priceRange.min,
+      highestPrice: priceRange.max,
+    });
+  };
+
+  const activeFilterCount =
+    (filterState.amenities?.length || 0) +
+    (filterState.country ? 1 : 0) +
+    (filterState.startDate || filterState.endDate ? 1 : 0) +
+    (filterState.popular ? 1 : 0) +
+    (filterState.lowestPrice > priceRange.min ||
+    filterState.highestPrice < priceRange.max
+      ? 1
+      : 0);
+
   return (
-    <Box sx={{ py: 4, pl: 1 }}>
-      <Card sx={{ width: 1, pb: 3 }}>
+    <Box component="aside" aria-label="Bộ lọc tìm kiếm phòng" sx={{ py: 0 }}>
+      <Card
+        elevation={0}
+        sx={{
+          width: 1,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          overflow: "hidden",
+        }}
+      >
         <Box
           sx={{
-            mb: 2,
-            py: 2,
-            px: 3,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light"
-                ? theme.palette.grey[200]
-                : theme.palette.grey[900],
+            py: 1.75,
+            px: 2.5,
+            bgcolor: "#F8FAFC",
+            borderBottom: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Stack
             direction="row"
             alignItems="center"
-            justifyContent={"space-between"}
+            justifyContent="space-between"
+            spacing={1}
           >
-            <Typography variant="subtitle1">Bộ lọc</Typography>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                Bộ lọc
+              </Typography>
+              {activeFilterCount > 0 && (
+                <Box
+                  component="span"
+                  sx={{
+                    px: 1,
+                    py: 0.125,
+                    borderRadius: "999px",
+                    bgcolor: "primary.main",
+                    color: "#FFFFFF",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  {activeFilterCount}
+                </Box>
+              )}
+            </Stack>
             <Button
+              type="button"
               size="small"
-              onClick={() => {
-                setFilterState({
-                  amenities: [],
-                  lowestPrice: priceRange.min,
-                  highestPrice: priceRange.max,
-                  country: "",
-                  startDate: "",
-                  endDate: "",
-                  popular: false,
-                  category_id: "",
-                });
-                filterListings({
-                  lowestPrice: priceRange.min,
-                  highestPrice: priceRange.max,
-                });
+              color="primary"
+              startIcon={<RestartAltRoundedIcon fontSize="small" />}
+              onClick={handleResetFilters}
+              sx={{
+                minHeight: 36,
+                px: 1.25,
+                fontWeight: 700,
+                borderRadius: 2,
               }}
             >
-              Xóa tất cả bộ lọc
+              Xóa tất cả
             </Button>
           </Stack>
         </Box>
-        <Stack spacing={2} sx={{ px: 3 }}>
+
+        <Stack spacing={2.25} sx={{ p: 2.5 }}>
+          <PopularFilter
+            value={filterState.popular}
+            onChange={handlePopularChange}
+          />
+          <Divider />
           <PriceRange
             value={[filterState.lowestPrice, filterState.highestPrice]}
             onChange={handlePriceChange}
             min={priceRange.min}
             max={priceRange.max}
           />
-          <Divider sx={{ my: 1 }} />
-          <Amenities
-            value={filterState.amenities}
-            onChange={handleAmenitiesChange}
-            showIcon
-            amenitiesList={amenitiesList}
-          />
-          <Divider sx={{ my: 1 }} />
+          <Divider />
           <CountryFilter
             value={filterState.country}
             onChange={handleCountryChange}
           />
-          <Divider sx={{ my: 1 }} />
+          <Divider />
           <DateRangeFilter
             startDate={filterState.startDate}
             endDate={filterState.endDate}
             onChange={handleDateRangeChange}
           />
-          <Divider sx={{ my: 1 }} />
-          <PopularFilter
-            value={filterState.popular}
-            onChange={handlePopularChange}
+          <Divider />
+          <Amenities
+            value={filterState.amenities}
+            onChange={handleAmenitiesChange}
+            showIcon
           />
+
+          {onCloseMobile && (
+            <Button
+              type="button"
+              variant="contained"
+              color="primary"
+              fullWidth
+              startIcon={<CheckRoundedIcon />}
+              onClick={onCloseMobile}
+              className="rn-interactive-btn"
+              sx={{
+                display: { xs: "inline-flex", md: "none" },
+                minHeight: 46,
+                borderRadius: 2.5,
+                fontWeight: 700,
+                mt: 1,
+              }}
+            >
+              Xem kết quả lọc
+            </Button>
+          )}
         </Stack>
       </Card>
     </Box>
   );
+};
+
+Filter.propTypes = {
+  onCloseMobile: PropTypes.func,
 };
 
 export default Filter;

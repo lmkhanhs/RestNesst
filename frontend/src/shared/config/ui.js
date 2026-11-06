@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 // API
 // ----------------------------------------------------------------------
 
@@ -34,7 +35,7 @@ export const ICON = {
   NAVBAR_ITEM_HORIZONTAL: 20,
 };
 
-export const HOST_API = "http://localhost:8080";
+export const HOST_API = BACKEND_URL;
 
 export const MAPTILER_API_KEY = "M9RgBxrNRXsSBqSCkgme";
 

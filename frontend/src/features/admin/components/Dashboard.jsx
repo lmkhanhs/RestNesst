@@ -36,6 +36,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 export default function AdminDashboard() {
   const summaryChartRef = useRef(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isCanvasReady, setIsCanvasReady] = useState(false);
   const [approvedCount, setApprovedCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
@@ -113,7 +114,7 @@ export default function AdminDashboard() {
       }
     };
     fetchSummaryData();
-  }, []);
+  }, [refreshKey]);
 
   const createChart = (ctx, type, data, options, oldChart) => {
     if (!ctx) return null;
@@ -223,7 +224,7 @@ export default function AdminDashboard() {
       }
     };
     fetchApprovedCount();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     const fetchUserCount = async () => {
@@ -235,7 +236,7 @@ export default function AdminDashboard() {
       }
     };
     fetchUserCount();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     const fetchTransactionCount = async () => {
@@ -247,7 +248,7 @@ export default function AdminDashboard() {
       }
     };
     fetchTransactionCount();
-  }, []);
+  }, [refreshKey]);
 
   return (
     <Box sx={{ height: '100%', width: '100%', p: 3 }}>
@@ -256,7 +257,7 @@ export default function AdminDashboard() {
           BẢNG ĐIỀU KHIỂN ADMIN
         </Typography>
         <Tooltip title="Làm mới">
-          <IconButton onClick={() => isCanvasReady && initializeCharts()}>
+          <IconButton aria-label="Làm mới dữ liệu" disabled={loadingSummary} onClick={() => setRefreshKey((key) => key + 1)}>
             <RefreshIcon />
           </IconButton>
         </Tooltip>

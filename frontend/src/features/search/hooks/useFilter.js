@@ -1,9 +1,10 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useContext } from "react";
 import { SearchContext } from "@/features/search/context/SearchContext.jsx";
 import axios from "axios";
 
 export const useFilter = () => {
-  const { updateSearchResults } = useContext(SearchContext);
+  const { updateSearchResults, beginSearch, failSearch } = useContext(SearchContext);
 
   const filterListings = async (params) => {
     // Xóa các trường rỗng hoặc không hợp lệ
@@ -13,7 +14,7 @@ export const useFilter = () => {
         cleanParams[key] = params[key];
       } else if (
         typeof params[key] === "boolean" ||
-        typeof params[key] === "number"
+        (typeof params[key] === "number" && Number.isFinite(params[key]))
       ) {
         cleanParams[key] = params[key];
       } else if (typeof params[key] === "string" && params[key].trim() !== "") {
@@ -21,9 +22,10 @@ export const useFilter = () => {
       }
     });
 
+    beginSearch();
     try {
       const response = await axios.get(
-        "http://175.41.233.105:8080/api/listings/filter",
+        (BACKEND_URL + "/api/listings/filter"),
         {
           params: cleanParams,
           paramsSerializer: (params) => {
@@ -46,7 +48,7 @@ export const useFilter = () => {
       updateSearchResults(response.data.result, true);
     } catch (error) {
       console.error("Filter error:", error);
-      updateSearchResults([], false);
+      failSearch("Không tải được kết quả lọc. Vui lòng thử lại.");
     }
   };
 

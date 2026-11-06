@@ -1,6 +1,7 @@
 /* eslint-disable react/display-name */
 import { Suspense, lazy } from "react";
-import { Navigate, useRoutes, useLocation } from "react-router-dom";
+import { Link as RouterLink, useRoutes, useLocation } from "react-router-dom";
+import { Box, Button, Container, Typography } from "@mui/material";
 // components
 import LoadingScreen from "@/shared/components/LoadingScreen.jsx";
 import MainLayout from "@/app/layouts/main/MainLayout.jsx";
@@ -71,7 +72,19 @@ export default function Router() {
       path: "signup",
       element: <SignupPage />,
     },
-    { path: "*", element: <Navigate to="/404" replace /> },
+    {
+      path: "*",
+      element: (
+        <Container maxWidth="sm">
+          <Box component="main" sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, textAlign: "center", py: 4 }}>
+            <Typography color="primary" variant="h2" component="p">404</Typography>
+            <Typography variant="h4" component="h1">Không tìm thấy trang</Typography>
+            <Typography color="text.secondary">Đường dẫn này chưa có hoặc đã thay đổi. Bạn có thể quay về trang chủ để tiếp tục tìm chỗ ở.</Typography>
+            <Button component={RouterLink} to="/" variant="contained" size="large">Về trang chủ</Button>
+          </Box>
+        </Container>
+      ),
+    },
   ]);
 }
 

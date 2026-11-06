@@ -60,9 +60,13 @@ và `./` cho file cùng thư mục. Vite và editor cùng dùng alias này.
 - `src/features/chat/api/`: các client của dịch vụ chatbot riêng.
 - `src/features/reviews/api/`: dịch vụ Python phân tích cảm xúc.
 
-Đợt tổ chức thư mục này giữ nguyên URL API và hành vi nghiệp vụ hiện có. Các URL
-trực tiếp trong page/component vẫn còn; `.env` chưa điều khiển toàn bộ các request.
-Không coi việc frontend build thành công là xác nhận backend hoặc dịch vụ ngoài đã chạy.
+Backend REST, ảnh upload và WebSocket đều dùng `BACKEND_URL` từ
+`src/shared/config/environment.js`. Đặt `VITE_BACKEND_URL=http://localhost:8080`
+trong `.env` hoặc `.env.local` (có mẫu `.env.example`), rồi khởi động lại Vite.
+Proxy `/api` và `/auth` cũng đọc cùng biến môi trường. Các dịch vụ chatbot và
+phân tích cảm xúc vẫn có địa chỉ riêng.
+
+Kết quả kiểm tra giao diện local xem tại [ui-verification.md](docs/ui-verification.md).
 
 ## Kiểm tra sau thay đổi
 

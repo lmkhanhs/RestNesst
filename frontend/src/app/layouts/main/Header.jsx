@@ -255,44 +255,63 @@ const Header = () => {
 
   return (
     <Box
+      component="header"
       sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        p: 2,
-        bgcolor: "background.paper",
-        boxShadow: 1,
+        position: "sticky",
+        top: 0,
+        zIndex: 1100,
+        bgcolor: "rgba(255, 255, 255, 0.94)",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid",
+        borderColor: "divider",
       }}
     >
-      <Logo />
-      {renderCenterContent()}
-      <IconButton
-        onClick={handleClick}
+      <Box
         sx={{
-          "&:hover": {
-            transform: "scale(1.05)",
-            transition: "transform 0.2s ease-in-out",
-          },
-          "& .MuiAvatar-root": {
-            border: "2px solid #f44336",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            transition: "all 0.2s ease-in-out",
-          },
-          "&:hover .MuiAvatar-root": {
-            boxShadow: "0 4px 12px rgba(244, 67, 54, 0.2)",
-          },
+          maxWidth: 1440,
+          mx: "auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: { xs: 1.25, sm: 2 },
+          px: { xs: 2, sm: 3, lg: 4 },
+          py: { xs: 1.25, sm: 1.5 },
         }}
       >
-        <Avatar
-          alt={userName || "User"}
-          src={userInfo?.thumnailUrl || "/default-avatar.png"}
+        <Logo />
+        {renderCenterContent()}
+        <IconButton
+          aria-label="Mở menu tài khoản"
+          aria-haspopup="true"
+          aria-expanded={Boolean(anchorEl)}
+          onClick={handleClick}
+          className="rn-interactive-btn"
           sx={{
-            width: 40,
-            height: 40,
-            cursor: "pointer",
+            width: 44,
+            height: 44,
+            p: 0.25,
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+            "& .MuiAvatar-root": {
+              border: "2px solid",
+              borderColor: "primary.main",
+              transition: "box-shadow 0.2s ease",
+            },
           }}
-        />
-      </IconButton>
+        >
+          <Avatar
+            alt={userName || "Tài khoản"}
+            src={userInfo?.thumnailUrl || undefined}
+            sx={{
+              width: 36,
+              height: 36,
+              cursor: "pointer",
+            }}
+          />
+        </IconButton>
+      </Box>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -320,7 +339,7 @@ const Header = () => {
             >
               <Avatar
                 alt={userName}
-                src={userInfo?.thumnailUrl || "/default-avatar.png"}
+                src={userInfo?.thumnailUrl || undefined}
                 sx={{
                   width: 56,
                   height: 56,

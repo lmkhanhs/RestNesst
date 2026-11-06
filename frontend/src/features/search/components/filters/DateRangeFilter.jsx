@@ -1,13 +1,14 @@
 import { Box, Typography, Stack, TextField } from "@mui/material";
+import PropTypes from "prop-types";
 
 const DateRangeFilter = ({ startDate, endDate, onChange }) => (
-  <Box sx={{ mb: 1 }}>
-    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-      Ngày bắt đầu & Ngày kết thúc
+  <Box>
+    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.25, color: "text.primary" }}>
+      Ngày nhận & trả phòng
     </Typography>
-    <Stack direction="row" spacing={2}>
+    <Stack direction={{ xs: "column", sm: "row", md: "column" }} spacing={1.5}>
       <TextField
-        placeholder="dd/mm/yyyy"
+        label="Nhận phòng"
         type="date"
         size="small"
         value={startDate}
@@ -16,11 +17,11 @@ const DateRangeFilter = ({ startDate, endDate, onChange }) => (
         }
         InputLabelProps={{ shrink: true }}
         fullWidth
-        sx={{ borderRadius: 2, bgcolor: "background.paper" }}
-        InputProps={{ sx: { borderRadius: 2 } }}
+        sx={{ borderRadius: 2, bgcolor: "background.paper", minWidth: 0 }}
+        InputProps={{ sx: { borderRadius: 2, minHeight: 44 } }}
       />
       <TextField
-        placeholder="dd/mm/yyyy"
+        label="Trả phòng"
         type="date"
         size="small"
         value={endDate}
@@ -29,11 +30,17 @@ const DateRangeFilter = ({ startDate, endDate, onChange }) => (
         }
         InputLabelProps={{ shrink: true }}
         fullWidth
-        sx={{ borderRadius: 2, bgcolor: "background.paper" }}
-        InputProps={{ sx: { borderRadius: 2 } }}
+        sx={{ borderRadius: 2, bgcolor: "background.paper", minWidth: 0 }}
+        InputProps={{ sx: { borderRadius: 2, minHeight: 44 } }}
       />
     </Stack>
   </Box>
 );
+
+DateRangeFilter.propTypes = {
+  startDate: PropTypes.string,
+  endDate: PropTypes.string,
+  onChange: PropTypes.func,
+};
 
 export default DateRangeFilter;

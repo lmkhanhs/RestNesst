@@ -1,2 +1,6 @@
 /.vscode
 node_modules/
+
+# MCP Toolbox binary, credentials, and generated SQL containing local secrets.
+/tools/database-toolbox/.bin/
+/tools/database-toolbox/.local/

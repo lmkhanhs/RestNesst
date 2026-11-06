@@ -1,0 +1,240 @@
+kind: source
+name: restnesst-dev
+type: mysql
+host: 127.0.0.1
+port: 3306
+database: johunter11
+user: codex_dev
+password: ${RESTNESST_MYSQL_PASSWORD}
+queryTimeout: 10s
+---
+kind: tool
+name: mysql-connection-info
+type: mysql-sql
+source: restnesst-dev
+description: Verify the connected dev database and MySQL account without exposing credentials.
+statement: SELECT DATABASE() AS database_name, CURRENT_USER() AS account;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: mysql-current-grants
+type: mysql-sql
+source: restnesst-dev
+description: Read grants for the current codex_dev account. Does not show passwords.
+statement: SHOW GRANTS FOR CURRENT_USER();
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: mysql-list-tables
+type: mysql-sql
+source: restnesst-dev
+description: List tables and views only in the configured RestNesst dev database.
+statement: |
+  SELECT TABLE_NAME AS table_name, TABLE_TYPE AS table_type
+  FROM information_schema.TABLES
+  WHERE TABLE_SCHEMA = DATABASE()
+  ORDER BY TABLE_NAME;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: mysql-describe-table
+type: mysql-sql
+source: restnesst-dev
+description: Read column names, types, nullability, defaults and keys for a dev table. table_name is a bound value, never interpolated SQL.
+parameters:
+  - name: table_name
+    type: string
+    description: Exact table name returned by mysql-list-tables.
+statement: |
+  SELECT COLUMN_NAME AS column_name, COLUMN_TYPE AS column_type,
+         IS_NULLABLE AS is_nullable, COLUMN_DEFAULT AS column_default,
+         COLUMN_KEY AS column_key, EXTRA AS extra
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+  ORDER BY ORDINAL_POSITION;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: mysql-list-foreign-keys
+type: mysql-sql
+source: restnesst-dev
+description: Read foreign keys in the dev database before planning any data change.
+statement: |
+  SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name,
+         REFERENCED_TABLE_NAME AS referenced_table,
+         REFERENCED_COLUMN_NAME AS referenced_column
+  FROM information_schema.KEY_COLUMN_USAGE
+  WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL
+  ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: countries-list
+type: mysql-sql
+source: restnesst-dev
+description: List dev country records, including soft-deleted rows, to identify an exact ID.
+parameters:
+  - name: row_limit
+    type: integer
+    description: Maximum number of rows to return.
+    default: 50
+    minValue: 1
+    maxValue: 200
+statement: |
+  SELECT id, name, description, thumbnail,
+         CAST(is_active AS UNSIGNED) AS is_active,
+         CAST(deleted AS UNSIGNED) AS deleted
+  FROM johunter11.countries ORDER BY id LIMIT ?;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: countries-get-by-id
+type: mysql-sql
+source: restnesst-dev
+description: |
+  Preview exactly one country by the user's explicit ID before UPDATE or DELETE.
+  Show the actual row and proposed change to the user, then wait for confirmation.
+  Pass row_version unchanged to the corresponding write tool. Never invent it.
+parameters:
+  - name: id
+    type: integer
+    minValue: 1
+    description: Explicit country ID supplied or confirmed by the user.
+statement: |
+  SELECT id, name, description, thumbnail,
+         CAST(is_active AS UNSIGNED) AS is_active,
+         CAST(deleted AS UNSIGNED) AS deleted,
+         created_at, created_by, updated_at, updated_by,
+         (SELECT COUNT(*) FROM johunter11.listings l WHERE l.country_id = countries.id) AS listing_count,
+         (SELECT COUNT(*) FROM johunter11.users u WHERE u.country_id = countries.id) AS user_count,
+         SHA2(CAST(JSON_ARRAY(id, name, description, thumbnail,
+           CAST(is_active AS UNSIGNED), CAST(deleted AS UNSIGNED),
+           created_at, created_by, updated_at, updated_by) AS CHAR), 256) AS row_version
+  FROM johunter11.countries WHERE id = ?;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: countries-create
+type: mysql-sql
+source: restnesst-dev
+description: |
+  Insert one country only after the user requests that concrete record.
+  Testing writes needs separate consent. A new record has deleted=false.
+  Empty thumbnail becomes NULL. This uses dev SQL, without Spring upload or audit hooks.
+parameters:
+  - name: name
+    type: string
+    description: Unique country name explicitly requested by the user.
+  - name: description
+    type: string
+    description: Country description to store.
+  - name: thumbnail
+    type: string
+    description: Existing image URL, or an empty string for NULL; does not upload files.
+  - name: is_active
+    type: boolean
+    description: Whether this country should be active.
+statement: |
+  INSERT INTO johunter11.countries
+    (name, description, thumbnail, is_active, deleted, created_at, updated_at)
+  VALUES (?, ?, NULLIF(?, ''), ?, false, NOW(6), NOW(6));
+annotations:
+  readOnlyHint: false
+  destructiveHint: true
+  idempotentHint: false
+  openWorldHint: false
+---
+kind: tool
+name: countries-update-details
+type: mysql-sql
+source: restnesst-dev
+description: |
+  Update one country by explicit ID only after countries-get-by-id, showing the
+  row and all proposed values to the user, and receiving confirmation.
+  row_version must come from that preview. If zero rows change, preview again
+  and obtain fresh confirmation. Does not change deleted, ownership or references.
+parameters:
+  - name: name
+    type: string
+    description: Confirmed replacement country name.
+  - name: description
+    type: string
+    description: Confirmed replacement description.
+  - name: thumbnail
+    type: string
+    description: Confirmed replacement URL; empty string stores NULL.
+  - name: is_active
+    type: boolean
+    description: Confirmed replacement active state.
+  - name: id
+    type: integer
+    minValue: 1
+    description: Explicit ID of the row previewed and approved by the user.
+  - name: row_version
+    type: string
+    description: Exact SHA256 token returned by the approved preview, not a timestamp.
+statement: |
+  UPDATE johunter11.countries
+  SET name = ?, description = ?, thumbnail = NULLIF(?, ''), is_active = ?, updated_at = NOW(6)
+  WHERE id = ? AND SHA2(CAST(JSON_ARRAY(id, name, description, thumbnail,
+    CAST(is_active AS UNSIGNED), CAST(deleted AS UNSIGNED),
+    created_at, created_by, updated_at, updated_by) AS CHAR), 256) = ?
+  LIMIT 1;
+annotations:
+  readOnlyHint: false
+  destructiveHint: true
+  idempotentHint: false
+  openWorldHint: false
+---
+kind: tool
+name: countries-delete-unused
+type: mysql-sql
+source: restnesst-dev
+description: |
+  Permanently delete one unused dev country by explicit ID, e.g. an approved test
+  record. Requires countries-get-by-id, showing the actual row to the user and
+  explicit confirmation of permanent deletion. Requires its exact row_version.
+  Refuses referenced countries; does not cascade. This is not the API's soft delete.
+  If zero rows change, preview again and obtain fresh confirmation.
+parameters:
+  - name: id
+    type: integer
+    minValue: 1
+    description: Explicit ID of the country previewed and approved for permanent deletion.
+  - name: row_version
+    type: string
+    description: Exact SHA256 token from the approved countries-get-by-id preview.
+statement: |
+  DELETE FROM johunter11.countries
+  WHERE id = ? AND SHA2(CAST(JSON_ARRAY(id, name, description, thumbnail,
+    CAST(is_active AS UNSIGNED), CAST(deleted AS UNSIGNED),
+    created_at, created_by, updated_at, updated_by) AS CHAR), 256) = ?
+    AND NOT EXISTS (SELECT 1 FROM johunter11.listings l WHERE l.country_id = countries.id)
+    AND NOT EXISTS (SELECT 1 FROM johunter11.users u WHERE u.country_id = countries.id)
+  LIMIT 1;
+annotations:
+  readOnlyHint: false
+  destructiveHint: true
+  idempotentHint: false
+  openWorldHint: false

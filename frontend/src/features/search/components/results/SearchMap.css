@@ -3,13 +3,9 @@
   height: 100%;
 }
 
-.mapboxgl-map {
-  border-radius: 16px;
-}
-
-/* MapTiler specific styles */
+.mapboxgl-map,
 .maplibregl-map {
-  border-radius: 16px;
+  border-radius: var(--rn-radius-card, 16px);
   overflow: hidden;
 }
 
@@ -18,25 +14,251 @@
 }
 
 .maplibregl-popup-content {
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  padding: 14px 16px;
+  border-radius: 12px;
+  box-shadow: var(--rn-shadow-md, 0 10px 24px -6px rgba(15, 23, 42, 0.12));
+  font-family: "Be Vietnam Pro", sans-serif;
 }
 
 .maplibregl-marker {
   cursor: pointer;
 }
 
-/* Custom marker styles */
 .marker {
   background-image: url("https://api.maptiler.com/maps/markers/marker.png");
   background-size: cover;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .marker:hover {
   transform: scale(1.1);
+  @media (prefers-reduced-motion: reduce) {
+    transform: none;
+  }
 }
+
+/* ==========================================================================
+   RestNesst Shared Home & Room Listing Design System Styles
+   ========================================================================== */
+
+.rn-page-shell {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 2.5vw, 2.25rem);
+}
+
+/* Responsive Room Card Grid (Mobile-First) */
+.rn-room-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .rn-room-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1240px) {
+  .rn-room-grid:not(.rn-room-grid--compact) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+/* Room Card Component (shared across Home featured & Room Listing) */
+.rn-room-card {
+  container-type: inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  background-color: var(--rn-surface, #ffffff);
+  border: 1px solid var(--rn-border, #e2e8f0);
+  border-radius: var(--rn-radius-card, 16px);
+  box-shadow: var(--rn-shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.06));
+  overflow: hidden;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rn-room-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--rn-border-strong, #cbd5e1);
+    box-shadow: var(--rn-shadow-lg, 0 18px 36px -8px rgba(15, 23, 42, 0.14));
+
+    @media (prefers-reduced-motion: reduce) {
+      transform: none;
+    }
+  }
+}
+
+.rn-room-card:has(a:focus-visible, button:focus-visible),
+.rn-room-card:focus-visible {
+  border-color: var(--rn-focus-ring, #0284c7);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25), var(--rn-shadow-md);
+}
+
+/* Card Media & Aspect Ratio */
+.rn-room-card__media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-color: var(--rn-surface-subtle, #f1f5f9);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rn-room-card__img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rn-room-card:hover .rn-room-card__img {
+    transform: scale(1.035);
+
+    @media (prefers-reduced-motion: reduce) {
+      transform: none;
+    }
+  }
+}
+
+/* React-Slick inside Room Card Media */
+.rn-room-card__media .slick-slider,
+.rn-room-card__media .slick-list,
+.rn-room-card__media .slick-track,
+.rn-room-card__media .slick-slide,
+.rn-room-card__media .slick-slide > div {
+  height: 100%;
+}
+
+.rn-room-card__media .slick-dots {
+  bottom: 8px;
+  padding-inline: 12px;
+  z-index: 2;
+}
+
+.rn-room-card__media .slick-dots li {
+  width: 14px;
+  height: 14px;
+  margin: 0 2px;
+}
+
+.rn-room-card__media .slick-dots li button {
+  width: 14px;
+  height: 14px;
+  padding: 3px;
+}
+
+.rn-room-card__media .slick-dots li button:before {
+  font-size: 7px;
+  line-height: 14px;
+  width: 14px;
+  height: 14px;
+  color: #ffffff;
+  opacity: 0.65;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.rn-room-card__media .slick-dots li.slick-active button:before {
+  color: #ffffff;
+  opacity: 1;
+}
+
+/* Container query adaptation for wider single-column or featured cards */
+@container (min-width: 440px) {
+  .rn-room-card__footer {
+    padding-top: 14px;
+  }
+}
+
+/* Interactive Buttons & Controls */
+.rn-interactive-btn {
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rn-interactive-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+
+    @media (prefers-reduced-motion: reduce) {
+      transform: none;
+    }
+  }
+}
+
+.rn-interactive-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Short CSS Transition for Mobile/Tablet Filter Collapse */
+.rn-filter-drawer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    visibility 220ms;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.rn-filter-drawer--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+}
+
+.rn-filter-drawer__inner {
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Reduced Motion for Skeletons */
+@media (prefers-reduced-motion: reduce) {
+  .MuiSkeleton-root {
+    animation: none !important;
+  }
+}
+

@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -86,7 +87,7 @@ export default function AdminProperties() {
               owner: ownerName,
               status: item.access ? 'Đã kích hoạt' : 'Đang chờ kích hoạt',
               rating: item.avgRating || 0,
-              images: item.images?.map(img => img.startsWith('uploads/') ? `http://175.41.233.105:8080/${img}` : img) || [],
+              images: item.images?.map(img => img.startsWith('uploads/') ? `${BACKEND_URL}/${img}` : img) || [],
               description: item.description || '',
               amenities: item.amenities || [],
               createdAt: item.startDate || '',

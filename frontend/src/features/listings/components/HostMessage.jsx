@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useState, useEffect, useRef } from "react";
 import {
   Box,
@@ -27,7 +28,7 @@ const HostMessage = ({ hostId }) => {
   useEffect(() => {
     if (!user) return; // Không kết nối nếu chưa đăng nhập
 
-    const socket = new SockJS("http://175.41.233.105:8080/ws");
+    const socket = new SockJS((BACKEND_URL + "/ws"));
     stompClient.current = Stomp.over(socket);
 
     stompClient.current.connect(

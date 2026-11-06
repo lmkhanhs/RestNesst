@@ -1,0 +1,5 @@
+-- Run manually as a MySQL administrator. Replace this placeholder locally.
+-- Do not commit the filled-in file. The initial setup used .local/create-user.sql.
+CREATE USER 'codex_dev'@'%' IDENTIFIED BY 'REPLACE_LOCALLY_WITH_A_RANDOM_PASSWORD';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `johunter11`.* TO 'codex_dev'@'%';
+SHOW GRANTS FOR 'codex_dev'@'%';

@@ -12,7 +12,7 @@ export default function Input(theme) {
         input: {
           '&::placeholder': {
             opacity: 1,
-            color: theme.palette.text.disabled,
+            color: theme.palette.text.secondary,
           },
         },
       },

@@ -39,6 +39,15 @@ History contains informal messages without a consistent convention. Use descript
 
 Keep credentials out of commits. Configure local MySQL/MongoDB and required integrations. Align Axios URLs, Vite proxies, WebSocket endpoints, and VNPay callbacks with the intended environment.
 
+## MySQL dev through MCP Toolbox
+
+- Use the project `restnesst_mysql` MCP only for Docker MySQL at `127.0.0.1:3306`, database `johunter11`, account `codex_dev`. Never substitute backend/root credentials.
+- Use the predefined parameterized tools in `tools/database-toolbox/tools.yaml`. Add a separate reviewed SQL tool for each new business operation; never expose arbitrary SQL, dynamic identifiers, DDL, or bulk writes.
+- Before any UPDATE or DELETE, require an explicit record ID, call `countries-get-by-id` (or the matching preview tool for that business operation), show the actual row and proposed change to the user, and wait for their confirmation. Then use the returned `row_version`. If the row changed or zero rows were affected, read and show it again before requesting fresh confirmation.
+- A tool approval or a `row_version` alone does not replace showing the row to the user. Never invent IDs or preview tokens. Read the same row again after a write to verify the result.
+- INSERT requires the user's instruction for that concrete record. Testing writes requires explicit consent to create, update, and delete one identified test record. Do not treat account provisioning as consent to test business data.
+- Keep passwords in the ignored `tools/database-toolbox/.local/credentials.json` (mode 0600) or the process environment. Never print passwords, read the secret files into model context, commit them, or pass passwords on a command line. Do not use the local administrator setup SQL as a runtime credential source.
+
 <!-- CODEGRAPH_START -->
 ## CodeGraph
 

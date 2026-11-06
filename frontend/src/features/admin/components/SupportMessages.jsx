@@ -1,3 +1,4 @@
+import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useState, useEffect, useRef } from "react";
 import {
   Typography,
@@ -45,7 +46,7 @@ export default function AdminMessages() {
     axiosInstance.get("/api/chat/persons").then((res) => {
       setPersons(res.data.result || []);
     });
-    const socket = new SockJS("http://175.41.233.105:8080/ws");
+    const socket = new SockJS((BACKEND_URL + "/ws"));
     stompClient.current = Stomp.over(socket);
 
     stompClient.current.connect(
