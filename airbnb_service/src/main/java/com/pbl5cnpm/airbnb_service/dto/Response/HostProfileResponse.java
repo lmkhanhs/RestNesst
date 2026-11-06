@@ -16,12 +16,17 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class HostProfileResponse {
     Long id;
+    String username;
     String fullname;
     String thumnailUrl;
     String email;
     String phone;
+    String address;
     String country;
     String languages;
     Integer didHostYear;
     String description;
+    Integer totalListings;
+    Integer totalReviews;
+    Double avgRating;
 }

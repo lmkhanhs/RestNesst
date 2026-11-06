@@ -97,3 +97,19 @@ UPDATE users SET host_application_pending = TRUE WHERE id IN (1, 2, 3);
 
 Các ID trên chỉ minh họa; không chạy trực tiếp nếu chưa đối chiếu dữ liệu thực tế.
 Dừng ghi yêu cầu trong lúc chuyển dữ liệu để không bỏ sót yêu cầu mới.
+
+## Chi tiết chỗ ở cho quản trị viên
+
+`GET /api/listings/admin/{id}` yêu cầu JWT có quyền `ADMIN`, trả envelope
+`code: 200`, `result` là thông tin chi tiết của một chỗ ở chưa bị xóa mềm.
+API công khai `GET /api/listings/{id}` và API danh sách tiếp tục phục vụ các caller hiện có.
+
+- Thông tin phòng: `title`, `description`, `address`, `city`, `country`, `area`,
+  `price`, `images`, `avgStart`, `startDate`, `endDate`, `createdAt`, `updatedAt`.
+- Thông tin chủ sở hữu: `hostId`, `hostName`, `hostThumnailUrl`; không trả entity user.
+- `amenites` và `categories`: danh sách `{ id, name, thumnailUrl }`.
+- Trạng thái quản trị: `access`, `status`, `popular`, `position`.
+
+Giữ các tên field cũ như `amenites` và `thumnailUrl`. `createdAt` là ngày tạo,
+khác với `startDate` là ngày bắt đầu cho thuê. Endpoint chỉ đọc dữ liệu,
+không yêu cầu đổi schema hoặc seed. Cần chạy backend với mã mới để dùng endpoint này.

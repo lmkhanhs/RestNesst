@@ -10,9 +10,9 @@ const PopularFilter = ({ value = false, onChange }) => (
       alignItems: "center",
       justifyContent: "space-between",
       gap: 1.5,
-      minHeight: 48,
-      px: 1.5,
-      py: 1,
+      minHeight: 54,
+      px: 1.75,
+      py: 1.125,
       borderRadius: 2.5,
       cursor: "pointer",
       border: "1px solid",
@@ -24,16 +24,36 @@ const PopularFilter = ({ value = false, onChange }) => (
       },
     }}
   >
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-      <StarRoundedIcon
-        aria-hidden="true"
-        sx={{ color: "#D97706", fontSize: 20, flexShrink: 0 }}
-      />
-      <Box>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.25 }}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0 }}>
+      <Box
+        sx={{
+          width: 34,
+          height: 34,
+          borderRadius: 2,
+          bgcolor: "rgba(245, 158, 11, 0.15)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <StarRoundedIcon
+          aria-hidden="true"
+          sx={{ color: "#D97706", fontSize: 20 }}
+        />
+      </Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="subtitle2"
+          sx={{ fontWeight: 700, lineHeight: 1.3 }}
+        >
           Được khách yêu thích
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block", lineHeight: 1.3 }}
+        >
           Đánh giá cao & đặt nhiều nhất
         </Typography>
       </Box>
@@ -43,7 +63,7 @@ const PopularFilter = ({ value = false, onChange }) => (
       checked={Boolean(value)}
       onChange={(e) => onChange && onChange(e.target.checked)}
       color="primary"
-      sx={{ p: 0.5 }}
+      sx={{ p: 0.5, flexShrink: 0 }}
     />
   </Box>
 );

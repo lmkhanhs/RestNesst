@@ -283,14 +283,15 @@ const Header = () => {
     >
       <Box
         sx={{
-          maxWidth: 1440,
+          maxWidth: isAdminPage ? "var(--rn-admin-shell-max-width)" : 1440,
+          minHeight: isAdminPage ? "calc(var(--rn-admin-header-height) - 1px)" : undefined,
           mx: "auto",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: { xs: 1.25, sm: 2 },
-          px: { xs: 2, sm: 3, lg: 4 },
+          px: isAdminPage ? "var(--rn-admin-shell-gutter)" : { xs: 2, sm: 3, lg: 4 },
           py: { xs: 1.25, sm: 1.5 },
         }}
       >

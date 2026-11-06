@@ -27,6 +27,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.SummarizeReviewRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingAdminDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
@@ -61,6 +62,16 @@ public class ListingsController {
                 .code(200)
                 .message("get detail successfully!")
                 .result(this.listingsServices.getDetail(id))
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/listings/admin/{id}")
+    public ApiResponse<ListingAdminDetailResponse> getAdminDetail(@PathVariable Long id) {
+        return ApiResponse.<ListingAdminDetailResponse>builder()
+                .code(200)
+                .message("get admin listing detail successfully!")
+                .result(this.listingsServices.getAdminDetail(id))
                 .build();
     }
 

@@ -391,12 +391,19 @@ export default function AdminPage() {
         "--admin-text-secondary": "var(--rn-text-secondary)",
         "--admin-radius-lg": "16px",
         "--admin-shadow-sm": "var(--rn-shadow-sm)",
-        minHeight: "calc(100dvh - 73px)",
+        minHeight: "calc(100dvh - var(--rn-admin-header-height))",
+        width: "100%",
+        maxWidth: "var(--rn-admin-shell-max-width)",
+        mx: "auto",
+        px: "var(--rn-admin-shell-gutter)",
+        py: { xs: 2.5, md: 3 },
+        gap: { lg: 3 },
+        alignItems: "flex-start",
         bgcolor: "var(--admin-bg)",
         display: "flex",
       }}
     >
-      {/* Sidebar cố định bên trái trên màn hình lớn */}
+      {/* Sidebar nằm trong cùng khung với header và nội dung */}
       <Box
         component="aside"
         sx={{
@@ -404,10 +411,13 @@ export default function AdminPage() {
           flexShrink: 0,
           display: { xs: "none", lg: "block" },
           bgcolor: "var(--admin-surface)",
-          borderRight: "1px solid var(--admin-border)",
+          border: "1px solid var(--admin-border)",
+          borderRadius: "var(--admin-radius-lg)",
+          boxShadow: "var(--admin-shadow-sm)",
           position: "sticky",
-          top: 73,
-          height: "calc(100dvh - 73px)",
+          top: "calc(var(--rn-admin-header-height) + 24px)",
+          maxHeight: "calc(100dvh - var(--rn-admin-header-height) - 48px)",
+          overflowY: "auto",
         }}
       >
         {renderSidebarContent(false)}
@@ -436,11 +446,9 @@ export default function AdminPage() {
         sx={{
           flex: 1,
           minWidth: 0,
-          py: { xs: 2.5, md: 3.5 },
-          px: { xs: 2, sm: 3, md: 4 },
         }}
       >
-        <Container maxWidth="xl" disableGutters>
+        <Container maxWidth={false} disableGutters>
           {/* Tiêu đề trang gọn gàng, không còn khoảng trống thừa */}
           <Stack
             direction="row"

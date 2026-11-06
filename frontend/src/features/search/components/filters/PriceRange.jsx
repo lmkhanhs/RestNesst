@@ -21,14 +21,41 @@ const PriceRange = ({ value = [0, 1000], onChange, min = 0, max = 1000 }) => {
 
   return (
     <Stack spacing={1.5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "text.primary" }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        flexWrap="wrap"
+        useFlexGap
+        spacing={1}
+      >
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 700,
+            color: "text.primary",
+            whiteSpace: "nowrap",
+          }}
+        >
           Khoảng giá mỗi đêm
         </Typography>
-        <Typography variant="caption" sx={{ fontWeight: 600, color: "primary.main" }}>
+        <Box
+          component="span"
+          sx={{
+            px: 1.25,
+            py: 0.35,
+            borderRadius: "999px",
+            bgcolor: "var(--rn-primary-soft)",
+            color: "primary.main",
+            fontWeight: 700,
+            fontSize: "0.75rem",
+            whiteSpace: "nowrap",
+            lineHeight: 1.3,
+          }}
+        >
           {Number(value[0] || 0).toLocaleString("vi-VN")} ₫ –{" "}
           {Number(value[1] || 0).toLocaleString("vi-VN")} ₫
-        </Typography>
+        </Box>
       </Stack>
 
       <Box sx={{ px: 1 }}>
@@ -47,7 +74,13 @@ const PriceRange = ({ value = [0, 1000], onChange, min = 0, max = 1000 }) => {
         />
       </Box>
 
-      <Stack direction="row" alignItems="center" spacing={1.5}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: 1.5,
+        }}
+      >
         <TextField
           size="small"
           label="Tối thiểu (₫)"
@@ -56,6 +89,7 @@ const PriceRange = ({ value = [0, 1000], onChange, min = 0, max = 1000 }) => {
           value={value[0]}
           onChange={handleMinChange}
           inputProps={{ min: safeMin, max: safeMax }}
+          InputProps={{ sx: { borderRadius: 2 } }}
         />
         <TextField
           size="small"
@@ -65,8 +99,9 @@ const PriceRange = ({ value = [0, 1000], onChange, min = 0, max = 1000 }) => {
           value={value[1]}
           onChange={handleMaxChange}
           inputProps={{ min: safeMin, max: safeMax }}
+          InputProps={{ sx: { borderRadius: 2 } }}
         />
-      </Stack>
+      </Box>
     </Stack>
   );
 };

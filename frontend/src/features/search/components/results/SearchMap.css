@@ -70,7 +70,7 @@
   }
 }
 
-@media (min-width: 1240px) {
+@media (min-width: 1340px) {
   .rn-room-grid:not(.rn-room-grid--compact) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;

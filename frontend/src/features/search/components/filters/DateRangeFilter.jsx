@@ -1,12 +1,21 @@
-import { Box, Typography, Stack, TextField } from "@mui/material";
+import { Box, Typography, TextField } from "@mui/material";
 import PropTypes from "prop-types";
 
 const DateRangeFilter = ({ startDate, endDate, onChange }) => (
   <Box>
-    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.25, color: "text.primary" }}>
+    <Typography
+      variant="subtitle2"
+      sx={{ fontWeight: 700, mb: 1.25, color: "text.primary" }}
+    >
       Ngày nhận & trả phòng
     </Typography>
-    <Stack direction={{ xs: "column", sm: "row", md: "column" }} spacing={1.5}>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
+        gap: 1.25,
+      }}
+    >
       <TextField
         label="Nhận phòng"
         type="date"
@@ -18,7 +27,7 @@ const DateRangeFilter = ({ startDate, endDate, onChange }) => (
         InputLabelProps={{ shrink: true }}
         fullWidth
         sx={{ borderRadius: 2, bgcolor: "background.paper", minWidth: 0 }}
-        InputProps={{ sx: { borderRadius: 2, minHeight: 44 } }}
+        InputProps={{ sx: { borderRadius: 2, minHeight: 42 } }}
       />
       <TextField
         label="Trả phòng"
@@ -31,9 +40,9 @@ const DateRangeFilter = ({ startDate, endDate, onChange }) => (
         InputLabelProps={{ shrink: true }}
         fullWidth
         sx={{ borderRadius: 2, bgcolor: "background.paper", minWidth: 0 }}
-        InputProps={{ sx: { borderRadius: 2, minHeight: 44 } }}
+        InputProps={{ sx: { borderRadius: 2, minHeight: 42 } }}
       />
-    </Stack>
+    </Box>
   </Box>
 );
 

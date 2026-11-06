@@ -1,60 +1,58 @@
-import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { Crown } from "@phosphor-icons/react";
 import PropTypes from "prop-types";
 
-const GuestFavorite = ({ isPopular }) => {
+const GuestFavorite = ({ isPopular = false }) => {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        height: "100%",       
-        borderRadius: 2,
-        padding: 2.5,
-        transition: "transform 0.3s ease",
-        "&:hover": {
-          transform: "translateY(-5px)",
-        },
-      }}
-    >
-      <Typography
-        variant="h6"
+    <Stack direction="row" spacing={1.5} alignItems="center">
+      <Box
         sx={{
-          fontWeight: 600,
-          color: "white",
+          width: 44,
+          height: 44,
+          borderRadius: "12px",
+          bgcolor: isPopular
+            ? "rgba(245, 158, 11, 0.14)"
+            : "var(--rn-brand-soft)",
           display: "flex",
           alignItems: "center",
-          ...(isPopular && {
-            background: "linear-gradient(45deg, #FFD700, #FFA500)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-          }),
+          justifyContent: "center",
+          flexShrink: 0,
         }}
       >
-        Guest favourite
         <Crown
           weight="fill"
           style={{
-            width: 32,
-            height: 32,
-            marginLeft: 12,
-            color: "#FFD700",
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+            width: 24,
+            height: 24,
+            color: isPopular ? "#F59E0B" : "var(--rn-brand-primary)",
           }}
         />
-      </Typography>
-    </Box>
+      </Box>
+      <Box>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 800,
+            fontFamily: "var(--rn-font-display)",
+            color: "var(--rn-text-primary)",
+            lineHeight: 1.25,
+          }}
+        >
+          {isPopular ? "Được khách yêu thích" : "Chỗ nghỉ tiêu chuẩn cao"}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ color: "var(--rn-text-secondary)", fontWeight: 500 }}
+        >
+          Đánh giá xác thực từ khách đã lưu trú
+        </Typography>
+      </Box>
+    </Stack>
   );
 };
 
 GuestFavorite.propTypes = {
   isPopular: PropTypes.bool,
-};
-
-GuestFavorite.defaultProps = {
-  isPopular: false,
 };
 
 export default GuestFavorite;

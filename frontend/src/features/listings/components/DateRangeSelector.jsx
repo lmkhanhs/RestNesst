@@ -1,16 +1,20 @@
-import React from "react";
-import { Grid, Stack, Typography, TextField } from "@mui/material";
+import { Box, Stack, Typography, TextField } from "@mui/material";
 import {
   DateRangePicker,
   SingleInputDateRangeField,
 } from "@mui/x-date-pickers-pro";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import dayjs from "dayjs";
 import PropTypes from "prop-types";
 
-const DateRangeSelector = ({ value, setValue, startDate, endDate }) => {
-  // Convert API dates to dayjs objects
-  const minDate = dayjs(startDate);
-  const maxDate = dayjs(endDate);
+const DateRangeSelector = ({
+  value = [null, null],
+  setValue,
+  startDate,
+  endDate,
+}) => {
+  const minDate = startDate ? dayjs(startDate) : dayjs();
+  const maxDate = endDate ? dayjs(endDate) : dayjs().add(6, "months");
 
   const shortcutItems = [
     {
@@ -39,47 +43,65 @@ const DateRangeSelector = ({ value, setValue, startDate, endDate }) => {
   ];
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Stack spacing={2} alignItems="center">
-          <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
-            Chọn ngày ({minDate.format("DD/MM/YYYY")} -{" "}
-            {maxDate.format("DD/MM/YYYY")})
-          </Typography>
-          <DateRangePicker
-            slots={{
-              field: SingleInputDateRangeField,
-              textField: TextField,
-            }}
-            slotProps={{
-              shortcuts: { items: shortcutItems },
-              textField: {
-                fullWidth: true,
-                variant: "outlined",
-                InputProps: { disableUnderline: true },
-              },
-            }}
-            sx={{ width: "100%" }}
-            minDate={minDate}
-            maxDate={maxDate}
-            value={value}
-            onChange={(newValue) => setValue(newValue)}
-          />
-        </Stack>
-      </Grid>
-    </Grid>
+    <Box>
+      <Stack
+        direction="row"
+        spacing={0.75}
+        alignItems="center"
+        sx={{ mb: 1 }}
+      >
+        <CalendarMonthRoundedIcon
+          sx={{ fontSize: 17, color: "var(--rn-brand-primary)" }}
+        />
+        <Typography
+          variant="caption"
+          sx={{
+            color: "var(--rn-text-secondary)",
+            fontWeight: 700,
+          }}
+        >
+          Lịch trống ({minDate.format("DD/MM/YYYY")} –{" "}
+          {maxDate.format("DD/MM/YYYY")})
+        </Typography>
+      </Stack>
+
+      <DateRangePicker
+        slots={{
+          field: SingleInputDateRangeField,
+          textField: TextField,
+        }}
+        slotProps={{
+          shortcuts: { items: shortcutItems },
+          textField: {
+            fullWidth: true,
+            variant: "outlined",
+            placeholder: "Chọn ngày nhận phòng – trả phòng",
+            InputProps: { disableUnderline: true },
+          },
+        }}
+        sx={{
+          width: "100%",
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "12px",
+            bgcolor: "var(--rn-surface-2)",
+            fontSize: "0.9rem",
+            fontWeight: 600,
+          },
+        }}
+        minDate={minDate}
+        maxDate={maxDate}
+        value={value}
+        onChange={(newValue) => setValue(newValue)}
+      />
+    </Box>
   );
 };
 
 DateRangeSelector.propTypes = {
   value: PropTypes.array,
   setValue: PropTypes.func.isRequired,
-  startDate: PropTypes.string.isRequired,
-  endDate: PropTypes.string.isRequired,
-};
-
-DateRangeSelector.defaultProps = {
-  value: [null, null],
+  startDate: PropTypes.string,
+  endDate: PropTypes.string,
 };
 
 export default DateRangeSelector;

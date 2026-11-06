@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Typography } from "@mui/material";
 
 const PropertyDescription = () => {
@@ -8,24 +7,23 @@ const PropertyDescription = () => {
         display: "flex",
         alignItems: "center",
         height: "100%",
-        padding: 2,
+        pl: { md: 2.5 },
         borderLeft: {
-          md: "1px solid rgba(255,255,255,0.1)",
+          md: "1px solid var(--rn-border-subtle)",
           xs: "none",
         },
       }}
     >
       <Typography
-        variant="body1"
+        variant="body2"
         sx={{
-          color: "#e0e0e0",
-          lineHeight: 1.8,
-          fontStyle: "italic",
-          textAlign: "center",
+          color: "var(--rn-text-secondary)",
+          lineHeight: 1.65,
+          fontWeight: 500,
         }}
       >
-        Một trong những căn nhà được yêu thích nhất  dựa trên đánh
-        giá, nhận xét và độ tin cậy
+        Một trong những chỗ nghỉ được khách hàng đánh giá cao nhờ vị trí thuận
+        tiện, tiện nghi đúng mô tả và sự hỗ trợ tận tình từ chủ nhà.
       </Typography>
     </Box>
   );

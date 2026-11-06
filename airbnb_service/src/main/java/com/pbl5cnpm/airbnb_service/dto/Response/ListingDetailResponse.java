@@ -23,14 +23,18 @@ public class ListingDetailResponse {
     String address;
     String country;
     String city;
+    String area;
+    String status;
     String avgStart;
     String hostThumnailUrl;
+    String hostName;
     Boolean popular;
     LocalDate startDate;
     LocalDate endDate;
     Double price;
     List<String> images;
     List<AmenitiesForListingRespose> amenites;
+    List<CategoryResponseForListing> categories;
     List<ReviewResponse> reviews;
     Long hostId;
 }

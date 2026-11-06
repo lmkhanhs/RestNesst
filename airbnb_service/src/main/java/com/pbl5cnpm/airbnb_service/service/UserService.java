@@ -165,6 +165,7 @@ public class UserService {
         return this.mapper.toUserInfor(this.userRepository.save(userEntity));
     }
 
+    @Transactional(readOnly = true)
     public HostProfileResponse handlegetHost(Long id) {
         UserEntity entity = this.userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

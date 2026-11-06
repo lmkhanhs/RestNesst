@@ -1,4 +1,3 @@
-import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -18,36 +17,17 @@ import {
   FormControl,
   Paper,
   Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Grid,
   Chip,
-  IconButton,
   Alert,
+  Portal,
   Rating,
-  ImageList,
-  ImageListItem,
-  Divider,
-  Switch,
-  FormControlLabel
+  Snackbar,
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Close as CloseIcon,
-  CheckCircle as ApproveIcon,
-  Cancel as RejectIcon,
-  Warning as WarningIcon,
-  LocationOn as LocationIcon,
-  Person as PersonIcon,
-  CalendarToday as CalendarIcon,
-  Star as StarIcon,
-  Settings as SettingsIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon
-} from '@mui/icons-material';
+import { Add as AddIcon, Settings as SettingsIcon } from '@mui/icons-material';
 import axiosInstance from '@/shared/api/httpClient.js';
 import CreatePropertyDialog from './CreatePropertyDialog.jsx';
+import PropertyDetailsDialog from './PropertyDetailsDialog.jsx';
+import { getPropertyMediaUrl } from '../utils/propertyDetails.js';
 
 export default function AdminProperties({ onPropertyCreated }) {
   const [properties, setProperties] = useState([]);
@@ -58,10 +38,9 @@ export default function AdminProperties({ onPropertyCreated }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('success');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [orderEdit, setOrderEdit] = useState({});
-  const [orderLoading, setOrderLoading] = useState({});
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -89,15 +68,8 @@ export default function AdminProperties({ onPropertyCreated }) {
               price: item.price ? `${item.price.toLocaleString()} VND` : '',
               owner: ownerName,
               status: item.access ? 'Đã kích hoạt' : 'Đang chờ kích hoạt',
-              rating: item.avgRating || 0,
-              images: item.images?.map(img => img.startsWith('uploads/') ? `${BACKEND_URL}/${img}` : img) || [],
-              description: item.description || '',
-              amenities: item.amenities || [],
-              createdAt: item.startDate || '',
-              lastUpdated: item.endDate || '',
-              violations: item.violations || [],
-              reports: item.reports || [],
-              isTrending: item.popular || false,
+              rating: item.avgStart ?? 0,
+              images: (item.images || []).map(getPropertyMediaUrl).filter(Boolean),
               orderNumber: item.position || 0,
             };
           })
@@ -118,6 +90,7 @@ export default function AdminProperties({ onPropertyCreated }) {
     setOwnerFilter('all');
     setStatusFilter('all');
     setRefreshKey((value) => value + 1);
+    setAlertSeverity('success');
     setAlertMessage('Tạo chỗ ở thành công!');
     setShowSuccessAlert(true);
     onPropertyCreated?.();
@@ -155,10 +128,12 @@ export default function AdminProperties({ onPropertyCreated }) {
         property.id === id ? { ...property, status: newStatus } : property
       );
       setProperties(updatedProperties);
+      setAlertSeverity('success');
       setAlertMessage('Cập nhật trạng thái thành công!');
       setShowSuccessAlert(true);
       handleCloseDialog();
     } catch (err) {
+      setAlertSeverity('error');
       setAlertMessage('Có lỗi khi cập nhật trạng thái!');
       setShowSuccessAlert(true);
     } finally {
@@ -173,10 +148,12 @@ export default function AdminProperties({ onPropertyCreated }) {
       await axiosInstance.delete(`/api/listings/${id}`);
       const updatedProperties = properties.filter(property => property.id !== id);
       setProperties(updatedProperties);
+      setAlertSeverity('success');
       setAlertMessage('Gỡ bỏ thành công!');
       setShowSuccessAlert(true);
       handleCloseDialog();
     } catch (err) {
+      setAlertSeverity('error');
       setAlertMessage('Có lỗi khi gỡ bỏ!');
       setShowSuccessAlert(true);
       setError("Không thể gỡ bỏ chỗ ở");
@@ -185,36 +162,19 @@ export default function AdminProperties({ onPropertyCreated }) {
     }
   };
 
-  const handleTrendingChange = (id, newValue) => {
-
-    const updatedProperties = properties.map(property =>
-      property.id === id ? { ...property, isTrending: newValue } : property
-    );
-    setProperties(updatedProperties);
-    setAlertMessage('Cập nhật trạng thái xu hướng thành công!');
-    setShowSuccessAlert(true);
-  };
-
-  const handleOrderNumberChange = (id, newValue) => {
-    setOrderEdit(prev => ({ ...prev, [id]: newValue }));
-  };
-
-  const handleSaveOrderNumber = async (id) => {
-    setOrderLoading(prev => ({ ...prev, [id]: true }));
+  const handleSaveOrderNumber = async (id, value) => {
     try {
-      const value = orderEdit[id];
       await axiosInstance.put(`/api/listings/${id}/${value}`);
-      const updatedProperties = properties.map(property =>
-        property.id === id ? { ...property, orderNumber: parseInt(value) || 0 } : property
-      );
-      setProperties(updatedProperties);
+      setProperties((previous) => previous.map((property) =>
+        property.id === id ? { ...property, orderNumber: value } : property
+      ));
+      setAlertSeverity('success');
       setAlertMessage('Cập nhật số thứ tự thành công!');
       setShowSuccessAlert(true);
     } catch (err) {
+      setAlertSeverity('error');
       setAlertMessage('Có lỗi khi cập nhật số thứ tự!');
       setShowSuccessAlert(true);
-    } finally {
-      setOrderLoading(prev => ({ ...prev, [id]: false }));
     }
   };
 
@@ -355,199 +315,26 @@ export default function AdminProperties({ onPropertyCreated }) {
         <CreatePropertyDialog onClose={() => setOpenCreateDialog(false)} onCreated={handlePropertyCreated} />
       )}
 
-      <Dialog 
-        open={openDialog} 
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">
-              Chi tiết chỗ ở
-            </Typography>
-            <IconButton onClick={handleCloseDialog}>
-              <CloseIcon />
-            </IconButton>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          {selectedProperty && (
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <ImageList sx={{ height: 200 }} cols={2} rowHeight={200}>
-                  {selectedProperty.images.map((image, index) => (
-                    <ImageListItem key={index}>
-                      <img
-                        src={image}
-                        alt={`Property ${index + 1}`}
-                        loading="lazy"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                  <Typography variant="h6" sx={{ flexGrow: 1 }}>{selectedProperty.name}</Typography>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={selectedProperty.isTrending}
-                        onChange={(e) => handleTrendingChange(selectedProperty.id, e.target.checked)}
-                        color="primary"
-                      />
-                    }
-                    label="Đang xu hướng"
-                  />
-                  <TextField
-                    label="Số thứ tự"
-                    type="number"
-                    value={orderEdit[selectedProperty.id] !== undefined ? orderEdit[selectedProperty.id] : selectedProperty.orderNumber}
-                    onChange={(e) => handleOrderNumberChange(selectedProperty.id, e.target.value)}
-                    sx={{ width: '120px' }}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ ml: 1, minWidth: 40 }}
-                    onClick={() => handleSaveOrderNumber(selectedProperty.id)}
-                    disabled={orderLoading[selectedProperty.id]}
-                    startIcon={<SaveIcon />}
-                  >
-                    Lưu
-                  </Button>
-                </Stack>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <LocationIcon color="action" />
-                    <Typography>{selectedProperty.location}</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <PersonIcon color="action" />
-                    <Typography>Chủ sở hữu: {selectedProperty.owner}</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <CalendarIcon color="action" />
-                    <Typography>Ngày tạo: {selectedProperty.createdAt}</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <StarIcon color="action" />
-                    <Typography>Đánh giá: {selectedProperty.rating}/5</Typography>
-                  </Stack>
-                </Stack>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Mô tả
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {selectedProperty.description}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Tiện nghi
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {selectedProperty.amenities.map((amenity, index) => (
-                    <Chip
-                      key={index}
-                      label={amenity}
-                      color="primary"
-                      variant="outlined"
-                    />
-                  ))}
-                </Stack>
-              </Grid>
-
-              {(selectedProperty.violations.length > 0 || selectedProperty.reports.length > 0) && (
-                <Grid item xs={12}>
-                  <Divider sx={{ my: 2 }} />
-                  <Stack spacing={2}>
-                    {selectedProperty.violations.length > 0 && (
-                      <Box>
-                        <Typography variant="subtitle1" color="error" gutterBottom>
-                          Vi phạm
-                        </Typography>
-                        {selectedProperty.violations.map((violation, index) => (
-                          <Stack key={index} direction="row" spacing={1} alignItems="center">
-                            <WarningIcon color="error" />
-                            <Typography variant="body2">{violation}</Typography>
-                          </Stack>
-                        ))}
-                      </Box>
-                    )}
-                    {selectedProperty.reports.length > 0 && (
-                      <Box>
-                        <Typography variant="subtitle1" color="warning.main" gutterBottom>
-                          Báo cáo
-                        </Typography>
-                        {selectedProperty.reports.map((report, index) => (
-                          <Stack key={index} direction="row" spacing={1} alignItems="center">
-                            <WarningIcon color="warning" />
-                            <Typography variant="body2">{report}</Typography>
-                          </Stack>
-                        ))}
-                      </Box>
-                    )}
-                  </Stack>
-                </Grid>
-              )}
-
-              <Grid item xs={12}>
-                <Stack direction="row" spacing={2} justifyContent="flex-end">
-                  {selectedProperty.status === 'Đang chờ kích hoạt' ? (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      startIcon={<ApproveIcon />}
-                      onClick={() => handleStatusUpdate(selectedProperty.id, 'Đã kích hoạt')}
-                    >
-                      Kích hoạt
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      color="warning"
-                      startIcon={<RejectIcon />}
-                      onClick={() => handleStatusUpdate(selectedProperty.id, 'Đang chờ kích hoạt')}
-                    >
-                      Hủy kích hoạt
-                    </Button>
-                  )}
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => handleRemoveProperty(selectedProperty.id)}
-                  >
-                    Gỡ bỏ
-                  </Button>
-                </Stack>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {showSuccessAlert && (
-        <Alert
-          severity="success"
-          onClose={() => setShowSuccessAlert(false)}
-          sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 2000 }}
-        >
-          {alertMessage}
-        </Alert>
+      {openDialog && selectedProperty && (
+        <PropertyDetailsDialog
+          property={selectedProperty}
+          busy={loading}
+          onClose={handleCloseDialog}
+          onStatusUpdate={handleStatusUpdate}
+          onRemove={handleRemoveProperty}
+          onSaveOrder={handleSaveOrderNumber}
+        />
       )}
+
+      <Portal>
+        <Snackbar open={showSuccessAlert} autoHideDuration={5000} transitionDuration={0}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          onClose={(_, reason) => { if (reason !== 'clickaway') setShowSuccessAlert(false); }}>
+          <Alert severity={alertSeverity} onClose={() => setShowSuccessAlert(false)} sx={{ width: '100%' }}>
+            {alertMessage}
+          </Alert>
+        </Snackbar>
+      </Portal>
     </Box>
   );
 }

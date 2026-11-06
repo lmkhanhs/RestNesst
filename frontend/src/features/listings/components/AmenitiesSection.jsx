@@ -1,198 +1,261 @@
-import { BACKEND_URL } from "@/shared/config/environment.js";
-import PropTypes from "prop-types";
 import { useState } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
-  Grid,
-  Typography,
-  Stack,
   Button,
+  Chip,
   Dialog,
-  DialogTitle,
   DialogContent,
+  DialogTitle,
+  Grid,
   IconButton,
-  alpha,
+  Stack,
+  Typography,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
+import { BACKEND_URL } from "@/shared/config/environment.js";
 
-// Add your backend URL here - replace with your actual backend URL
-const BASE_URL = BACKEND_URL;
+const getImageUrl = (img) => {
+  if (!img || typeof img !== "string") return "";
+  const trimmed = img.trim();
+  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+  return `${BACKEND_URL}/${trimmed.replace(/^\/+/, "")}`;
+};
 
-const AmenitiesList = ({ items, inModal }) => (
-  <Grid container spacing={2.5}>
-    {items.map((amenity, index) => (
-      <Grid item xs={12} sm={inModal ? 6 : 12} md={inModal ? 6 : 6} key={index}>
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          sx={{
-            py: 1.75,
-            px: 2,
-            borderRadius: 2,
-            transition: "all 0.2s ease-in-out",
-            bgcolor: (theme) => alpha(theme.palette.background.paper, 0.6),
-            "&:hover": {
-              bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
-              transform: "translateX(4px)",
-            },
-          }}
-        >
+const AmenityCard = ({ amenity }) => {
+  const [imgError, setImgError] = useState(false);
+  const hasThumbnail = Boolean(amenity?.thumnailUrl) && !imgError;
+
+  return (
+    <Stack
+      direction="row"
+      spacing={1.75}
+      alignItems="center"
+      sx={{
+        py: 1.5,
+        px: 2,
+        height: "100%",
+        borderRadius: "14px",
+        bgcolor: "var(--rn-surface-2)",
+        border: "1px solid var(--rn-border-subtle)",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          borderColor: "var(--rn-brand-primary)",
+          transform: "translateY(-1px)",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: "10px",
+          bgcolor: "var(--rn-surface-card)",
+          border: "1px solid var(--rn-border-subtle)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        {hasThumbnail ? (
           <Box
             component="img"
-            src={`${BASE_URL}${amenity.thumnailUrl}`}
+            src={getImageUrl(amenity.thumnailUrl)}
             alt={amenity.name}
+            onError={() => setImgError(true)}
             sx={{
-              width: 32,
-              height: 32,
+              width: 24,
+              height: 24,
               objectFit: "contain",
-              filter: "brightness(0.95)",
             }}
           />
+        ) : (
+          <CheckCircleOutlineRoundedIcon
+            sx={{ fontSize: 22, color: "var(--rn-brand-primary)" }}
+          />
+        )}
+      </Box>
+
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "var(--rn-text-primary)",
+            fontWeight: 700,
+            fontSize: "0.925rem",
+          }}
+        >
+          {amenity?.name}
+        </Typography>
+        {amenity?.description && (
           <Typography
-            variant="body2"
+            variant="caption"
             sx={{
-              color: "text.primary",
-              fontWeight: 500,
-              fontSize: "0.925rem",
-              fontFamily: (theme) => theme.typography.fontSecondaryFamily,
+              color: "var(--rn-text-secondary)",
+              display: "-webkit-box",
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
             }}
           >
-            {amenity.name}
+            {amenity.description}
           </Typography>
-        </Stack>
+        )}
+      </Box>
+    </Stack>
+  );
+};
+
+AmenityCard.propTypes = {
+  amenity: PropTypes.shape({
+    id: PropTypes.number,
+    thumnailUrl: PropTypes.string,
+    name: PropTypes.string.isRequired,
+    description: PropTypes.string,
+  }).isRequired,
+};
+
+const AmenitiesList = ({ items }) => (
+  <Grid container spacing={1.75}>
+    {items.map((amenity, index) => (
+      <Grid item xs={12} sm={6} key={amenity.id || index}>
+        <AmenityCard amenity={amenity} />
       </Grid>
     ))}
   </Grid>
 );
 
-const AmenitiesSection = ({ amenities: amenites }) => {
+AmenitiesList.propTypes = {
+  items: PropTypes.array.isRequired,
+};
+
+const AmenitiesSection = ({ amenities = [] }) => {
   const [open, setOpen] = useState(false);
-  const displayedAmenities = open ? amenites : amenites.slice(0, 8);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const safeAmenities = Array.isArray(amenities) ? amenities : [];
+  const displayedAmenities = safeAmenities.slice(0, 8);
 
   return (
-    <Box sx={{ mt: 4, mb: 4 }}>
-      <Typography
-        variant="h6"
-        sx={{
-          mb: 3,
-          fontWeight: 700,
-          fontSize: "1.25rem",
-          color: "text.primary",
-          fontFamily: (theme) => theme.typography.fontSecondaryFamily,
-        }}
+    <Box sx={{ my: 3.5 }}>
+      <Stack
+        direction="row"
+        spacing={1.25}
+        alignItems="center"
+        sx={{ mb: 2.25 }}
       >
-        Những gì nơi này cung cấp
-      </Typography>
-
-      <AmenitiesList items={displayedAmenities} inModal={false} />
-
-      {amenites.length > 8 && !open && (
-        <Box sx={{ mt: 3 }}>
-          <Button
-            onClick={handleClickOpen}
-            variant="outlined"
-            size="large"
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 800,
+            fontSize: "1.25rem",
+            color: "var(--rn-text-primary)",
+            fontFamily: "var(--rn-font-display)",
+          }}
+        >
+          Tiện nghi chỗ ở cung cấp
+        </Typography>
+        {safeAmenities.length > 0 && (
+          <Chip
+            size="small"
+            label={`${safeAmenities.length} tiện nghi`}
             sx={{
-              px: 3,
-              py: 1,
-              color: "text.primary",
-              borderColor: (theme) => alpha(theme.palette.text.primary, 0.24),
-              backgroundColor: (theme) =>
-                alpha(theme.palette.background.paper, 0.6),
-              fontFamily: (theme) => theme.typography.fontSecondaryFamily,
-              fontSize: "0.925rem",
-              fontWeight: 600,
-              textTransform: "none",
-              "&:hover": {
-                borderColor: "primary.main",
-                backgroundColor: (theme) =>
-                  alpha(theme.palette.background.paper, 0.9),
-              },
+              fontWeight: 700,
+              bgcolor: "var(--rn-brand-soft)",
+              color: "var(--rn-brand-primary)",
             }}
-          >
-            Hiển thị tất cả {amenites.length} tiện nghi
-          </Button>
-        </Box>
+          />
+        )}
+      </Stack>
+
+      {safeAmenities.length === 0 ? (
+        <Typography variant="body2" sx={{ color: "var(--rn-text-secondary)" }}>
+          Danh sách tiện nghi đang được chủ nhà cập nhật.
+        </Typography>
+      ) : (
+        <>
+          <AmenitiesList items={displayedAmenities} />
+
+          {safeAmenities.length > 8 && (
+            <Box sx={{ mt: 2.5 }}>
+              <Button
+                onClick={() => setOpen(true)}
+                variant="outlined"
+                sx={{
+                  px: 2.5,
+                  py: 1,
+                  borderRadius: "12px",
+                  color: "var(--rn-text-primary)",
+                  borderColor: "var(--rn-border-subtle)",
+                  bgcolor: "var(--rn-surface-card)",
+                  fontWeight: 700,
+                  textTransform: "none",
+                  "&:hover": {
+                    borderColor: "var(--rn-brand-primary)",
+                    bgcolor: "var(--rn-brand-soft)",
+                  },
+                }}
+              >
+                Hiển thị tất cả {safeAmenities.length} tiện nghi
+              </Button>
+            </Box>
+          )}
+        </>
       )}
 
       <Dialog
         open={open}
-        onClose={handleClose}
+        onClose={() => setOpen(false)}
         maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: "background.default",
-            borderRadius: 3,
+            bgcolor: "var(--rn-surface-card)",
+            color: "var(--rn-text-primary)",
+            borderRadius: "20px",
+            border: "1px solid var(--rn-border-subtle)",
           },
         }}
       >
         <DialogTitle
           sx={{
-            m: 0,
-            p: 3,
-            color: "text.primary",
-            fontFamily: (theme) => theme.typography.fontSecondaryFamily,
-            fontWeight: 700,
+            px: 3,
+            py: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid var(--rn-border-subtle)",
+            fontWeight: 800,
+            fontFamily: "var(--rn-font-display)",
           }}
         >
-          Những gì nơi này cung cấp
+          Tất cả tiện nghi chỗ ở ({safeAmenities.length})
           <IconButton
-            onClick={handleClose}
-            sx={{
-              position: "absolute",
-              right: 16,
-              top: 16,
-              color: (theme) => alpha(theme.palette.text.primary, 0.7),
-              "&:hover": {
-                color: "text.primary",
-                bgcolor: (theme) => alpha(theme.palette.background.paper, 0.12),
-              },
-            }}
+            onClick={() => setOpen(false)}
+            sx={{ color: "var(--rn-text-secondary)" }}
           >
-            <CloseIcon />
+            <CloseRoundedIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent
-          dividers
-          sx={{
-            p: 3,
-            borderColor: (theme) => alpha(theme.palette.divider, 0.1),
-          }}
-        >
-          <AmenitiesList items={amenites} inModal={true} />
+        <DialogContent sx={{ p: 3 }}>
+          <AmenitiesList items={safeAmenities} />
         </DialogContent>
       </Dialog>
     </Box>
   );
 };
 
-AmenitiesList.propTypes = {
-  items: PropTypes.arrayOf(
-    PropTypes.shape({
-      thumnailUrl: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  inModal: PropTypes.bool.isRequired,
-};
-
 AmenitiesSection.propTypes = {
   amenities: PropTypes.arrayOf(
     PropTypes.shape({
-      thumnailUrl: PropTypes.string.isRequired,
+      id: PropTypes.number,
+      thumnailUrl: PropTypes.string,
       name: PropTypes.string.isRequired,
+      description: PropTypes.string,
     })
-  ).isRequired,
+  ),
 };
 
 export default AmenitiesSection;

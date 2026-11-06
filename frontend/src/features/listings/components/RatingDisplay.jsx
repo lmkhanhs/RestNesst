@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Avatar,
@@ -21,6 +21,25 @@ import {
   summarizeAllListingReviews,
   summarizeReviewComment,
 } from "@/features/reviews/api/summarizeReview.js";
+import { BACKEND_URL } from "@/shared/config/environment.js";
+
+const getImageUrl = (img) => {
+  if (!img || typeof img !== "string") return "";
+  const trimmed = img.trim();
+  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+  return `${BACKEND_URL}/${trimmed.replace(/^\/+/, "")}`;
+};
+
+const resolveAvatarUrl = (url, name = "Khách") => {
+  if (!url) {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      name
+    )}&background=FF385C&color=fff`;
+  }
+  return getImageUrl(url);
+};
 
 const RatingDisplay = ({ listingId, rating, avgStart, reviewCount, reviews = [] }) => {
   const displayRating = rating ?? avgStart ?? 0;
@@ -314,13 +333,16 @@ const RatingDisplay = ({ listingId, rating, avgStart, reviewCount, reviews = [] 
                     >
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         <Avatar
-                          src={review.avatarUser || "/default-avatar.png"}
-                          alt={review.userName || "Khách"}
+                          src={resolveAvatarUrl(
+                            review.avatarlUrl || review.avatarUser,
+                            review.username || review.userName || "Khách"
+                          )}
+                          alt={review.username || review.userName || "Khách"}
                           sx={{ width: 42, height: 42 }}
                         />
                         <Box>
                           <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                            {review.userName || "Khách hàng"}
+                            {review.username || review.userName || "Khách hàng"}
                           </Typography>
                           <Stack direction="row" spacing={1} alignItems="center">
                             <Rating
@@ -377,10 +399,10 @@ const RatingDisplay = ({ listingId, rating, avgStart, reviewCount, reviews = [] 
                       {review.comment}
                     </Typography>
 
-                    {review.imageUrl && (
+                    {(review.reviewUrl || review.imageUrl) && (
                       <Box
                         component="img"
-                        src={review.imageUrl}
+                        src={getImageUrl(review.reviewUrl || review.imageUrl)}
                         alt="Ảnh đánh giá"
                         sx={{
                           mt: 1.5,
@@ -388,7 +410,7 @@ const RatingDisplay = ({ listingId, rating, avgStart, reviewCount, reviews = [] 
                           maxHeight: 120,
                           borderRadius: 1.5,
                           objectFit: "cover",
-                          border: "1px solid #eee",
+                          border: "1px solid var(--rn-border-subtle)",
                         }}
                       />
                     )}
@@ -472,8 +494,8 @@ const RatingDisplay = ({ listingId, rating, avgStart, reviewCount, reviews = [] 
 
 RatingDisplay.propTypes = {
   listingId: PropTypes.number,
-  rating: PropTypes.number,
-  avgStart: PropTypes.number,
+  rating: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  avgStart: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   reviewCount: PropTypes.number,
   reviews: PropTypes.array.isRequired,
 };

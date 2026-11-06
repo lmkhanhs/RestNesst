@@ -16,6 +16,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.AmenitiesForListingRespose;
 import com.pbl5cnpm.airbnb_service.dto.Response.CategoryResponseForListing;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingAdminDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingFavorite;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
@@ -27,6 +28,7 @@ import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ImagesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.ReviewEntity;
+import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.repository.AmenitiesRepository;
@@ -78,10 +80,33 @@ public abstract class ListingMapper {
             @Mapping(source = "countriesEntity.name", target = "country"),
             @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
             @Mapping(source = "amenitesEntities", target = "amenites", qualifiedByName = "mapAmenites"),
+            @Mapping(source = "categoriesEntities", target = "categories", qualifiedByName = "mapCategories"),
             @Mapping(source = "reviews", target = "reviews", qualifiedByName = "mapReviews"),
-            @Mapping(source = "host.id", target = "hostId")
+            @Mapping(source = "host.id", target = "hostId"),
+            @Mapping(source = "host.thumnailUrl", target = "hostThumnailUrl"),
+            @Mapping(source = "host", target = "hostName", qualifiedByName = "mapHostName")
     })
     public abstract ListingDetailResponse toDetailResponse(ListingEntity entity);
+
+    @Mappings({
+            @Mapping(source = "countriesEntity.name", target = "country"),
+            @Mapping(source = "imagesEntities", target = "images", qualifiedByName = "mapImages"),
+            @Mapping(source = "amenitesEntities", target = "amenites", qualifiedByName = "mapAmenites"),
+            @Mapping(source = "categoriesEntities", target = "categories", qualifiedByName = "mapCategories"),
+            @Mapping(source = "host.id", target = "hostId"),
+            @Mapping(source = "host.thumnailUrl", target = "hostThumnailUrl"),
+            @Mapping(source = "host", target = "hostName", qualifiedByName = "mapHostName")
+    })
+    public abstract ListingAdminDetailResponse toAdminDetailResponse(ListingEntity entity);
+
+    @Named("mapHostName")
+    protected String mapHostName(UserEntity host) {
+        if (host == null) return null;
+        if (host.getFullname() != null && !host.getFullname().isBlank()) {
+            return host.getFullname().trim();
+        }
+        return host.getUsername();
+    }
 
     @Named("mapImages")
     protected List<String> mapImages(List<ImagesEntity> imagesEntities) {
@@ -100,6 +125,7 @@ public abstract class ListingMapper {
                 .map(amenitesEntitie -> AmenitiesForListingRespose.builder()
                         .id(amenitesEntitie.getId())
                         .name(amenitesEntitie.getName())
+                        .description(amenitesEntitie.getDescription())
                         .thumnailUrl(amenitesEntitie.getThumnailUrl())
                         .build())
                 .collect(Collectors.toList());

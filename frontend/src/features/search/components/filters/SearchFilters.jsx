@@ -127,17 +127,18 @@ const Filter = ({ onCloseMobile }) => {
         elevation={0}
         sx={{
           width: 1,
-          borderRadius: 3,
+          borderRadius: 3.5,
           border: "1px solid",
           borderColor: "divider",
           bgcolor: "background.paper",
+          boxShadow: "var(--rn-shadow-sm)",
           overflow: "hidden",
         }}
       >
         <Box
           sx={{
             py: 1.75,
-            px: 2.5,
+            px: { xs: 2.25, lg: 2.75 },
             bgcolor: "var(--rn-surface-subtle)",
             borderBottom: "1px solid",
             borderColor: "divider",
@@ -188,7 +189,7 @@ const Filter = ({ onCloseMobile }) => {
           </Stack>
         </Box>
 
-        <Stack spacing={2.25} sx={{ p: 2.5 }}>
+        <Stack spacing={2} sx={{ p: { xs: 2.25, lg: 2.75 } }}>
           <PopularFilter
             value={filterState.popular}
             onChange={handlePopularChange}

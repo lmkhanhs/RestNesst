@@ -20,6 +20,7 @@ import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.ReviewRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.ListingAdminDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
@@ -72,6 +73,14 @@ public class ListingsServices {
         ListingEntity entity = this.listingsRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
         return this.listingMapper.toDetailResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public ListingAdminDetailResponse getAdminDetail(Long id) {
+        ListingEntity entity = this.listingsRepository.findById(id)
+                .filter(listing -> !Boolean.TRUE.equals(listing.getDeleted()))
+                .orElseThrow(() -> new AppException(ErrorCode.LISTING_NOT_EXISTED));
+        return this.listingMapper.toAdminDetailResponse(entity);
     }
 
     public ListingsResponse handlleCreate(ListingRequest listingRequest, String username) throws IOException {

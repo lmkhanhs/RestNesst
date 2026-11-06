@@ -559,14 +559,14 @@ export default function HomePage() {
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           alignItems: "stretch",
-          gap: { xs: 2.5, lg: 3.5 },
+          gap: { xs: 2.5, md: 3, lg: 3.5 },
           minWidth: 0,
         }}
       >
         {/* Cột Bộ lọc: Mobile/Tablet dùng nút mở nhanh bằng một tay + chuyển động ngắn; Desktop hiển thị cột cố định */}
         <Box
           sx={{
-            width: { xs: "100%", md: 280, lg: 300 },
+            width: { xs: "100%", md: 340, lg: 368, xl: 388 },
             flexShrink: 0,
             minWidth: 0,
             position: { md: "sticky" },
