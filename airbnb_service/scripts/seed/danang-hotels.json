@@ -1,0 +1,148 @@
+{
+  "seedId": "restnesst-danang-v1",
+  "checkedOn": "2026-11-06",
+  "country": "Việt Nam",
+  "category": "Phòng",
+  "city": "Đà Nẵng",
+  "currency": "VND",
+  "demoRoomType": "Phòng đôi DEMO, không phải loại phòng chính thức của khách sạn",
+  "demoAvailableFrom": "2026-11-06",
+  "demoAvailableTo": "2027-11-06",
+  "users": [
+    {"username": "demo_dn_guest01", "email": "guest01.danang@example.com", "fullname": "Khách Mẫu Đà Nẵng 01", "roles": ["GUEST"]},
+    {"username": "demo_dn_guest02", "email": "guest02.danang@example.com", "fullname": "Khách Mẫu Đà Nẵng 02", "roles": ["GUEST"]},
+    {"username": "demo_dn_guest03", "email": "guest03.danang@example.com", "fullname": "Khách Mẫu Đà Nẵng 03", "roles": ["GUEST"]},
+    {"username": "demo_dn_guest04", "email": "guest04.danang@example.com", "fullname": "Khách Mẫu Đà Nẵng 04", "roles": ["GUEST"]},
+    {"username": "demo_dn_host01", "email": "host01.danang@example.com", "fullname": "Chủ Chỗ Ở Mẫu Đà Nẵng", "roles": ["GUEST", "HOST"]}
+  ],
+  "hotels": [
+    {
+      "key": "novotel-danang-premier-han-river",
+      "name": "Novotel Danang Premier Han River",
+      "address": "36 Bạch Đằng, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn bên bờ sông Hàn, phù hợp làm điểm xuất phát khám phá khu trung tâm. Nguồn chính thức xác nhận có hồ bơi ngoài trời và Wi-Fi.",
+      "primarySource": "https://all.accor.com/hotel/8287/index.en.shtml",
+      "verifiedAmenities": [
+        {"name": "Wifi", "sourceUrl": "https://all.accor.com/hotel/8287/index.en.shtml"},
+        {"name": "Hồ bơi chung", "sourceUrl": "https://all.accor.com/hotel/8287/index.en.shtml"}
+      ],
+      "demoPriceVnd": 1400000,
+      "demoAreaSqm": 30
+    },
+    {
+      "key": "hilton-da-nang",
+      "name": "Hilton Da Nang",
+      "address": "50 Bạch Đằng, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn trên đường Bạch Đằng với không gian nhìn về sông Hàn. Trang khách sạn công bố Wi-Fi và hồ bơi ngoài trời cho khách lưu trú.",
+      "primarySource": "https://www.hilton.com/en/hotels/daddvhi-hilton-da-nang/",
+      "verifiedAmenities": [
+        {"name": "Wifi", "sourceUrl": "https://www.hilton.com/en/hotels/daddvhi-hilton-da-nang/"},
+        {"name": "Hồ bơi chung", "sourceUrl": "https://www.hilton.com/en/hotels/daddvhi-hilton-da-nang/"}
+      ],
+      "demoPriceVnd": 1600000,
+      "demoAreaSqm": 32
+    },
+    {
+      "key": "grand-mercure-danang",
+      "name": "Grand Mercure Danang",
+      "address": "Lô A1, Đảo Xanh, phường Hòa Cường, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn tại khu Đảo Xanh, có không gian hướng về sông và các cây cầu của Đà Nẵng. Các tiện nghi được công bố gồm Wi-Fi và hồ bơi ngoài trời.",
+      "primarySource": "https://all.accor.com/hotel/7821/index.en.shtml",
+      "verifiedAmenities": [
+        {"name": "Wifi", "sourceUrl": "https://all.accor.com/hotel/7821/index.en.shtml"},
+        {"name": "Hồ bơi chung", "sourceUrl": "https://all.accor.com/hotel/7821/index.en.shtml"}
+      ],
+      "demoPriceVnd": 1200000,
+      "demoAreaSqm": 28
+    },
+    {
+      "key": "pullman-danang-beach-resort",
+      "name": "Pullman Danang Beach Resort",
+      "address": "101 Võ Nguyên Giáp, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khu nghỉ dưỡng ven biển với phòng lưu trú và không gian nghỉ ngơi trong khuôn viên. Website công bố hồ bơi và kết nối Wi-Fi trong phòng.",
+      "primarySource": "https://pullman.accor.com/en/hotels/danang/8838.html",
+      "verifiedAmenities": [
+        {"name": "Wifi", "sourceUrl": "https://pullman.accor.com/en/hotels/danang/8838.html"},
+        {"name": "Hồ bơi chung", "sourceUrl": "https://pullman.accor.com/en/hotels/danang/8838.html"}
+      ],
+      "evidenceMethod": "Trang có JavaScript; đã đối chiếu nội dung bằng Chrome DevTools MCP.",
+      "demoPriceVnd": 2400000,
+      "demoAreaSqm": 36
+    },
+    {
+      "key": "hyatt-regency-danang-resort-and-spa",
+      "name": "Hyatt Regency Danang Resort and Spa",
+      "address": "5 Trường Sa, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khu nghỉ dưỡng trên đường Trường Sa với các không gian thư giãn và chăm sóc sức khỏe. Trang thông tin chính thức xác nhận khu vực hồ bơi trong khách sạn.",
+      "primarySource": "https://www.hyatt.com/hyatt-regency/en-US/danhr-hyatt-regency-danang-resort-and-spa/hotel-info",
+      "verifiedAmenities": [
+        {"name": "Hồ bơi chung", "sourceUrl": "https://www.hyatt.com/hyatt-regency/en-US/danhr-hyatt-regency-danang-resort-and-spa/hotel-info"}
+      ],
+      "demoPriceVnd": 2800000,
+      "demoAreaSqm": 40
+    },
+    {
+      "key": "four-points-by-sheraton-danang",
+      "name": "Four Points by Sheraton Danang",
+      "address": "118-120 Võ Nguyên Giáp, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn trên tuyến đường ven biển Võ Nguyên Giáp, có hồ bơi trên cao. Trang Marriott xác nhận có Wi-Fi trong phòng; điều kiện miễn phí phụ thuộc chương trình thành viên và cách đặt phòng.",
+      "primarySource": "https://www.marriott.com/en-us/hotels/dadfp-four-points-danang/overview/",
+      "verifiedAmenities": [
+        {"name": "Wifi", "sourceUrl": "https://www.marriott.com/en-us/hotels/dadfp-four-points-danang/overview/"},
+        {"name": "Hồ bơi chung", "sourceUrl": "https://www.marriott.com/en-us/hotels/dadfp-four-points-danang/overview/"}
+      ],
+      "demoPriceVnd": 1700000,
+      "demoAreaSqm": 32
+    },
+    {
+      "key": "radisson-hotel-danang",
+      "name": "Radisson Hotel Danang",
+      "address": "170 Võ Nguyên Giáp, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn gần biển Mỹ Khê, có không gian nghỉ ngơi nhìn về biển và thành phố. Nguồn chính thức xác nhận Wi-Fi cùng hồ bơi vô cực.",
+      "primarySource": "https://www.radissonhotels.com/en-us/hotels/radisson-da-nang",
+      "verifiedAmenities": [
+        {"name": "Wifi", "sourceUrl": "https://www.radissonhotels.com/en-us/hotels/radisson-da-nang"},
+        {"name": "Hồ bơi chung", "sourceUrl": "https://www.radissonhotels.com/en-us/hotels/radisson-da-nang"}
+      ],
+      "demoPriceVnd": 1500000,
+      "demoAreaSqm": 30
+    },
+    {
+      "key": "dlg-hotel-danang",
+      "name": "DLG Hotel Danang",
+      "address": "258 Võ Nguyên Giáp, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn trên đường Võ Nguyên Giáp, hướng ra khu vực biển Mỹ Khê. Trang dịch vụ chính thức giới thiệu hồ bơi ngoài trời và khu tập luyện.",
+      "primarySource": "https://www.dlghoteldanang.com/contact-us.html",
+      "verifiedAmenities": [
+        {"name": "Hồ bơi chung", "sourceUrl": "https://www.dlghoteldanang.com/services/"}
+      ],
+      "demoPriceVnd": 1100000,
+      "demoAreaSqm": 30
+    },
+    {
+      "key": "haian-beach-hotel-and-spa",
+      "name": "HAIAN Beach Hotel & Spa",
+      "address": "278 Võ Nguyên Giáp, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn ven đường Võ Nguyên Giáp với không gian thư giãn trên cao. Website chính thức giới thiệu hồ bơi vô cực và khu spa.",
+      "primarySource": "https://haianbeachhotelspa.com/",
+      "verifiedAmenities": [
+        {"name": "Hồ bơi chung", "sourceUrl": "https://haianbeachhotelspa.com/"}
+      ],
+      "evidenceMethod": "Web fetch bị timeout; đã đọc địa chỉ và mục INFINITY POOL trực tiếp bằng Chrome DevTools MCP.",
+      "demoPriceVnd": 1000000,
+      "demoAreaSqm": 28
+    },
+    {
+      "key": "tms-hotel-da-nang-beach",
+      "name": "TMS Hotel Da Nang Beach",
+      "address": "292 Võ Nguyên Giáp, Đà Nẵng, Việt Nam",
+      "shortDescription": "Khách sạn trên tuyến đường ven biển, có khu vực ngắm cảnh từ trên cao. Trang tiện ích chính thức xác nhận hồ bơi vô cực và phòng tập thể dục.",
+      "primarySource": "https://tmshotel.vn/vn/",
+      "verifiedAmenities": [
+        {"name": "Hồ bơi chung", "sourceUrl": "https://tmshotel.vn/vn/recreation/"}
+      ],
+      "demoPriceVnd": 1300000,
+      "demoAreaSqm": 34
+    }
+  ]
+}

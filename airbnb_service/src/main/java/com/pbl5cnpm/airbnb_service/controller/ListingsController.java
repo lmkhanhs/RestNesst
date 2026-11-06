@@ -16,18 +16,22 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pbl5cnpm.airbnb_service.dto.Request.ListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.ReviewRequest;
+import com.pbl5cnpm.airbnb_service.dto.Request.SummarizeReviewRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.UpdateListingRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingDetailResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManager;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingResponseManagerForHost;
 import com.pbl5cnpm.airbnb_service.dto.Response.ListingsResponse;
+import com.pbl5cnpm.airbnb_service.dto.Response.SummarizeReviewResponse;
+import com.pbl5cnpm.airbnb_service.service.AiSummarizeService;
 import com.pbl5cnpm.airbnb_service.service.ListingsServices;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ListingsController {
     private final ListingsServices listingsServices;
+    private final AiSummarizeService aiSummarizeService;
 
     @GetMapping("/listings")
     public ApiResponse<List<ListingsResponse>> getAll() {
@@ -181,6 +186,24 @@ public class ListingsController {
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Add comment successfully!")
+                .build();
+    }
+
+    @PostMapping("/listings/reviews/summarize")
+    public ApiResponse<SummarizeReviewResponse> summarizeReviewComment(@RequestBody SummarizeReviewRequest request) {
+        return ApiResponse.<SummarizeReviewResponse>builder()
+                .code(200)
+                .message("Summarize review comment successfully!")
+                .result(this.aiSummarizeService.summarizeText(request))
+                .build();
+    }
+
+    @PostMapping("/listings/{id}/reviews/summarize")
+    public ApiResponse<SummarizeReviewResponse> summarizeListingReviews(@PathVariable Long id) {
+        return ApiResponse.<SummarizeReviewResponse>builder()
+                .code(200)
+                .message("Summarize listing reviews successfully!")
+                .result(this.aiSummarizeService.summarizeListingReviews(id))
                 .build();
     }
 }

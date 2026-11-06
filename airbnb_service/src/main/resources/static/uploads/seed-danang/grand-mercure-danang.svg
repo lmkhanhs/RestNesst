@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title description">
+<title id="title">Ảnh placeholder: Grand Mercure Danang</title>
+<desc id="description">Hình minh họa dữ liệu mẫu RestNesst. Không phải ảnh của khách sạn.</desc>
+<rect width="1600" height="1000" fill="#e9f1f2"/>
+<rect x="100" y="90" width="1400" height="820" rx="32" fill="#fff"/>
+<rect x="610" y="180" width="380" height="190" rx="12" fill="#d1e3e5"/>
+<path d="M650 330v-85h300v85M680 270h35m25 0h35m25 0h35m25 0h35M680 300h35m25 0h35m25 0h35m25 0h35" fill="none" stroke="#3b7178" stroke-width="12"/>
+<g text-anchor="middle" font-family="sans-serif" fill="#23484e">
+<text x="800" y="470" font-size="42" font-weight="700">Grand</text>
+<text x="800" y="530" font-size="42" font-weight="700">Mercure Danang</text>
+<text x="800" y="630" font-size="29">ẢNH MINH HỌA · DỮ LIỆU DEMO</text>
+<text x="800" y="690" font-size="25">Không phải hình ảnh thực tế của khách sạn</text>
+<text x="800" y="820" font-size="24">RESTNESST · ĐÀ NẴNG · 03</text>
+</g>
+</svg>

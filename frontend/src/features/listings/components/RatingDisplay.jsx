@@ -1,285 +1,480 @@
-import React, { useEffect, useState } from "react";
-import { Box, Typography, Chip } from "@mui/material";
-import StarIcon from "@mui/icons-material/Star";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
+import React, { useState } from "react";
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Rating,
+  Stack,
+  Typography,
+} from "@mui/material";
 import PropTypes from "prop-types";
+import {
+  summarizeAllListingReviews,
+  summarizeReviewComment,
+} from "@/features/reviews/api/summarizeReview.js";
 
-const RatingDisplay = ({ rating, reviewCount, reviews }) => {
-  const [reviewsWithSentiment, setReviewsWithSentiment] = useState(reviews);
+const RatingDisplay = ({ listingId, rating, avgStart, reviewCount, reviews = [] }) => {
+  const displayRating = rating ?? avgStart ?? 0;
+  const totalReviews = reviewCount ?? reviews.length;
+  const [openDialog, setOpenDialog] = useState(false);
 
-  useEffect(() => {
-    setReviewsWithSentiment(reviews);
-  }, [reviews]);
+  // State lưu kết quả tóm tắt của từng bình luận theo index/id
+  const [itemSummaries, setItemSummaries] = useState({});
+  const [itemLoading, setItemLoading] = useState({});
+  const [itemError, setItemError] = useState({});
 
-  // Calculate the number of filled and unfilled stars based on the rating
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  // State lưu kết quả tóm tắt tổng hợp tất cả bình luận của phòng
+  const [overallSummary, setOverallSummary] = useState(null);
+  const [overallLoading, setOverallLoading] = useState(false);
+  const [overallError, setOverallError] = useState("");
 
-  const handleClick = () => {
-    const reviewsDialog = document.createElement("dialog");
-    reviewsDialog.style.cssText = `
-      padding: 0;
-      border-radius: 16px;
-      border: none;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-      background: #ffffff;
-      color: #333333;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      min-width: 900px;
-      max-width: 1200px;
-      width: 90vw;
-      max-height: 92vh;
-      overflow: hidden;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    `;
+  const handleSummarizeSingleReview = async (key, commentText) => {
+    if (!commentText || !commentText.trim()) {
+      return;
+    }
 
-    // Add keyframes for dialog animation
-    const style = document.createElement("style");
-    style.textContent = `
-      .review-card {
-        transition: all 0.2s ease;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(33,150,243,0.06);
-        border: 1px solid #e3eaf3;
-        margin-bottom: 24px;
-        padding: 28px 24px 20px 24px;
-        display: flex;
-        flex-direction: column;
-        min-height: 180px;
+    setItemLoading((prev) => ({ ...prev, [key]: true }));
+    setItemError((prev) => ({ ...prev, [key]: "" }));
+
+    try {
+      const result = await summarizeReviewComment(commentText);
+      setItemSummaries((prev) => ({
+        ...prev,
+        [key]: result,
+      }));
+    } catch (err) {
+      setItemError((prev) => ({
+        ...prev,
+        [key]:
+          err.response?.data?.message ||
+          err.message ||
+          "Không thể kết nối tới AI Service để tóm tắt bình luận.",
+      }));
+    } finally {
+      setItemLoading((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const handleSummarizeAllReviews = async () => {
+    if (!reviews || reviews.length === 0) {
+      return;
+    }
+
+    setOverallLoading(true);
+    setOverallError("");
+
+    try {
+      let result;
+      if (listingId) {
+        result = await summarizeAllListingReviews(listingId);
+      } else {
+        const combinedText = reviews
+          .map((r) => (r.comment || "").trim())
+          .filter(Boolean)
+          .join(". ");
+        result = await summarizeReviewComment(combinedText, {
+          maxOutputLength: 200,
+        });
       }
-      .review-card:hover {
-        background-color: #f4faff;
-        transform: translateY(-2px) scale(1.01);
-        box-shadow: 0 4px 24px rgba(33,150,243,0.13);
-      }
-      .review-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 28px 32px;
-      }
-      @media (max-width: 900px) {
-        .review-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-
-    const renderReviews = () => {
-      if (reviewsWithSentiment.length === 0) {
-        return `
-          <div style="text-align: center; padding: 32px 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-            <span style="font-size: 32px;">📝</span>
-            <p style="color: #6c757d; font-size: 15px; margin-top: 12px;">Chưa có đánh giá nào</p>
-          </div>
-        `;
-      }
-      return (
-        `<div class='review-grid'>` +
-        reviewsWithSentiment
-          .map(
-            (review) => `
-        <div class="review-card">
-          <div style="display: flex; align-items: center; margin-bottom: 18px;">
-            <img 
-              src="${
-                review.thumbnailUrl ||
-                `https://ui-avatars.com/api/?background=2196F3&color=fff&name=${review.username}`
-              }" 
-              style="width: 54px; height: 54px; border-radius: 50%; margin-right: 18px; object-fit: cover; border: 2px solid #e3eaf3; box-shadow: 0 2px 8px #e3eaf3;"
-            />
-            <div>
-              <div style="font-weight: 600; color: #212529; font-size: 17px;">${
-                review.username
-              }</div>
-              <div style="color: #6c757d; font-size: 14px; margin-top: 2px;">${
-                review.reviewDate
-              }</div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; margin-bottom: 10px;">
-            ${Array(Math.floor(review.rating))
-              .fill("<span style='color:#FFD700;font-size:20px;'>★</span>")
-              .join("")}
-            <span style="margin-left: 10px; color: #2196F3; font-weight: 600; font-size: 16px;">${
-              review.rating
-            }</span>
-            <span style="margin-left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; background-color: ${
-              review.status === "POSITIVE" ? "#e8f5e9" : "#ffebee"
-            }; color: ${
-              review.status === "POSITIVE" ? "#2e7d32" : "#c62828"
-            };">
-              ${review.status === "POSITIVE" ? "Tích cực" : "Tiêu cực"}
-            </span>
-          </div>
-          <p style="margin: 0 0 10px 0; color: #495057; line-height: 1.6; font-size: 15px;">${
-            review.comment
-          }</p>
-          ${
-            review.reviewUrl
-              ? `<div style='margin-top: 8px;'><img src='${review.reviewUrl}' alt='review' style='max-width: 100%; border-radius: 8px; border: 1px solid #e3eaf3; box-shadow: 0 2px 8px #e3eaf3;'/></div>`
-              : ""
-          }
-        </div>
-      `
-          )
-          .join("") +
-        `</div>`
+      setOverallSummary(result);
+    } catch (err) {
+      setOverallError(
+        err.response?.data?.message ||
+          err.message ||
+          "Không thể tóm tắt danh sách đánh giá lúc này."
       );
-    };
-
-    const content = document.createElement("div");
-    content.style.cssText = `
-      padding: 40px 48px 32px 48px;
-      max-height: 86vh;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #dee2e6 transparent;
-      background: #f7fafd;
-    `;
-    content.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-        <span style="font-size: 28px;">⭐</span>
-        <h2 style="margin: 0; color: #212529; font-size: 24px; font-weight: 500;">Đánh giá của khách</h2>
-      </div>
-      <h3 style="color: #212529; font-size: 18px; margin-bottom: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 24px;">📝</span> Đánh giá gần đây
-      </h3>
-      <div id="recentReviews">${renderReviews()}</div>
-    `;
-
-    const closeButton = document.createElement("button");
-    closeButton.innerHTML = '<span style="font-size: 18px;">✕</span> Đóng';
-    closeButton.style.cssText = `
-      margin: 20px auto;
-      padding: 10px 24px;
-      background: #2196F3;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 14px;
-      font-family: inherit;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-    `;
-    closeButton.onmouseover = () => {
-      closeButton.style.background = "#1976D2";
-      closeButton.style.transform = "translateY(-1px)";
-    };
-    closeButton.onmouseout = () => {
-      closeButton.style.background = "#2196F3";
-      closeButton.style.transform = "translateY(0)";
-    };
-    closeButton.onclick = () => {
-      reviewsDialog.style.opacity = "0";
-      setTimeout(() => reviewsDialog.close(), 200);
-    };
-
-    reviewsDialog.appendChild(content);
-    reviewsDialog.appendChild(closeButton);
-    document.body.appendChild(reviewsDialog);
-    reviewsDialog.showModal();
-
-    // Show dialog with fade in
-    setTimeout(() => {
-      reviewsDialog.style.opacity = "1";
-    }, 0);
+    } finally {
+      setOverallLoading(false);
+    }
   };
 
   return (
-    <Box
-      sx={{
-        textAlign: "center",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-        padding: 2,
-        borderRadius: 2,
-        "&:hover": {
-          transform: "scale(1.03)",
-          background: "rgba(255,255,255,0.05)",
-        },
-      }}
-      onClick={handleClick}
-    >
-      <Typography
-        variant="h3"
-        sx={{
-          fontWeight: 700,
-          marginBottom: 1.5,
-          background: "linear-gradient(45deg, #2196F3, #21CBF3)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}
-      >
-        {rating}/5
-      </Typography>
+    <>
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Box
+          onClick={() => setOpenDialog(true)}
+          sx={{
+            textAlign: "right",
+            cursor: "pointer",
+            px: 1.5,
+            py: 0.75,
+            borderRadius: 1.5,
+            transition: "background-color 0.2s ease",
+            "&:hover": {
+              backgroundColor: "rgba(0, 0, 0, 0.05)",
+            },
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: "bold", mr: 1 }}>
+              {displayRating}
+            </Typography>
+            <Rating value={Number(displayRating) || 0} precision={0.1} readOnly size="small" />
+          </Box>
+          <Typography
+            variant="caption"
+            color="primary"
+            sx={{ fontWeight: 600, textDecoration: "underline" }}
+          >
+            {totalReviews} đánh giá (Xem & Tóm tắt)
+          </Typography>
+        </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: 1.5,
-        }}
-      >
-        {[...Array(fullStars)].map((_, index) => (
-          <StarIcon
-            key={index}
-            sx={{
-              color: "#FFD700",
-              fontSize: 28,
-              filter: "drop-shadow(0 2px 4px rgba(255,215,0,0.3))",
+        {reviews.length > 0 && (
+          <Button
+            variant="outlined"
+            size="small"
+            color="primary"
+            onClick={() => {
+              setOpenDialog(true);
+              if (!overallSummary && !overallLoading) {
+                handleSummarizeAllReviews();
+              }
             }}
-          />
-        ))}
-        {hasHalfStar && (
-          <StarIcon
             sx={{
-              color: "#FFD700",
-              fontSize: 28,
-              opacity: 0.5,
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: 2,
+              whiteSpace: "nowrap",
             }}
-          />
+          >
+            ✨ Tóm tắt đánh giá
+          </Button>
         )}
-        {[...Array(emptyStars)].map((_, index) => (
-          <StarBorderIcon key={index} sx={{ color: "#FFD700", fontSize: 28 }} />
-        ))}
-      </Box>
+      </Stack>
 
-      <Typography
-        variant="body1"
-        sx={{
-          color: "#e0e0e0",
-          textDecoration: "underline",
-          cursor: "pointer",
-          fontWeight: 500,
-          "&:hover": {
-            color: "#2196F3",
-          },
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 },
         }}
       >
-        {reviewCount > 0 ? `${reviewCount} đánh giá` : "Chưa có đánh giá"}
-      </Typography>
-    </Box>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1.5,
+            pb: 1.5,
+          }}
+        >
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Đánh giá từ khách hàng ({totalReviews})
+            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+              <Rating value={Number(displayRating) || 0} precision={0.1} readOnly size="small" />
+              <Typography variant="body2" color="text.secondary">
+                Trung bình {displayRating}/5 sao
+              </Typography>
+            </Stack>
+          </Box>
+
+          {reviews.length > 0 && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleSummarizeAllReviews}
+              disabled={overallLoading}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: 2,
+              }}
+            >
+              {overallLoading ? (
+                <>
+                  <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} />
+                  Đang tóm tắt tất cả...
+                </>
+              ) : (
+                "✨ Tóm tắt tất cả bình luận"
+              )}
+            </Button>
+          )}
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent sx={{ py: 2.5 }}>
+          {/* Khung hiển thị kết quả tóm tắt tổng hợp tất cả bình luận */}
+          <Collapse in={Boolean(overallSummary || overallError)}>
+            <Box
+              sx={{
+                mb: 3,
+                p: 2,
+                borderRadius: 2,
+                bgcolor: "rgba(25, 118, 210, 0.08)",
+                border: "1px solid rgba(25, 118, 210, 0.25)",
+              }}
+            >
+              {overallError ? (
+                <Alert severity="error" onClose={() => setOverallError("")}>
+                  {overallError}
+                </Alert>
+              ) : (
+                overallSummary && (
+                  <>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      sx={{ mb: 1 }}
+                    >
+                      <Chip
+                        label="✨ AI Tóm tắt toàn bộ đánh giá"
+                        color="primary"
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                      <Button
+                        size="small"
+                        onClick={() => setOverallSummary(null)}
+                        sx={{ textTransform: "none", fontSize: 12 }}
+                      >
+                        Ẩn tóm tắt
+                      </Button>
+                    </Stack>
+                    <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.6 }}>
+                      {overallSummary.summary}
+                    </Typography>
+                    {overallSummary.summaryPoints?.length > 1 && (
+                      <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2.5 }}>
+                        {overallSummary.summaryPoints.map((pt, idx) => (
+                          <Typography
+                            component="li"
+                            variant="body2"
+                            key={idx}
+                            sx={{ color: "text.secondary", mb: 0.5 }}
+                          >
+                            {pt}
+                          </Typography>
+                        ))}
+                      </Box>
+                    )}
+                  </>
+                )
+              )}
+            </Box>
+          </Collapse>
+
+          {/* Danh sách từng bình luận */}
+          {reviews.length === 0 ? (
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              align="center"
+              sx={{ py: 4 }}
+            >
+              Chưa có bình luận đánh giá nào cho phòng này.
+            </Typography>
+          ) : (
+            <Stack spacing={2.5}>
+              {reviews.map((review, index) => {
+                const reviewKey = review.id || `review-${index}`;
+                const summaryData = itemSummaries[reviewKey];
+                const isSummarizing = Boolean(itemLoading[reviewKey]);
+                const errorMsg = itemError[reviewKey];
+
+                return (
+                  <Box
+                    key={reviewKey}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      bgcolor: "background.paper",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="flex-start"
+                      spacing={1.5}
+                    >
+                      <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Avatar
+                          src={review.avatarUser || "/default-avatar.png"}
+                          alt={review.userName || "Khách"}
+                          sx={{ width: 42, height: 42 }}
+                        />
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                            {review.userName || "Khách hàng"}
+                          </Typography>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Rating
+                              value={Number(review.rating) || 5}
+                              precision={0.5}
+                              readOnly
+                              size="small"
+                            />
+                            {review.reviewDate && (
+                              <Typography variant="caption" color="text.secondary">
+                                • {review.reviewDate}
+                              </Typography>
+                            )}
+                          </Stack>
+                        </Box>
+                      </Stack>
+
+                      {review.comment && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() =>
+                            handleSummarizeSingleReview(reviewKey, review.comment)
+                          }
+                          disabled={isSummarizing}
+                          sx={{
+                            textTransform: "none",
+                            borderRadius: 2,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isSummarizing ? (
+                            <>
+                              <CircularProgress
+                                size={14}
+                                color="inherit"
+                                sx={{ mr: 0.75 }}
+                              />
+                              Đang tóm tắt...
+                            </>
+                          ) : (
+                            "✨ Tóm tắt"
+                          )}
+                        </Button>
+                      )}
+                    </Stack>
+
+                    <Typography
+                      variant="body2"
+                      sx={{ mt: 1.5, lineHeight: 1.6, whiteSpace: "pre-line" }}
+                    >
+                      {review.comment}
+                    </Typography>
+
+                    {review.imageUrl && (
+                      <Box
+                        component="img"
+                        src={review.imageUrl}
+                        alt="Ảnh đánh giá"
+                        sx={{
+                          mt: 1.5,
+                          maxWidth: 160,
+                          maxHeight: 120,
+                          borderRadius: 1.5,
+                          objectFit: "cover",
+                          border: "1px solid #eee",
+                        }}
+                      />
+                    )}
+
+                    {errorMsg && (
+                      <Alert
+                        severity="error"
+                        sx={{ mt: 1.5 }}
+                        onClose={() =>
+                          setItemError((prev) => ({ ...prev, [reviewKey]: "" }))
+                        }
+                      >
+                        {errorMsg}
+                      </Alert>
+                    )}
+
+                    <Collapse in={Boolean(summaryData)}>
+                      {summaryData && (
+                        <Box
+                          sx={{
+                            mt: 1.5,
+                            p: 1.5,
+                            borderRadius: 2,
+                            bgcolor: "rgba(46, 125, 50, 0.08)",
+                            border: "1px solid rgba(46, 125, 50, 0.25)",
+                          }}
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ mb: 0.5 }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{ fontWeight: 700, color: "success.main" }}
+                            >
+                              ✨ Bản tóm tắt bình luận (AI):
+                            </Typography>
+                            <Button
+                              size="small"
+                              onClick={() =>
+                                setItemSummaries((prev) => {
+                                  const next = { ...prev };
+                                  delete next[reviewKey];
+                                  return next;
+                                })
+                              }
+                              sx={{
+                                textTransform: "none",
+                                fontSize: 11,
+                                minWidth: "auto",
+                                py: 0,
+                              }}
+                            >
+                              Đóng
+                            </Button>
+                          </Stack>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {summaryData.summary}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Collapse>
+                  </Box>
+                );
+              })}
+            </Stack>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 1.5 }}>
+          <Button onClick={() => setOpenDialog(false)} variant="outlined">
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
 RatingDisplay.propTypes = {
-  rating: PropTypes.number.isRequired,
-  reviewCount: PropTypes.number.isRequired,
+  listingId: PropTypes.number,
+  rating: PropTypes.number,
+  avgStart: PropTypes.number,
+  reviewCount: PropTypes.number,
   reviews: PropTypes.array.isRequired,
 };
 

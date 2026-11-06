@@ -1,0 +1,14 @@
+torch
+transformers
+sentencepiece
+sacremoses
+underthesea
+fastapi
+uvicorn
+python-multipart
+python-docx
+PyPDF2
+websockets
+safetensors
+numpy
+pydantic

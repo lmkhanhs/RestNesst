@@ -52,6 +52,7 @@ import { Stomp } from "@stomp/stompjs";
 import CheckIcon from "@mui/icons-material/Check";
 import Rating from "@mui/material/Rating";
 import { analyzeSentiment } from "@/features/reviews/api/sentimentAnalysis.js";
+import { summarizeReviewComment } from "@/features/reviews/api/summarizeReview.js";
 
 const UserProfile = () => {
   const navigate = useNavigate();
@@ -104,7 +105,32 @@ const UserProfile = () => {
   });
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState("");
+  const [summarizingComment, setSummarizingComment] = useState(false);
+  const [reviewSummaryResult, setReviewSummaryResult] = useState(null);
+  const [summarizeCommentError, setSummarizeCommentError] = useState("");
   const [countryOptions, setCountryOptions] = useState([]);
+
+  const handleSummarizeUserComment = async () => {
+    const commentText = (reviewForm.comment || "").trim();
+    if (!commentText) {
+      setSummarizeCommentError("Vui lòng nhập nội dung bình luận trước khi tóm tắt.");
+      return;
+    }
+    setSummarizingComment(true);
+    setSummarizeCommentError("");
+    try {
+      const result = await summarizeReviewComment(commentText);
+      setReviewSummaryResult(result);
+    } catch (err) {
+      setSummarizeCommentError(
+        err.response?.data?.message ||
+          err.message ||
+          "Không thể tóm tắt bình luận lúc này."
+      );
+    } finally {
+      setSummarizingComment(false);
+    }
+  };
 
   const criteriaList = [
     { key: "cleanliness", label: "Vệ sinh", icon: "🧹" },
@@ -1068,17 +1094,92 @@ const UserProfile = () => {
                 textarea: { color: "#fff" },
               }}
             />
-            <Button variant="outlined" component="label" sx={{ mt: 2 }}>
-              {reviewForm.image ? reviewForm.image.name : "Chọn ảnh (tùy chọn)"}
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(e) =>
-                  setReviewForm((f) => ({ ...f, image: e.target.files[0] }))
-                }
-              />
-            </Button>
+            <Stack
+              direction="row"
+              spacing={1.5}
+              alignItems="center"
+              flexWrap="wrap"
+              sx={{ mt: 2 }}
+            >
+              <Button variant="outlined" component="label">
+                {reviewForm.image ? reviewForm.image.name : "Chọn ảnh (tùy chọn)"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) =>
+                    setReviewForm((f) => ({ ...f, image: e.target.files[0] }))
+                  }
+                />
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleSummarizeUserComment}
+                disabled={summarizingComment || !reviewForm.comment?.trim()}
+              >
+                {summarizingComment ? (
+                  <>
+                    <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} />
+                    Đang tóm tắt...
+                  </>
+                ) : (
+                  "✨ Tóm tắt bình luận"
+                )}
+              </Button>
+            </Stack>
+            {summarizeCommentError && (
+              <Alert
+                severity="warning"
+                sx={{ mt: 1.5 }}
+                onClose={() => setSummarizeCommentError("")}
+              >
+                {summarizeCommentError}
+              </Alert>
+            )}
+            {reviewSummaryResult && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  bgcolor: "#232323",
+                  borderRadius: 2,
+                  border: "1px solid rgba(33, 150, 243, 0.5)",
+                }}
+              >
+                <Typography
+                  sx={{ fontWeight: 700, fontSize: 14, color: "#64b5f6", mb: 1 }}
+                >
+                  ✨ Bản tóm tắt từ AI:
+                </Typography>
+                <Typography sx={{ color: "#fff", fontSize: 14, lineHeight: 1.6 }}>
+                  {reviewSummaryResult.summary}
+                </Typography>
+                <Stack direction="row" spacing={1.5} sx={{ mt: 1.5 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                      setReviewForm((f) => ({
+                        ...f,
+                        comment: reviewSummaryResult.summary,
+                      }));
+                      setReviewSummaryResult(null);
+                    }}
+                  >
+                    Dùng bản tóm tắt này
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => setReviewSummaryResult(null)}
+                    sx={{ color: "#bdbdbd" }}
+                  >
+                    Đóng
+                  </Button>
+                </Stack>
+              </Box>
+            )}
           </Box>
           {reviewError && <Alert severity="error">{reviewError}</Alert>}
         </DialogContent>

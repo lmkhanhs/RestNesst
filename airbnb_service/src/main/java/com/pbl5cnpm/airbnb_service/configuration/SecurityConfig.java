@@ -23,7 +23,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
         private final String[] PUBLIC_POST = { "/api/users", "/auth/login", "/auth/introspect", "/auth/logout",
-                        "auth/refresh", "/auth/forget" };
+                        "auth/refresh", "/auth/forget", "/api/listings/reviews/summarize",
+                        "/api/listings/{id}/reviews/summarize" };
         private final String[] PUBLIC_END_POINT_TEST = { "/api/categories", "/api/countries" };
         private final String[] PULIC_GET = { "/test", "/api/categories", "/api/amenities", "/api/countries",
                         "/api/listings", "/api/listings/{id}", "api/payment/vnpay-return", "/api/listings/search",
