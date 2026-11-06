@@ -803,12 +803,15 @@ export default function HostPage() {
               </Typography>
             ) : (
               <Card
+                elevation={0}
                 sx={{
                   my: 3,
-                  boxShadow: 3,
-                  borderRadius: 3,
+                  borderRadius: 4,
                   p: 2,
-                  color: "#fff",
+                  bgcolor: "var(--rn-surface)",
+                  color: "var(--rn-text-primary)",
+                  border: "1px solid var(--rn-border)",
+                  boxShadow: "var(--rn-shadow-sm)",
                 }}
               >
                 <CardContent>
@@ -831,7 +834,9 @@ export default function HostPage() {
                           width: 90,
                           height: 90,
                           fontSize: 36,
-                          bgcolor: "#222",
+                          bgcolor: "primary.main",
+                          color: "#FFFFFF",
+                          fontWeight: 700,
                         }}
                       />
                     </Grid>
@@ -846,13 +851,13 @@ export default function HostPage() {
                         <Typography
                           variant="h5"
                           fontWeight={700}
-                          sx={{ color: "#fff" }}
+                          sx={{ color: "var(--rn-text-primary)" }}
                         >
                           {hostInfo.name}
                         </Typography>
                         <Typography
                           variant="subtitle2"
-                          sx={{ color: "#aaa", mb: 1 }}
+                          sx={{ color: "var(--rn-text-secondary)", mb: 1 }}
                         >
                           Host
                         </Typography>
@@ -860,13 +865,13 @@ export default function HostPage() {
                           <Grid item>
                             <Typography
                               variant="body2"
-                              sx={{ color: "#fff", fontWeight: 600 }}
+                              sx={{ color: "var(--rn-text-primary)", fontWeight: 700 }}
                             >
                               {hostInfo.reviews}
                             </Typography>
                             <Typography
                               variant="caption"
-                              sx={{ color: "#aaa" }}
+                              sx={{ color: "var(--rn-text-secondary)" }}
                             >
                               Reviews
                             </Typography>
@@ -874,7 +879,7 @@ export default function HostPage() {
                           <Divider
                             orientation="vertical"
                             flexItem
-                            sx={{ mx: 1, borderColor: "#333" }}
+                            sx={{ mx: 1, borderColor: "var(--rn-border)" }}
                           />
                           <Grid
                             item
@@ -882,22 +887,20 @@ export default function HostPage() {
                           >
                             <Typography
                               variant="body2"
-                              sx={{ color: "#fff", fontWeight: 600 }}
+                              sx={{ color: "var(--rn-text-primary)", fontWeight: 700 }}
                             >
                               {hostInfo.rating}
                             </Typography>
-                            <span
-                              style={{
-                                color: "#FFD700",
+                            <StarIcon
+                              sx={{
+                                color: "#F59E0B",
                                 fontSize: 18,
-                                marginLeft: 4,
+                                ml: 0.5,
                               }}
-                            >
-                              ★
-                            </span>
+                            />
                             <Typography
                               variant="caption"
-                              sx={{ color: "#aaa", ml: 0.5 }}
+                              sx={{ color: "var(--rn-text-secondary)", ml: 0.5 }}
                             >
                               Rating
                             </Typography>
@@ -905,18 +908,18 @@ export default function HostPage() {
                           <Divider
                             orientation="vertical"
                             flexItem
-                            sx={{ mx: 1, borderColor: "#333" }}
+                            sx={{ mx: 1, borderColor: "var(--rn-border)" }}
                           />
                           <Grid item>
                             <Typography
                               variant="body2"
-                              sx={{ color: "#fff", fontWeight: 600 }}
+                              sx={{ color: "var(--rn-text-primary)", fontWeight: 700 }}
                             >
                               {hostInfo.yearsHosting} Years
                             </Typography>
                             <Typography
                               variant="caption"
-                              sx={{ color: "#aaa" }}
+                              sx={{ color: "var(--rn-text-secondary)" }}
                             >
                               Hosting
                             </Typography>
@@ -925,15 +928,15 @@ export default function HostPage() {
                       </Box>
                     </Grid>
                   </Grid>
-                  <Divider sx={{ my: 2, borderColor: "#333" }} />
+                  <Divider sx={{ my: 2, borderColor: "var(--rn-border)" }} />
                   <Stack
                     direction="row"
                     spacing={2}
                     alignItems="center"
                     sx={{ mb: 1 }}
                   >
-                    <LanguageIcon sx={{ color: "#aaa" }} />
-                    <Typography variant="body2" sx={{ color: "#fff" }}>
+                    <LanguageIcon sx={{ color: "var(--rn-text-secondary)" }} />
+                    <Typography variant="body2" sx={{ color: "var(--rn-text-primary)" }}>
                       Speaks {hostInfo.languages.join(", ")}
                     </Typography>
                   </Stack>
@@ -943,18 +946,18 @@ export default function HostPage() {
                     alignItems="center"
                     sx={{ mb: 2 }}
                   >
-                    <LocationOnIcon sx={{ color: "#aaa" }} />
-                    <Typography variant="body2" sx={{ color: "#fff" }}>
+                    <LocationOnIcon sx={{ color: "var(--rn-text-secondary)" }} />
+                    <Typography variant="body2" sx={{ color: "var(--rn-text-primary)" }}>
                       Lives in {hostInfo.country}
                     </Typography>
                   </Stack>
-                  <Typography variant="body2" sx={{ color: "#fff", mb: 1 }}>
+                  <Typography variant="body2" sx={{ color: "var(--rn-text-primary)", mb: 1 }}>
                     {displayDesc}
                     {isLong && (
                       <Button
                         size="small"
                         sx={{
-                          color: "#ff385c",
+                          color: "primary.main",
                           textTransform: "none",
                           ml: 1,
                           fontWeight: 600,
@@ -1330,98 +1333,299 @@ export default function HostPage() {
 
         {/* Tab Tin nhắn */}
         <TabPanel value={tabValue} index={2}>
-          <Grid container spacing={2}>
+          <Grid container spacing={2.5}>
             {/* Danh sách chat */}
             <Grid item xs={12} md={4}>
               <Paper
+                elevation={0}
                 sx={{
-                  height: "calc(100vh - 200px)",
-                  overflow: "auto",
-                  bgcolor: "#18191a",
+                  height: "calc(100dvh - 210px)",
+                  minHeight: 540,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                  bgcolor: "var(--rn-surface)",
+                  color: "var(--rn-text-primary)",
+                  border: "1px solid var(--rn-border)",
+                  borderRadius: 4,
+                  boxShadow: "var(--rn-shadow-sm)",
                 }}
               >
-                <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderBottom: "1px solid var(--rn-border)",
+                    bgcolor: "var(--rn-surface-subtle)",
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ mb: 1.5 }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 700, color: "var(--rn-text-primary)" }}
+                    >
+                      Hộp thư khách hàng
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={persons.length}
+                      sx={{
+                        height: 22,
+                        fontWeight: 700,
+                        bgcolor: "var(--rn-primary-soft)",
+                        color: "primary.main",
+                      }}
+                    />
+                  </Stack>
                   <TextField
                     fullWidth
+                    size="small"
                     placeholder="Tìm kiếm tin nhắn..."
                     InputProps={{
                       startAdornment: (
-                        <MessageIcon sx={{ mr: 1, color: "text.secondary" }} />
+                        <InputAdornment position="start">
+                          <SearchIcon
+                            fontSize="small"
+                            sx={{ color: "var(--rn-text-secondary)" }}
+                          />
+                        </InputAdornment>
                       ),
                     }}
                     sx={{
-                      input: { color: "#fff" },
-                      "& .MuiOutlinedInput-root": { bgcolor: "#232323" },
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "var(--rn-surface)",
+                        color: "var(--rn-text-primary)",
+                        borderRadius: 2.5,
+                        "& fieldset": {
+                          borderColor: "var(--rn-border)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "var(--rn-border-strong)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "var(--rn-text-secondary)",
+                        opacity: 0.85,
+                      },
                     }}
                   />
                 </Box>
-                <List>
-                  {persons.map((person) => (
-                    <ListItem
-                      key={person.id}
-                      button
-                      selected={selectedPerson?.id === person.id}
-                      onClick={() => setSelectedPerson(person)}
+                <List sx={{ flexGrow: 1, overflow: "auto", py: 1 }}>
+                  {persons.length === 0 ? (
+                    <Box
                       sx={{
-                        bgcolor:
-                          selectedPerson?.id === person.id
-                            ? "#232323"
-                            : "inherit",
-                        "&:hover": { bgcolor: "#232323" },
+                        height: "100%",
+                        minHeight: 280,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        px: 3,
+                        textAlign: "center",
                       }}
                     >
-                      <ListItemAvatar>
-                        <Avatar>{person.fullname?.[0]}</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography sx={{ color: "#fff" }}>
-                            {person.fullname}
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography sx={{ color: "#bdbdbd" }}>
-                            {person.email}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                  ))}
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "50%",
+                          bgcolor: "var(--rn-primary-soft)",
+                          color: "primary.main",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mb: 1.5,
+                        }}
+                      >
+                        <MessageIcon fontSize="small" />
+                      </Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 700,
+                          color: "var(--rn-text-primary)",
+                          mb: 0.5,
+                        }}
+                      >
+                        Chưa có cuộc trò chuyện nào
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "var(--rn-text-secondary)" }}
+                      >
+                        Tin nhắn từ khách hàng quan tâm chỗ nghỉ sẽ hiển thị tại đây.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    persons.map((person) => {
+                      const isSelected = selectedPerson?.id === person.id;
+                      return (
+                        <ListItem
+                          key={person.id}
+                          button
+                          selected={isSelected}
+                          onClick={() => setSelectedPerson(person)}
+                          sx={{
+                            px: 2,
+                            py: 1.25,
+                            borderLeft: isSelected
+                              ? "3px solid"
+                              : "3px solid transparent",
+                            borderColor: isSelected
+                              ? "primary.main"
+                              : "transparent",
+                            bgcolor: isSelected
+                              ? "var(--rn-primary-soft)"
+                              : "transparent",
+                            transition: "background-color 0.15s ease",
+                            "&.Mui-selected": {
+                              bgcolor: "var(--rn-primary-soft)",
+                              "&:hover": {
+                                bgcolor: "var(--rn-primary-soft)",
+                              },
+                            },
+                            "&:hover": {
+                              bgcolor: "var(--rn-surface-subtle)",
+                            },
+                          }}
+                        >
+                          <ListItemAvatar>
+                            <Avatar
+                              sx={{
+                                bgcolor: isSelected
+                                  ? "primary.main"
+                                  : "var(--rn-surface-subtle)",
+                                color: isSelected
+                                  ? "#FFFFFF"
+                                  : "var(--rn-text-primary)",
+                                fontWeight: 700,
+                                border: "1px solid var(--rn-border)",
+                              }}
+                            >
+                              {person.fullname?.[0]?.toUpperCase() || "K"}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  color: "var(--rn-text-primary)",
+                                  fontWeight: isSelected ? 700 : 600,
+                                }}
+                                noWrap
+                              >
+                                {person.fullname}
+                              </Typography>
+                            }
+                            secondary={
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "var(--rn-text-secondary)",
+                                  display: "block",
+                                }}
+                                noWrap
+                              >
+                                {person.email}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      );
+                    })
+                  )}
                 </List>
               </Paper>
             </Grid>
             {/* Cửa sổ chat */}
             <Grid item xs={12} md={8}>
               <Paper
+                elevation={0}
                 sx={{
-                  height: "calc(100vh - 200px)",
+                  height: "calc(100dvh - 210px)",
+                  minHeight: 540,
                   display: "flex",
                   flexDirection: "column",
-                  bgcolor: "#18191a",
+                  overflow: "hidden",
+                  bgcolor: "var(--rn-surface)",
+                  color: "var(--rn-text-primary)",
+                  border: "1px solid var(--rn-border)",
+                  borderRadius: 4,
+                  boxShadow: "var(--rn-shadow-sm)",
                 }}
               >
                 {/* Header chat */}
-                {selectedPerson && (
+                {selectedPerson ? (
                   <Box
                     sx={{
-                      p: 2,
-                      borderBottom: 1,
-                      borderColor: "divider",
-                      bgcolor: "#232323",
+                      px: 2.5,
+                      py: 1.75,
+                      borderBottom: "1px solid var(--rn-border)",
+                      bgcolor: "var(--rn-surface-subtle)",
                       display: "flex",
                       alignItems: "center",
-                      gap: 2,
+                      gap: 1.5,
                     }}
                   >
-                    <Avatar>{selectedPerson.fullname?.[0]}</Avatar>
-                    <Box>
-                      <Typography sx={{ color: "#fff", fontWeight: 700 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: "primary.main",
+                        color: "#FFFFFF",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {selectedPerson.fullname?.[0]?.toUpperCase() || "K"}
+                    </Avatar>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          color: "var(--rn-text-primary)",
+                          fontWeight: 700,
+                          lineHeight: 1.25,
+                        }}
+                        noWrap
+                      >
                         {selectedPerson.fullname}
                       </Typography>
-                      <Typography sx={{ color: "#bdbdbd", fontSize: 14 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "var(--rn-text-secondary)" }}
+                        noWrap
+                      >
                         {selectedPerson.email}
                       </Typography>
                     </Box>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      px: 2.5,
+                      py: 1.75,
+                      borderBottom: "1px solid var(--rn-border)",
+                      bgcolor: "var(--rn-surface-subtle)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        color: "var(--rn-text-secondary)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Chưa chọn người nhận
+                    </Typography>
                   </Box>
                 )}
                 {/* Tin nhắn */}
@@ -1429,75 +1633,193 @@ export default function HostPage() {
                   sx={{
                     flexGrow: 1,
                     overflow: "auto",
-                    p: 2,
-                    bgcolor: "#18191a",
+                    p: 2.5,
+                    bgcolor: "var(--rn-bg)",
                   }}
                 >
-                  <Stack spacing={2}>
-                    {messages.map((msg) => (
+                  {!selectedPerson ? (
+                    <Box
+                      sx={{
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                        px: 3,
+                      }}
+                    >
                       <Box
-                        key={msg.id}
                         sx={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          bgcolor: "var(--rn-primary-soft)",
+                          color: "primary.main",
                           display: "flex",
-                          justifyContent:
-                            msg.senderUsername === user.username
-                              ? "flex-end"
-                              : "flex-start",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mb: 2,
                         }}
                       >
-                        <Box
-                          sx={{
-                            maxWidth: "70%",
-                            bgcolor:
-                              msg.senderUsername === user.username
-                                ? "#d32f2f"
-                                : "#232323",
-                            color: "#fff",
-                            p: 2,
-                            borderRadius: 3,
-                            boxShadow: 1,
-                          }}
-                        >
-                          <Typography variant="body1">{msg.content}</Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ opacity: 0.7, display: "block", mt: 0.5 }}
-                          >
-                            {new Date(msg.timestamp).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </Typography>
-                        </Box>
+                        <MessageIcon />
                       </Box>
-                    ))}
-                  </Stack>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 700,
+                          color: "var(--rn-text-primary)",
+                          mb: 0.75,
+                        }}
+                      >
+                        Chọn một cuộc trò chuyện để bắt đầu
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "var(--rn-text-secondary)",
+                          maxWidth: 380,
+                        }}
+                      >
+                        Chọn khách hàng từ danh sách bên trái để xem lịch sử trao đổi và phản hồi tin nhắn trực tiếp.
+                      </Typography>
+                    </Box>
+                  ) : messages.length === 0 ? (
+                    <Box
+                      sx={{
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                        px: 3,
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 700,
+                          color: "var(--rn-text-primary)",
+                          mb: 0.5,
+                        }}
+                      >
+                        Chưa có tin nhắn nào
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "var(--rn-text-secondary)" }}
+                      >
+                        Hãy gửi lời chào đầu tiên tới {selectedPerson.fullname}!
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Stack spacing={1.75}>
+                      {messages.map((msg) => {
+                        const isOwn = msg.senderUsername === user.username;
+                        return (
+                          <Box
+                            key={msg.id}
+                            sx={{
+                              display: "flex",
+                              justifyContent: isOwn ? "flex-end" : "flex-start",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                maxWidth: "72%",
+                                bgcolor: isOwn
+                                  ? "primary.main"
+                                  : "var(--rn-surface)",
+                                color: isOwn
+                                  ? "#FFFFFF"
+                                  : "var(--rn-text-primary)",
+                                border: isOwn
+                                  ? "none"
+                                  : "1px solid var(--rn-border)",
+                                px: 2,
+                                py: 1.25,
+                                borderRadius: isOwn
+                                  ? "18px 18px 4px 18px"
+                                  : "18px 18px 18px 4px",
+                                boxShadow: "var(--rn-shadow-sm)",
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  lineHeight: 1.55,
+                                  wordBreak: "break-word",
+                                }}
+                              >
+                                {msg.content}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: isOwn
+                                    ? "rgba(255,255,255,0.82)"
+                                    : "var(--rn-text-secondary)",
+                                  display: "block",
+                                  textAlign: isOwn ? "right" : "left",
+                                  mt: 0.5,
+                                  fontSize: 11,
+                                }}
+                              >
+                                {new Date(msg.timestamp).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Stack>
+                  )}
                 </Box>
                 {/* Input */}
                 <Box
                   sx={{
                     p: 2,
-                    borderTop: 1,
-                    borderColor: "divider",
-                    bgcolor: "#232323",
+                    borderTop: "1px solid var(--rn-border)",
+                    bgcolor: "var(--rn-surface)",
                     display: "flex",
                     alignItems: "center",
                     gap: 1,
                   }}
                 >
-                  <IconButton>
-                    <span role="img" aria-label="attach">
-                      📎
+                  <Tooltip title="Đính kèm tệp">
+                    <span>
+                      <IconButton
+                        aria-label="Đính kèm tệp"
+                        disabled={!selectedPerson}
+                        sx={{ color: "var(--rn-text-secondary)" }}
+                      >
+                        <AttachFileIcon fontSize="small" />
+                      </IconButton>
                     </span>
-                  </IconButton>
-                  <IconButton>
-                    <span role="img" aria-label="emoji">
-                      😊
+                  </Tooltip>
+                  <Tooltip title="Biểu tượng cảm xúc">
+                    <span>
+                      <IconButton
+                        aria-label="Biểu tượng cảm xúc"
+                        disabled={!selectedPerson}
+                        sx={{ color: "var(--rn-text-secondary)" }}
+                      >
+                        <EmojiIcon fontSize="small" />
+                      </IconButton>
                     </span>
-                  </IconButton>
+                  </Tooltip>
                   <TextField
                     fullWidth
-                    placeholder="Nhập tin nhắn..."
+                    size="small"
+                    placeholder={
+                      selectedPerson
+                        ? "Nhập tin nhắn..."
+                        : "Chọn một cuộc trò chuyện để nhắn tin..."
+                    }
+                    disabled={!selectedPerson}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={(e) => {
@@ -1507,16 +1829,41 @@ export default function HostPage() {
                       }
                     }}
                     sx={{
-                      input: { color: "#fff" },
-                      "& .MuiOutlinedInput-root": { bgcolor: "#232323" },
+                      "& .MuiOutlinedInput-root": {
+                        bgcolor: "var(--rn-bg)",
+                        color: "var(--rn-text-primary)",
+                        borderRadius: 2.5,
+                        "& fieldset": {
+                          borderColor: "var(--rn-border)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "var(--rn-border-strong)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "primary.main",
+                        },
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "var(--rn-text-secondary)",
+                        opacity: 0.85,
+                      },
                     }}
                   />
                   <Button
                     variant="contained"
-                    endIcon={<SendIcon />}
+                    endIcon={<SendIcon fontSize="small" />}
                     onClick={handleSend}
                     disabled={!message.trim() || !selectedPerson}
-                    sx={{ ml: 1, bgcolor: "#d32f2f" }}
+                    sx={{
+                      ml: 0.5,
+                      px: 2.5,
+                      py: 0.9,
+                      borderRadius: 2.5,
+                      fontWeight: 700,
+                      textTransform: "none",
+                      bgcolor: "primary.main",
+                      "&:hover": { bgcolor: "primary.dark" },
+                    }}
                   >
                     Gửi
                   </Button>

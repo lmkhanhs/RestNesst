@@ -1,5 +1,6 @@
 import { BACKEND_URL } from "@/shared/config/environment.js";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Typography,
   Box,
@@ -7,6 +8,7 @@ import {
   Select,
   MenuItem,
   Table,
+  TableContainer,
   TableHead,
   TableRow,
   TableCell,
@@ -22,7 +24,6 @@ import {
   Grid,
   Chip,
   IconButton,
-  Tooltip,
   Alert,
   Rating,
   ImageList,
@@ -32,7 +33,7 @@ import {
   FormControlLabel
 } from '@mui/material';
 import {
-  Visibility as ViewIcon,
+  Add as AddIcon,
   Close as CloseIcon,
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
@@ -43,12 +44,12 @@ import {
   Star as StarIcon,
   Settings as SettingsIcon,
   Delete as DeleteIcon,
-  TrendingUp as TrendingIcon,
   Save as SaveIcon
 } from '@mui/icons-material';
 import axiosInstance from '@/shared/api/httpClient.js';
+import CreatePropertyDialog from './CreatePropertyDialog.jsx';
 
-export default function AdminProperties() {
+export default function AdminProperties({ onPropertyCreated }) {
   const [properties, setProperties] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
@@ -61,6 +62,8 @@ export default function AdminProperties() {
   const [error, setError] = useState('');
   const [orderEdit, setOrderEdit] = useState({});
   const [orderLoading, setOrderLoading] = useState({});
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -107,7 +110,18 @@ export default function AdminProperties() {
       }
     };
     fetchProperties();
-  }, []);
+  }, [refreshKey]);
+
+  const handlePropertyCreated = () => {
+    setOpenCreateDialog(false);
+    setSearchTerm('');
+    setOwnerFilter('all');
+    setStatusFilter('all');
+    setRefreshKey((value) => value + 1);
+    setAlertMessage('Tạo chỗ ở thành công!');
+    setShowSuccessAlert(true);
+    onPropertyCreated?.();
+  };
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value.toLowerCase());
   const handleOwnerChange = (e) => setOwnerFilter(e.target.value);
@@ -216,15 +230,23 @@ export default function AdminProperties() {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
-        Quản lý chỗ ở
-      </Typography>
+    <Box sx={{ width: '100%', minWidth: 0, p: { xs: 2, sm: 3 } }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}
+        alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h2" sx={{ fontWeight: 600 }}>
+          Quản lý chỗ ở
+        </Typography>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreateDialog(true)}
+          sx={{ minHeight: 44, flexShrink: 0 }}>
+          Thêm chỗ ở mới
+        </Button>
+      </Stack>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         <TextField 
           label="Tìm kiếm chỗ ở..." 
           variant="outlined" 
+          value={searchTerm}
           onChange={handleSearchChange}
           fullWidth
         />
@@ -254,7 +276,7 @@ export default function AdminProperties() {
           <Typography>Đang tải dữ liệu...</Typography>
         </Box>
       ) : (
-        <Paper elevation={3}>
+        <TableContainer component={Paper} elevation={3}>
           <Table>
             <TableHead>
               <TableRow>
@@ -270,6 +292,15 @@ export default function AdminProperties() {
             </TableHead>
 
             <TableBody>
+              {filteredData.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                    {properties.length === 0
+                      ? 'Chưa có chỗ ở. Chọn “Thêm chỗ ở mới” để tạo chỗ ở đầu tiên.'
+                      : 'Không có chỗ ở phù hợp với bộ lọc.'}
+                  </TableCell>
+                </TableRow>
+              )}
               {filteredData.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
@@ -317,7 +348,11 @@ export default function AdminProperties() {
               ))}
             </TableBody>
           </Table>
-        </Paper>
+        </TableContainer>
+      )}
+
+      {openCreateDialog && (
+        <CreatePropertyDialog onClose={() => setOpenCreateDialog(false)} onCreated={handlePropertyCreated} />
       )}
 
       <Dialog 
@@ -516,3 +551,7 @@ export default function AdminProperties() {
     </Box>
   );
 }
+
+AdminProperties.propTypes = {
+  onPropertyCreated: PropTypes.func,
+};

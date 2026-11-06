@@ -1,6 +1,41 @@
-/.vscode
-node_modules/
+# Local environment and secrets; keep shareable templates.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+/.aws/
 
-# MCP Toolbox binary, credentials, and generated SQL containing local secrets.
+# Editors and operating-system files.
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+
+# Logs and temporary runtime files.
+*.log
+*.log.*
+*.pid
+/logs/
+/tmp/
+
+# Shared dependency/cache rules (also cover scripts and local skills).
+node_modules/
+__pycache__/
+*.py[cod]
+
+# Project-local MCP Toolbox binaries and credentials.
 /tools/database-toolbox/.bin/
 /tools/database-toolbox/.local/
+
+# Keep .codex/config.toml, .agents/skills/, AGENTS.md, docs and lockfiles tracked.
+# CodeGraph runtime files are covered by .codegraph/.gitignore.
+# Ignore rules do not remove files already tracked by Git.

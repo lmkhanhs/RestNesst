@@ -1,24 +1,22 @@
-# Logs
-logs
-*.log
+# Installed dependencies and Vite output.
+/node_modules/
+/dist/
+/dist-ssr/
+/.vite/
+
+# Tool caches and generated reports.
+.eslintcache
+*.tsbuildinfo
+/coverage/
+/playwright-report/
+/test-results/
+
+# Package-manager diagnostic logs (lockfiles remain tracked).
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Environment, editor and general log rules live in ../.gitignore.
+# Keep .env.example, public assets and src/shared/assets in Git.

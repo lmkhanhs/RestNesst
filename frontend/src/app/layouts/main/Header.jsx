@@ -3,7 +3,7 @@ import {
   Box,
   Menu,
   MenuItem,
-  IconButton,
+  ButtonBase,
   Typography,
   Divider,
   ListItemIcon,
@@ -22,13 +22,21 @@ import {
   Info,
   ConfirmationNumber,
   Dashboard,
+  KeyboardArrowDownRounded,
 } from "@mui/icons-material";
 import axiosInstance from "@/shared/api/httpClient.js";
 
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [userName, setUserName] = useState("");
   const [userInfo, setUserInfo] = useState(null);
+  const userName = [
+    userInfo?.fullname,
+    userInfo?.fullName,
+    userInfo?.displayName,
+    userInfo?.name,
+    userInfo?.username,
+    userInfo?.email,
+  ].find((value) => typeof value === "string" && value.trim())?.trim() || "Bạn";
   const [selectedRole, setSelectedRole] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,7 +69,6 @@ const Header = () => {
         if (userResponse.data.code === 0 || userResponse.data.code === 200) {
           const userData = userResponse.data.result;
           setUserInfo(userData);
-          setUserName(userData.fullname || userData.username);
           localStorage.setItem("user", JSON.stringify(userData));
 
           // Set initial selected role based on current path
@@ -133,7 +140,6 @@ const Header = () => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userName");
     localStorage.removeItem("user");
-    setUserName("");
     setUserInfo(null);
     setSelectedRole(null);
     handleClose();
@@ -158,7 +164,7 @@ const Header = () => {
     handleClose();
   };
 
-  const isLoggedIn = !!userName;
+  const isLoggedIn = Boolean(userInfo);
 
   const getPageTitle = () => {
     if (isAdminPage)
@@ -198,11 +204,13 @@ const Header = () => {
       return (
         <Box
           sx={{
-            flex: 1,
+            flex: { xs: "1 0 100%", md: 1 },
+            order: { xs: 3, md: 0 },
+            minWidth: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            mx: 2,
+            mx: { xs: 0, md: 2 },
           }}
         >
           <Box
@@ -253,7 +261,11 @@ const Header = () => {
         </Box>
       );
     }
-    return <SearchBar />;
+    return (
+      <Box sx={{ order: { xs: 3, md: 0 }, flex: { xs: "1 0 100%", md: 1 }, minWidth: 0 }}>
+        <SearchBar />
+      </Box>
+    );
   };
 
   return (
@@ -284,28 +296,36 @@ const Header = () => {
       >
         <Logo />
         {renderCenterContent()}
-        <IconButton
-          aria-label="Mở menu tài khoản"
-          aria-haspopup="true"
+        <ButtonBase
+          aria-label={isLoggedIn ? `Chào mừng trở lại, ${userName}. Mở menu tài khoản` : "Mở menu tài khoản"}
+          aria-haspopup="menu"
+          aria-controls={anchorEl ? "account-menu" : undefined}
           aria-expanded={Boolean(anchorEl)}
           onClick={handleClick}
           className="rn-interactive-btn"
           sx={{
-            width: 44,
-            height: 44,
-            p: 0.25,
-            border: "1px solid",
-            borderColor: "divider",
-            bgcolor: "background.paper",
+            minWidth: isLoggedIn ? 0 : 44,
+            minHeight: 44,
+            maxWidth: isLoggedIn ? { xs: "calc(100% - 164px)", sm: 260, lg: 300 } : 44,
+            flexShrink: 0,
+            ml: "auto",
+            gap: { xs: 1, sm: 1.25 },
+            py: 0.5,
+            px: { xs: 0.25, sm: 1 },
+            borderRadius: 2,
+            textAlign: "left",
+            color: "text.primary",
+            "&:hover": { bgcolor: "action.hover" },
+            "&.Mui-focusVisible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 3 },
             "& .MuiAvatar-root": {
               border: "2px solid",
               borderColor: "primary.main",
-              transition: "box-shadow 0.2s ease",
+              flexShrink: 0,
             },
           }}
         >
           <Avatar
-            alt={userName || "Tài khoản"}
+            alt={isLoggedIn ? userName : "Tài khoản"}
             src={userInfo?.thumnailUrl || undefined}
             sx={{
               width: 36,
@@ -313,9 +333,23 @@ const Header = () => {
               cursor: "pointer",
             }}
           />
-        </IconButton>
+          {isLoggedIn && (
+            <>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography component="span" noWrap sx={{ display: "block", fontSize: { xs: "0.6875rem", sm: "0.75rem" }, color: "text.secondary", lineHeight: 1.5 }}>
+                  Chào mừng trở lại
+                </Typography>
+                <Typography component="span" noWrap sx={{ display: "block", fontSize: { xs: "0.8125rem", sm: "0.875rem" }, fontWeight: 700, lineHeight: 1.5 }}>
+                  {userName}
+                </Typography>
+              </Box>
+              <KeyboardArrowDownRounded aria-hidden="true" sx={{ display: { xs: "none", sm: "block" }, fontSize: 18, color: "text.secondary", flexShrink: 0 }} />
+            </>
+          )}
+        </ButtonBase>
       </Box>
       <Menu
+        id="account-menu"
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
@@ -350,8 +384,8 @@ const Header = () => {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                 }}
               />
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ overflowWrap: "anywhere" }}>
                   {userName}
                 </Typography>
               </Box>

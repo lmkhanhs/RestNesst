@@ -642,7 +642,7 @@ export default function AdminPage() {
               <AdminHostRequest />
             </TabPanel>
             <TabPanel value={tabValue} index={3}>
-              <AdminProperties />
+              <AdminProperties onPropertyCreated={() => setListingCount((count) => count + 1)} />
             </TabPanel>
             {/* <TabPanel value={tabValue} index={4}>
               <AdminTransactions />

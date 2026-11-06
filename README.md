@@ -263,10 +263,11 @@ Kiểm tra theo thứ tự:
 | Bản đồ | Khóa API và kết nối dịch vụ bản đồ |
 | Chatbot | Dịch vụ riêng tại `http://localhost:3000/api/chat` |
 | Phân tích cảm xúc đánh giá | Dịch vụ Python tại `http://localhost:5000` |
+| Tóm tắt đánh giá/văn bản | FastAPI/BARTpho trong `ai-service/`, mặc định `http://localhost:8000` |
 
-Source dịch vụ chatbot và Python chưa có trong repository hiện tại, nên README
-không có lệnh chạy chúng. Chat giữa các user dùng WebSocket của backend Spring Boot,
-khác với chatbot ở cổng `3000`.
+Dịch vụ tóm tắt BARTpho có source trong `ai-service/`; xem [cách chạy AI](docs/development.md#4-chạy-ai-khi-cần-tóm-tắt).
+Dịch vụ này có hợp đồng riêng với chatbot cổng `3000` và phân tích cảm xúc cổng `5000`;
+không dùng thay thế trực tiếp các dịch vụ đó. Chat giữa các user dùng WebSocket của backend Spring Boot.
 
 Nếu kiểm tra VNPay trên local, sửa trong `application.yml`:
 
@@ -348,10 +349,17 @@ Redis; không dùng `down -v` hoặc xóa volume nếu muốn giữ dữ liệu 
 
 ## Cấu trúc và tài liệu
 
+- [Kiến trúc toàn hệ thống](docs/architecture.md)
+- [Database, quan hệ dữ liệu và seed](docs/database.md)
+- [Môi trường và quy trình phát triển](docs/development.md)
+
 ```text
 RestNesst/
 ├── airbnb_service/       # Backend Java/Spring Boot
 ├── frontend/             # Frontend React/Vite
+├── ai-service/           # FastAPI/BARTpho tóm tắt tiếng Việt
+├── tools/database-toolbox/ # MCP MySQL dev
+├── docs/                 # Kiến trúc, database, phát triển
 ├── compose.redis.yaml    # Redis cho local
 └── README.md             # Hướng dẫn chạy toàn hệ thống
 ```

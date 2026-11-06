@@ -1,3 +1,29 @@
-.venv/
-best_model/
-best_model_v2/
+# Python environments, caches and packaging output.
+/.venv/
+/venv/
+/env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+/htmlcov/
+/build/
+/dist/
+*.egg-info/
+
+# Model weights and downloaded/training checkpoints are local artifacts.
+/best_model/
+/best_model_v2/
+/checkpoints/
+/.cache/
+*.safetensors
+*.pt
+*.pth
+/pytorch_model*.bin
+
+# Keep source, notebooks, dataset, plots and training_log.json tracked.
+# Environment and general log rules live in ../.gitignore.
