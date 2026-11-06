@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 
 - `airbnb_service/`: Java 17, Spring Boot backend. Code lives in `src/main/java/com/pbl5cnpm/airbnb_service/`, organized into `controller`, `service`, `mapper`, `repository`, `entity`, and `dto`. Resources include configuration, static files, and Thymeleaf templates; tests live in `src/test/java/`.
-- `web-ReactJs/tour-app-starter-main/`: React 18/Vite frontend. Use `src/pages`, `components`, `routes`, `api`, and `redux`. Assets live in `src/assets/` and `public/`.
+- `frontend/`: React 18/Vite frontend. App composition lives in `src/app`, business features in `src/features`, and reusable UI/config/assets in `src/shared`. Public assets live in `public/`. Use the `@/` alias for cross-directory imports.
 
 ## Build, Test, and Development Commands
 
@@ -15,11 +15,12 @@ From `airbnb_service/`:
 - `mvn test`: run backend tests.
 - `mvn clean package`: test and build the executable JAR.
 
-For frontend setup, run `npm install` in `web-ReactJs/`, then `npm ci` in `web-ReactJs/tour-app-starter-main/`. From that directory:
+For frontend setup, run `npm ci` in `frontend/`. From that directory:
 
 - `npm run dev`: start Vite.
 - `npm run lint`: run ESLint with zero warnings allowed.
 - `npm run build`: build production assets.
+- `npm run check:imports`: validate every source import and declared dependency.
 - `npm run preview`: preview the production build.
 
 ## Coding Style & Naming Conventions
