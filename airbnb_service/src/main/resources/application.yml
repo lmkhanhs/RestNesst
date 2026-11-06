@@ -1,0 +1,72 @@
+# Cấu hình ứng dụng Spring Boot
+spring:
+  application:
+    name: airbnb_service
+  # MySQL; có thể dùng ${DB_URL}, ${DB_USERNAME}, ${DB_PASSWORD}.
+  datasource:
+    url: jdbc:mysql://localhost:3306/johunter11
+    username: root
+    password: '123456'
+  data:
+    # Redis lưu blacklist token.
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: 2s
+      timeout: 2s
+      repositories:
+        enabled: 'false'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: 'true'
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    driverClassName: com.mysql.cj.jdbc.Driver
+  # SMTP.
+  mail:
+    host: smtp.gmail.com
+    port: '587'
+    username: lminhkhanh231@gmail.com
+    password: vfumpcdyovoomquj
+    properties:
+      mail:
+        smtp:
+          auth: 'true'
+          starttls:
+            enable: 'true'
+
+schedule:
+  AvgStart: '300000'
+  Popular: '300000'
+
+CLOUDINARY_URL: cloudinary://673758235311112:lQ-W_bCswUJHcqmGXVenasImLnY@dqtj816ds
+
+upload:
+  directory: src/main/resources/static/uploads
+  prefix: src/main/resources/static
+
+api:
+  base:
+    path: /api
+
+image:
+  customer: http://res.cloudinary.com/dqtj816ds/image/upload/v1745510407/xlij1loxlrr9jpib1lb8.jpg
+
+cloudinary:
+  cloudName: dqtj816ds
+  apiKey: '673758235311112'
+  apiSecret: W_bCswUJHcqmGXVenasImLnY
+
+security:
+  secret: fEJ6qu3MQ1pwdpRYxhiXNpor7jNV6tCdhw73m9rR5TfH5rS6Zq1tVDsUooXljGi3
+  duration_access: '360000'
+  duration_refresh: '86400'
+
+vnpay:
+  tmnCode: 0D7U0C4Z
+  hashSecret: 8ZF37DFFNM6F4M756V6PA2MW4UO75DM4
+  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  returnUrl: http://175.41.233.105:8080/api/payment/vnpay-return

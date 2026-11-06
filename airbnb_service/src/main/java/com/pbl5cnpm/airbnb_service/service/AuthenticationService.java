@@ -29,7 +29,6 @@ import com.pbl5cnpm.airbnb_service.dto.Request.IntrospectRequest;
 import com.pbl5cnpm.airbnb_service.dto.Request.LogoutRequest;
 import com.pbl5cnpm.airbnb_service.dto.Response.AuthenticationResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.IntrospectResponse;
-import com.pbl5cnpm.airbnb_service.entity.InvalidTokenEntity;
 import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
 import com.pbl5cnpm.airbnb_service.entity.UserEntity;
 import com.pbl5cnpm.airbnb_service.exception.AppException;
@@ -97,7 +96,7 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        if (this.invalidTokenRepository.findById(idToken).isPresent()) {
+        if (idToken == null || this.invalidTokenRepository.existsById(idToken)) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
@@ -130,10 +129,14 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse handleRefreshToken(String refreshToken) throws JOSEException {
-        boolean isValid = isValidToken(refreshToken); // checked expired time
-        boolean isRefreshToken = getClaimSet(refreshToken).getClaim("type_token").toString().equals("refresh");
-        if (isValid && isRefreshToken) {
-            UserEntity user = this.userRepository.findByUsername(getClaimSet(refreshToken).getSubject())
+        if (!isValidToken(refreshToken)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        JWTClaimsSet claims = getClaimSet(refreshToken);
+        if ("refresh".equals(claims.getClaim("type_token"))
+                && claims.getJWTID() != null
+                && !this.invalidTokenRepository.existsById(claims.getJWTID())) {
+            UserEntity user = this.userRepository.findByUsername(claims.getSubject())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             return AuthenticationResponse.builder()
                     .access_token(generationToken(user, false))
@@ -187,11 +190,10 @@ public class AuthenticationService {
     private void invalidateToken(String token) {
         if (isValidToken(token)) {
             JWTClaimsSet claimsSet = getClaimSet(token);
-            InvalidTokenEntity entity = InvalidTokenEntity.builder()
-                    .id(claimsSet.getJWTID())
-                    .expired(claimsSet.getExpirationTime())
-                    .build();
-            this.invalidTokenRepository.save(entity);
+            if (claimsSet.getJWTID() == null) {
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            }
+            this.invalidTokenRepository.invalidate(claimsSet.getJWTID(), claimsSet.getExpirationTime());
         }
     }
 

@@ -20,6 +20,7 @@ import com.pbl5cnpm.airbnb_service.service.CloudinaryService;
 public abstract class UserMapper {
     @Autowired
     private CloudinaryService cloudinaryService;
+    @Mapping(target = "hostApplicationPending", ignore = true)
     public abstract UserEntity toUserEntity(UserRequest request);
     ///
     @Mapping(target = "roles", expression = "java(mapRoles(userEntity))")

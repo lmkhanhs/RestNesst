@@ -41,6 +41,8 @@ public class UserEntity extends BaseEntity {
     @JoinColumn(name = "country_id")
     CountriesEntity country;
     Boolean isActive;
+    @Column(name = "host_application_pending", nullable = false, columnDefinition = "boolean default false")
+    boolean hostApplicationPending;
     String languages;
     Integer didHostYear;
     @Column(columnDefinition = "TEXT")

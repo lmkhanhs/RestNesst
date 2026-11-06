@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
@@ -27,7 +28,6 @@ import com.pbl5cnpm.airbnb_service.dto.Response.StatisticCountUser;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserFavoriteResponse;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserInfor;
 import com.pbl5cnpm.airbnb_service.dto.Response.UserResponse;
-import com.pbl5cnpm.airbnb_service.entity.ApplyHostEntity;
 import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
 import com.pbl5cnpm.airbnb_service.entity.ListingEntity;
 import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
@@ -37,7 +37,6 @@ import com.pbl5cnpm.airbnb_service.exception.AppException;
 import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
 import com.pbl5cnpm.airbnb_service.mapper.ListingMapper;
 import com.pbl5cnpm.airbnb_service.mapper.UserMapper;
-import com.pbl5cnpm.airbnb_service.repository.ApplyHostListRepository;
 import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
 import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
 import com.pbl5cnpm.airbnb_service.repository.RoleRepository;
@@ -51,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
-    private final ApplyHostListRepository applyHostListRepository;
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final UserMapper mapper;
@@ -191,66 +189,64 @@ public class UserService {
         return this.mapper.toHostProfile(entity);
     }
 
+    @Transactional
     public Boolean handleApply(ApplyHostResquest applyHostResquest) {
         UserEntity entity = this.userRepository.findById(applyHostResquest.getUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (hasHostRole(entity)) {
+            throw new AppException(ErrorCode.INVALID);
+        }
+        CountriesEntity countriesEntity = this.countriesRepository.findByName(applyHostResquest.getCountry())
+                .orElseThrow(() -> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
         entity.setDescription(applyHostResquest.getDescription());
         entity.setLanguages(applyHostResquest.getLanguage());
-        entity.setLanguages(applyHostResquest.getLanguage());
         entity.setDidHostYear(applyHostResquest.getDidHostYear());
-        String country = applyHostResquest.getCountry();
-        CountriesEntity countriesEntity = this.countriesRepository.findByName(country)
-                .orElseThrow(() -> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
         entity.setCountry(countriesEntity);
-        ApplyHostEntity entityApl = ApplyHostEntity.builder()
-                .hostId(entity.getId())
-                .deleted(false)
-                .build();
-        this.applyHostListRepository.save(entityApl);
+        entity.setHostApplicationPending(true);
         this.userRepository.save(entity);
         return true;
     }
 
+    @Transactional(readOnly = true)
     public List<HostProfileResponse> handleGetApplyPerson() {
-        // Lấy danh sách các apply request chưa xóa
-        List<ApplyHostEntity> applyToHosts = applyHostListRepository.findAllByDeleted(false);
-        List<UserEntity> allUsers = userRepository.findAll();
-
-        Set<Long> appliedHostIds = applyToHosts.stream()
-                .map(ApplyHostEntity::getHostId)
-                .collect(Collectors.toSet());
-        List<HostProfileResponse> result = allUsers.stream()
-                .filter(user -> appliedHostIds.contains(user.getId()))
-                .map(user -> mapper.toHostProfile(user))
+        return userRepository.findAllByHostApplicationPendingTrue().stream()
+                .map(mapper::toHostProfile)
                 .toList();
-        return result;
     }
 
+    @Transactional
     public boolean handleAccsetHost(Long host_id) {
         UserEntity userEntity = this.userRepository.findById(host_id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        Set<RoleEntity> roles = userEntity.getRoles();
-        RoleEntity roleHost = this.roleRepository.findByRoleName(RoleName.HOST.toString()).get();
-        if (!roles.contains(roleHost)) {
-            roles.add(this.roleRepository.findByRoleName(RoleName.HOST.toString()).get());
-            userEntity.setRoles(roles);
-            userEntity = this.userRepository.save(userEntity);
-
-            // xóa ra khỏi danh sach tohost
-            ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
-            this.applyHostListRepository.delete(applyHostEntity);
-            return true;
+        if (hasHostRole(userEntity)) {
+            if (userEntity.isHostApplicationPending()) {
+                userEntity.setHostApplicationPending(false);
+                this.userRepository.save(userEntity);
+            }
+            return false;
         }
-
-        return false;
+        if (!userEntity.isHostApplicationPending()) {
+            throw new AppException(ErrorCode.INVALID);
+        }
+        RoleEntity roleHost = this.roleRepository.findByRoleName(RoleName.HOST.name())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        userEntity.getRoles().add(roleHost);
+        userEntity.setHostApplicationPending(false);
+        this.userRepository.save(userEntity);
+        return true;
     }
 
+    @Transactional
     public void handleRejectAccess(Long host_id) {
         UserEntity userEntity = this.userRepository.findById(host_id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        ApplyHostEntity applyHostEntity = this.applyHostListRepository.findByHostId(userEntity.getId()).get();
-        this.applyHostListRepository.delete(applyHostEntity);
+        userEntity.setHostApplicationPending(false);
+        this.userRepository.save(userEntity);
+    }
 
+    private boolean hasHostRole(UserEntity user) {
+        return user.getRoles().stream()
+                .anyMatch(role -> RoleName.HOST.name().equals(role.getRoleName()));
     }
 
     public UserResponse handleChangeActive(Long user_id, boolean status) {
@@ -293,6 +289,7 @@ public class UserService {
 
             roles.add(host);
             userEntity.setRoles(roles);
+            userEntity.setHostApplicationPending(false);
 
         } else if (newProfile.getRole().equals("GUEST")) {
             Set<RoleEntity> roles = new HashSet<>();
