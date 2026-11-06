@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 // @mui
 import { CssBaseline } from '@mui/material';
 import { createTheme, ThemeProvider as MUIThemeProvider, StyledEngineProvider } from '@mui/material/styles';
@@ -20,6 +20,12 @@ ThemeProvider.propTypes = {
 export default function ThemeProvider({ children }) {
   const { themeMode, themeDirection } = useSettings();
   const isLight = themeMode === 'light';
+
+  useEffect(() => {
+    const mode = isLight ? 'light' : 'dark';
+    document.documentElement.dataset.theme = mode;
+    document.documentElement.style.colorScheme = mode;
+  }, [isLight]);
 
   const themeOptions = useMemo(
     () => ({

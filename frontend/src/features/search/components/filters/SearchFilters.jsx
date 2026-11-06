@@ -138,7 +138,7 @@ const Filter = ({ onCloseMobile }) => {
           sx={{
             py: 1.75,
             px: 2.5,
-            bgcolor: "#F8FAFC",
+            bgcolor: "var(--rn-surface-subtle)",
             borderBottom: "1px solid",
             borderColor: "divider",
           }}

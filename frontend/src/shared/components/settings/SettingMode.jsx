@@ -33,10 +33,14 @@ export default function SettingMode() {
           return (
             <Grid key={mode} item xs={6}>
               <BoxStyle
+                onClick={() => onChangeMode({ target: { value: mode } })}
                 sx={{
                   bgcolor: mode === 'light' ? 'common.white' : 'grey.800',
+                  color: mode === 'light' ? 'grey.600' : 'grey.400',
                   ...(isSelected && {
                     color: 'primary.main',
+                    borderColor: 'primary.main',
+                    borderWidth: 2,
                     boxShadow: (theme) => theme.customShadows.z20,
                   }),
                 }}

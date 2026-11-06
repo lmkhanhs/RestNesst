@@ -150,8 +150,8 @@ export default function HomePage() {
                 px: 1.5,
                 py: 0.5,
                 borderRadius: "999px",
-                bgcolor: "rgba(15, 118, 110, 0.08)",
-                color: "secondary.dark",
+                bgcolor: "var(--rn-teal-soft)",
+                color: "var(--rn-teal)",
                 fontWeight: 700,
                 fontSize: "0.8125rem",
                 width: "fit-content",
@@ -207,7 +207,7 @@ export default function HomePage() {
                   px: 1.5,
                   py: 0.75,
                   borderRadius: 2,
-                  bgcolor: "#F8FAFC",
+                  bgcolor: "var(--rn-surface-subtle)",
                   border: "1px solid",
                   borderColor: "divider",
                   fontSize: "0.8125rem",
@@ -225,7 +225,7 @@ export default function HomePage() {
                     px: 1.5,
                     py: 0.75,
                     borderRadius: 2,
-                    bgcolor: "#F8FAFC",
+                    bgcolor: "var(--rn-surface-subtle)",
                     border: "1px solid",
                     borderColor: "divider",
                     fontSize: "0.8125rem",
@@ -597,7 +597,7 @@ export default function HomePage() {
                 borderRadius: 3,
                 boxShadow: "0 2px 8px rgba(15, 23, 42, 0.05)",
                 "&:hover": {
-                  bgcolor: "#F8FAFC",
+                  bgcolor: "var(--rn-surface-subtle)",
                 },
               }}
             >

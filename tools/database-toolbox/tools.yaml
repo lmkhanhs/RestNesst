@@ -9,6 +9,78 @@ password: ${RESTNESST_MYSQL_PASSWORD}
 queryTimeout: 10s
 ---
 kind: tool
+name: mysql-dev-data-counts
+type: mysql-sql
+source: restnesst-dev
+description: Count current rows in the fifteen known RestNesst dev tables. Read-only fixed SQL; does not expose personal data or credentials.
+statement: |
+  SELECT 'amenites' AS table_name, COUNT(*) AS row_count FROM johunter11.amenites
+  UNION ALL SELECT 'booked', COUNT(*) FROM johunter11.booked
+  UNION ALL SELECT 'categories', COUNT(*) FROM johunter11.categories
+  UNION ALL SELECT 'chat_messages', COUNT(*) FROM johunter11.chat_messages
+  UNION ALL SELECT 'countries', COUNT(*) FROM johunter11.countries
+  UNION ALL SELECT 'favorites', COUNT(*) FROM johunter11.favorites
+  UNION ALL SELECT 'images', COUNT(*) FROM johunter11.images
+  UNION ALL SELECT 'listing_amenites', COUNT(*) FROM johunter11.listing_amenites
+  UNION ALL SELECT 'listing_categories', COUNT(*) FROM johunter11.listing_categories
+  UNION ALL SELECT 'listings', COUNT(*) FROM johunter11.listings
+  UNION ALL SELECT 'payments', COUNT(*) FROM johunter11.payments
+  UNION ALL SELECT 'reviews', COUNT(*) FROM johunter11.reviews
+  UNION ALL SELECT 'roles', COUNT(*) FROM johunter11.roles
+  UNION ALL SELECT 'user_roles', COUNT(*) FROM johunter11.user_roles
+  UNION ALL SELECT 'users', COUNT(*) FROM johunter11.users;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: amenities-list
+type: mysql-sql
+source: restnesst-dev
+description: Read all amenity IDs, names, descriptions, local image paths and visibility flags before inserting or checking duplicate names.
+statement: |
+  SELECT id, name, description, thumnail_url,
+         CAST(deleted AS UNSIGNED) AS deleted,
+         CAST(is_active AS UNSIGNED) AS is_active, position
+  FROM johunter11.amenites ORDER BY id;
+annotations:
+  readOnlyHint: true
+  destructiveHint: false
+  openWorldHint: false
+---
+kind: tool
+name: amenities-create-local
+type: mysql-sql
+source: restnesst-dev
+description: |
+  Insert one amenity explicitly requested by the user with an existing local PNG.
+  First call amenities-list and skip an existing name, including soft-deleted rows.
+  Does not change existing amenities, upload to Cloudinary or attach amenities to listings.
+parameters:
+  - name: name
+    type: string
+    description: The requested amenity name, unique in the dev database.
+  - name: description
+    type: string
+    description: A short description of this amenity.
+  - name: thumbnail_url
+    type: string
+    description: Existing local PNG path starting with /uploads/amenities/.
+    allowedValues:
+      - '^/uploads/amenities/[a-z0-9-]+\.png$'
+statement: |
+  INSERT INTO johunter11.amenites
+    (name, description, thumnail_url, deleted, is_active, position, created_at, updated_at)
+  SELECT ?, ?, ?, false, true, COALESCE(MAX(position), 0) + 1, NOW(6), NOW(6)
+  FROM johunter11.amenites;
+annotations:
+  readOnlyHint: false
+  destructiveHint: true
+  idempotentHint: false
+  openWorldHint: false
+---
+kind: tool
 name: mysql-connection-info
 type: mysql-sql
 source: restnesst-dev

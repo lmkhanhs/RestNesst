@@ -33,6 +33,7 @@ export default function SettingLayout() {
           return (
             <Grid key={layout} item xs={6}>
               <BoxStyle
+                onClick={() => onChangeLayout({ target: { value: layout } })}
                 sx={{
                   ...(isSelected && {
                     color: 'primary.main',

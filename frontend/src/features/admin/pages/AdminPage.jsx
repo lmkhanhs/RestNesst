@@ -2,27 +2,24 @@ import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Tabs,
-  Tab,
   Paper,
   Stack,
   IconButton,
-  Badge,
   Container,
   Grid,
   Avatar,
-  Button,
-  TextField,
   Menu,
   MenuItem,
   Divider,
   Alert,
-  
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Chip,
 } from "@mui/material";
 import {
-  Notifications as NotificationsIcon,
-  Search as SearchIcon,
-  FilterList as FilterIcon,
   AttachMoney as MoneyIcon,
   People as PeopleIcon,
   Home as HomeIcon,
@@ -30,12 +27,15 @@ import {
   Dashboard as DashboardIcon,
   Report as ReportIcon,
   SupportAgent as SupportAgentIcon,
-  Settings as SettingsIcon,
   Extension as ExtensionIcon,
   Category as CategoryIcon,
   BookOnline as BookOnlineIcon,
   Public as PublicIcon,
   HowToReg as RequestPageIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  TrendingUp as TrendingUpIcon,
+  InfoOutlined as InfoOutlinedIcon,
 } from "@mui/icons-material";
 import PropTypes from "prop-types";
 import axiosInstance from "@/shared/api/httpClient.js";
@@ -52,7 +52,6 @@ import AdminAmenities from "@/features/admin/components/Amenities.jsx";
 import AdminCategories from "@/features/admin/components/Categories.jsx";
 import AdminBookings from "@/features/admin/components/Bookings.jsx";
 import AdminCountries from "@/features/admin/components/Countries.jsx";
-
 
 function TabPanel({ children, value, index }) {
   return value === index ? <Box>{children}</Box> : null;
@@ -73,6 +72,7 @@ export default function AdminPage() {
   const [userCount, setUserCount] = useState(0);
   const [transactionCount, setTransactionCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const fetchListingCount = async () => {
@@ -142,182 +142,534 @@ export default function AdminPage() {
     {
       title: "Người dùng",
       value: userCount,
+      rawValue: userCount,
       icon: <PeopleIcon />,
       color: "success.main",
+      accentBg: "rgba(16, 185, 129, 0.12)",
+      accentColor: "#059669",
+      emptyHint: "Chưa có tài khoản đăng ký mới",
+      activeHint: "Tài khoản đang hoạt động",
+      trend: "",
     },
     {
       title: "Giao dịch",
       value: transactionCount,
+      rawValue: transactionCount,
       icon: <ReceiptIcon />,
       color: "info.main",
+      accentBg: "rgba(14, 165, 233, 0.12)",
+      accentColor: "#0284C7",
+      emptyHint: "Chưa phát sinh giao dịch thanh toán",
+      activeHint: "Giao dịch đã ghi nhận",
+      trend: "",
     },
     {
       title: "Chỗ ở",
       value: listingCount,
+      rawValue: listingCount,
       icon: <HomeIcon />,
       color: "warning.main",
+      accentBg: "rgba(245, 158, 11, 0.12)",
+      accentColor: "#D97706",
+      emptyHint: "Chưa có chỗ ở nào được đăng",
+      activeHint: "Phòng & homestay trên hệ thống",
+      trend: "",
     },
     {
       title: "Tổng doanh thu",
       value: `₫${totalRevenue.toLocaleString("vi-VN")}`,
+      rawValue: totalRevenue,
       icon: <MoneyIcon />,
       color: "primary.main",
+      accentBg: "rgba(255, 56, 92, 0.12)",
+      accentColor: "#E11D48",
+      emptyHint: "Chưa phát sinh doanh thu",
+      activeHint: "Tổng doanh thu lũy kế",
+      trend: "",
     },
   ];
 
   const tabIcons = [
-    <DashboardIcon />, 
-    <PeopleIcon />,
-    <RequestPageIcon />,
-    <HomeIcon />, 
-    // <ReceiptIcon />,
-    <ReportIcon />,
-    <SupportAgentIcon />,
-    // <SettingsIcon />, 
-    <ExtensionIcon />, 
-    <CategoryIcon />, 
-    <BookOnlineIcon />,
-    <PublicIcon />,
-    
+    <DashboardIcon key="dashboard" />,
+    <PeopleIcon key="people" />,
+    <RequestPageIcon key="request" />,
+    <HomeIcon key="home" />,
+    <ReportIcon key="report" />,
+    <SupportAgentIcon key="support" />,
+    <ExtensionIcon key="amenities" />,
+    <CategoryIcon key="categories" />,
+    <BookOnlineIcon key="bookings" />,
+    <PublicIcon key="countries" />,
   ];
 
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Paper
-          elevation={0}
-          sx={{ p: 3, mb: 3, bgcolor: "background.default" }}
-        >
-          <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h4" gutterBottom>
-                Trang Quản Trị
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Theo dõi & quản lý toàn bộ hệ thống
-              </Typography>
-            </Grid>
-            {/* <Grid item xs={12} md={6}>
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
-                <IconButton>
-                  <Badge badgeContent={5} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-                <Button
-                  variant="contained"
-                  startIcon={<FilterIcon />}
-                  onClick={handleMenuOpen}
-                >
-                  Lọc
-                </Button>
-              </Stack>
-            </Grid> */}
-          </Grid>
-        </Paper>
+  const sidebarGroups = [
+    {
+      groupLabel: "Tổng quan & Phân tích",
+      items: [
+        { index: 0, label: "Tổng quan", icon: tabIcons[0] },
+        { index: 4, label: "Báo cáo & Thống kê", icon: tabIcons[4] },
+      ],
+    },
+    {
+      groupLabel: "Người dùng & Đối tác",
+      items: [
+        { index: 1, label: "Người dùng", icon: tabIcons[1] },
+        { index: 2, label: "Yêu cầu lên Host", icon: tabIcons[2] },
+      ],
+    },
+    {
+      groupLabel: "Quản lý nội dung",
+      items: [
+        { index: 3, label: "Chỗ ở", icon: tabIcons[3] },
+        { index: 6, label: "Tiện nghi", icon: tabIcons[6] },
+        { index: 7, label: "Danh mục", icon: tabIcons[7] },
+        { index: 9, label: "Quốc gia", icon: tabIcons[9] },
+      ],
+    },
+    {
+      groupLabel: "Vận hành & Hỗ trợ",
+      items: [
+        { index: 8, label: "Đơn đặt phòng", icon: tabIcons[8] },
+        { index: 5, label: "Hỗ trợ khách hàng", icon: tabIcons[5] },
+      ],
+    },
+  ];
 
-        <Paper
-          elevation={0}
-          sx={{ p: 2, mb: 3, bgcolor: "background.default" }}
-        >
-          <Grid container spacing={2} alignItems="center">
-            {/* <Grid item xs={12}> */}
-              {/* <TextField
-                fullWidth
-                placeholder="Tìm kiếm..."
-                value={searchQuery}
-                onChange={handleSearch}
-                InputProps={{
-                  startAdornment: (
-                    <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
-                  ),
-                }}
-              /> */}
-            {/* </Grid> */}
-          </Grid>
-        </Paper>
+  const activeNavItem =
+    sidebarGroups
+      .flatMap((group) => group.items)
+      .find((item) => item.index === tabValue) || sidebarGroups[0].items[0];
 
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          {stats.map((stat, index) => (
-            <Grid item xs={12} md={3} key={index}>
-              <Paper sx={{ p: 2 }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Avatar sx={{ bgcolor: stat.color }}>{stat.icon}</Avatar>
-                  <Box>
-                    <Typography variant="h6">{stat.value}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {stat.title}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            aria-label="admin-tabs"
-            variant="scrollable"
-            scrollButtons="auto"
+  const renderSidebarContent = (isMobile = false) => (
+    <Box
+      component="nav"
+      aria-label="Điều hướng trang quản trị"
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        py: 2.5,
+        px: 2,
+      }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ px: 1, pb: 2, mb: 1.5, borderBottom: "1px solid var(--admin-border)" }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1.25}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: 2,
+              bgcolor: "rgba(255, 56, 92, 0.12)",
+              color: "primary.main",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <Tab icon={tabIcons[0]} label="Tổng quan" />
-            <Tab icon={tabIcons[1]} label="Người dùng" />
-            <Tab icon={tabIcons[2]} label="Yêu cầu host" />
-            <Tab icon={tabIcons[3]} label="Chỗ ở" />
-            {/* <Tab icon={tabIcons[4]} label="Giao dịch" /> */}
-            <Tab icon={tabIcons[4]} label="Báo cáo" />
-            <Tab icon={tabIcons[5]} label="Hỗ trợ" />
-            {/* <Tab icon={tabIcons[7]} label="Hệ thống" /> */}
-            <Tab icon={tabIcons[6]} label="Tiện nghi" />
-            <Tab icon={tabIcons[7]} label="Danh mục" />
-            <Tab icon={tabIcons[8]} label="Đơn đặt phòng" />
-            <Tab icon={tabIcons[9]} label="Quốc gia" />
-            
-          </Tabs>
-        </Box>
+            <DashboardIcon fontSize="small" />
+          </Box>
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 700, color: "var(--admin-text-primary)", lineHeight: 1.2 }}
+            >
+              Bảng điều khiển
+            </Typography>
+            <Typography variant="caption" sx={{ color: "var(--admin-text-secondary)" }}>
+              RestNesst Admin
+            </Typography>
+          </Box>
+        </Stack>
+        {isMobile && (
+          <IconButton
+            aria-label="Đóng menu quản trị"
+            size="small"
+            onClick={() => setMobileOpen(false)}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Stack>
 
-        <Box sx={{ p: 3 }}>
-          <TabPanel value={tabValue} index={0}>
-            <AdminDashboard />
-          </TabPanel>
-          <TabPanel value={tabValue} index={1}>
-            <AdminUsers />
-          </TabPanel>
-          <TabPanel value={tabValue} index={2}>
-            <AdminHostRequest />
-          </TabPanel>
-          <TabPanel value={tabValue} index={3}>
-            <AdminProperties />
-          </TabPanel>
-          {/* <TabPanel value={tabValue} index={4}>
-            <AdminTransactions />
-          </TabPanel> */}
-          <TabPanel value={tabValue} index={4}>
-            <AdminReports />
-          </TabPanel>
-          <TabPanel value={tabValue} index={5}>
-            <AdminSupports />
-          </TabPanel>
-          {/* <TabPanel value={tabValue} index={7}>
-            <AdminSystem />
-          </TabPanel> */}
-          <TabPanel value={tabValue} index={6}>
-            <AdminAmenities />
-          </TabPanel>
-          <TabPanel value={tabValue} index={7}>
-            <AdminCategories />
-          </TabPanel>
-          <TabPanel value={tabValue} index={8}>
-            <AdminBookings />
-          </TabPanel>
-          <TabPanel value={tabValue} index={9}>
-            <AdminCountries />
-          </TabPanel>
-          
-        </Box>
+      <Box sx={{ flex: 1, overflowY: "auto" }}>
+        {sidebarGroups.map((group) => (
+          <Box key={group.groupLabel} sx={{ mb: 2.25 }}>
+            <Typography
+              variant="overline"
+              sx={{
+                px: 1.5,
+                 mb: 0.5,
+                display: "block",
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                color: "var(--admin-text-secondary)",
+              }}
+            >
+              {group.groupLabel}
+            </Typography>
+            <List disablePadding>
+              {group.items.map((item) => {
+                const isSelected = tabValue === item.index;
+                return (
+                  <ListItemButton
+                    key={item.index}
+                    selected={isSelected}
+                    onClick={(event) => {
+                      handleTabChange(event, item.index);
+                      if (isMobile) setMobileOpen(false);
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      py: 1,
+                      px: 1.5,
+                      transition: "all 0.16s ease",
+                      color: isSelected ? "primary.main" : "var(--admin-text-primary)",
+                      bgcolor: isSelected
+                        ? "rgba(255, 56, 92, 0.1)"
+                        : "transparent",
+                      "&.Mui-selected": {
+                        bgcolor: "rgba(255, 56, 92, 0.1)",
+                        color: "primary.main",
+                        "&:hover": {
+                          bgcolor: "rgba(255, 56, 92, 0.14)",
+                        },
+                      },
+                      "&:hover": {
+                        bgcolor: "var(--rn-surface-subtle)",
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 36,
+                        color: isSelected ? "primary.main" : "var(--admin-text-secondary)",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.label}
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: isSelected ? 700 : 500,
+                      }}
+                    />
+                    {isSelected && (
+                      <Box
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          bgcolor: "primary.main",
+                        }}
+                      />
+                    )}
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Box
+      sx={{
+        "--admin-bg": "var(--rn-bg)",
+        "--admin-surface": "var(--rn-surface)",
+        "--admin-border": "var(--rn-border)",
+        "--admin-text-primary": "var(--rn-text-primary)",
+        "--admin-text-secondary": "var(--rn-text-secondary)",
+        "--admin-radius-lg": "16px",
+        "--admin-shadow-sm": "var(--rn-shadow-sm)",
+        minHeight: "calc(100dvh - 73px)",
+        bgcolor: "var(--admin-bg)",
+        display: "flex",
+      }}
+    >
+      {/* Sidebar cố định bên trái trên màn hình lớn */}
+      <Box
+        component="aside"
+        sx={{
+          width: 264,
+          flexShrink: 0,
+          display: { xs: "none", lg: "block" },
+          bgcolor: "var(--admin-surface)",
+          borderRight: "1px solid var(--admin-border)",
+          position: "sticky",
+          top: 73,
+          height: "calc(100dvh - 73px)",
+        }}
+      >
+        {renderSidebarContent(false)}
+      </Box>
+
+      {/* Drawer menu cho mobile & tablet */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", lg: "none" },
+          "& .MuiDrawer-paper": {
+            width: 280,
+            boxSizing: "border-box",
+            bgcolor: "var(--rn-surface)",
+          },
+        }}
+      >
+        {renderSidebarContent(true)}
+      </Drawer>
+
+      {/* Khu vực nội dung chính */}
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          py: { xs: 2.5, md: 3.5 },
+          px: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
+        <Container maxWidth="xl" disableGutters>
+          {/* Tiêu đề trang gọn gàng, không còn khoảng trống thừa */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={2}
+            sx={{ mb: 3 }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <IconButton
+                aria-label="Mở menu quản trị"
+                onClick={() => setMobileOpen(true)}
+                sx={{
+                  display: { xs: "inline-flex", lg: "none" },
+                  border: "1px solid var(--admin-border)",
+                  bgcolor: "var(--admin-surface)",
+                  borderRadius: 2,
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Box>
+                <Stack direction="row" alignItems="center" spacing={1.25}>
+                  <Typography
+                    variant="h4"
+                    component="h1"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: { xs: "1.35rem", sm: "1.65rem" },
+                      color: "var(--admin-text-primary)",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    Trang Quản Trị
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={activeNavItem.label}
+                    sx={{
+                      bgcolor: "rgba(255, 56, 92, 0.1)",
+                      color: "primary.main",
+                      fontWeight: 600,
+                      borderRadius: 1.5,
+                    }}
+                  />
+                </Stack>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "var(--admin-text-secondary)", mt: 0.25 }}
+                >
+                  Theo dõi chỉ số vận hành & quản lý toàn bộ hệ thống RestNesst
+                </Typography>
+              </Box>
+            </Stack>
+          </Stack>
+
+          {/* Bộ 4 thẻ KPI duy nhất, đồng bộ chiều cao & có trạng thái dữ liệu rỗng */}
+          <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
+            {stats.map((stat, index) => {
+              const isZero = Number(stat.rawValue) === 0;
+              return (
+                <Grid item xs={12} sm={6} xl={3} key={index}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.5,
+                      height: "100%",
+                      borderRadius: "var(--admin-radius-lg)",
+                      bgcolor: "var(--admin-surface)",
+                      border: "1px solid var(--admin-border)",
+                      boxShadow: "var(--admin-shadow-sm)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
+                      },
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      alignItems="flex-start"
+                      justifyContent="space-between"
+                      spacing={2}
+                    >
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "var(--admin-text-secondary)",
+                            fontWeight: 600,
+                            mb: 0.75,
+                          }}
+                        >
+                          {stat.title}
+                        </Typography>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 700,
+                            color: isZero
+                              ? "#64748B"
+                              : "var(--admin-text-primary)",
+                            fontSize: { xs: "1.5rem", sm: "1.75rem" },
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {stat.value}
+                        </Typography>
+                      </Box>
+                      <Avatar
+                        variant="rounded"
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2.5,
+                          bgcolor: stat.accentBg,
+                          color: stat.accentColor,
+                        }}
+                      >
+                        {stat.icon}
+                      </Avatar>
+                    </Stack>
+
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={0.75}
+                      sx={{
+                        mt: 2,
+                        pt: 1.5,
+                        borderTop: "1px dashed var(--admin-border)",
+                      }}
+                    >
+                      {stat.trend ? (
+                        <>
+                          <TrendingUpIcon
+                            sx={{ fontSize: 16, color: "success.main" }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "success.main", fontWeight: 600 }}
+                          >
+                            {stat.trend}
+                          </Typography>
+                        </>
+                      ) : isZero ? (
+                        <>
+                          <InfoOutlinedIcon
+                            sx={{ fontSize: 15, color: "var(--admin-text-secondary)" }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "var(--admin-text-secondary)", fontWeight: 500 }}
+                          >
+                            {stat.emptyHint}
+                          </Typography>
+                        </>
+                      ) : (
+                        <>
+                          <TrendingUpIcon
+                            sx={{ fontSize: 15, color: stat.accentColor }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "var(--admin-text-secondary)", fontWeight: 500 }}
+                          >
+                            {stat.activeHint}
+                          </Typography>
+                        </>
+                      )}
+                    </Stack>
+                  </Paper>
+                </Grid>
+              );
+            })}
+          </Grid>
+
+          {/* Khung hiển thị nội dung từng Tab */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: "var(--admin-radius-lg)",
+              bgcolor: "var(--admin-surface)",
+              border: "1px solid var(--admin-border)",
+              boxShadow: "var(--admin-shadow-sm)",
+              overflow: "hidden",
+            }}
+          >
+            <TabPanel value={tabValue} index={0}>
+              <AdminDashboard />
+            </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+              <AdminUsers />
+            </TabPanel>
+            <TabPanel value={tabValue} index={2}>
+              <AdminHostRequest />
+            </TabPanel>
+            <TabPanel value={tabValue} index={3}>
+              <AdminProperties />
+            </TabPanel>
+            {/* <TabPanel value={tabValue} index={4}>
+              <AdminTransactions />
+            </TabPanel> */}
+            <TabPanel value={tabValue} index={4}>
+              <AdminReports />
+            </TabPanel>
+            <TabPanel value={tabValue} index={5}>
+              <AdminSupports />
+            </TabPanel>
+            {/* <TabPanel value={tabValue} index={7}>
+              <AdminSystem />
+            </TabPanel> */}
+            <TabPanel value={tabValue} index={6}>
+              <AdminAmenities />
+            </TabPanel>
+            <TabPanel value={tabValue} index={7}>
+              <AdminCategories />
+            </TabPanel>
+            <TabPanel value={tabValue} index={8}>
+              <AdminBookings />
+            </TabPanel>
+            <TabPanel value={tabValue} index={9}>
+              <AdminCountries />
+            </TabPanel>
+          </Paper>
+        </Container>
       </Box>
 
       <Menu
@@ -342,6 +694,6 @@ export default function AdminPage() {
           Thao tác thành công!
         </Alert>
       )}
-    </Container>
+    </Box>
   );
 }

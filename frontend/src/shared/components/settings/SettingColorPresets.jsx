@@ -34,6 +34,7 @@ export default function SettingColorPresets() {
           return (
             <Grid key={colorName} item xs={4}>
               <BoxStyle
+                onClick={() => onChangeColor({ target: { value: colorName } })}
                 sx={{
                   ...(isSelected && {
                     bgcolor: alpha(colorValue, 0.08),

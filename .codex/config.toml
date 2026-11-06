@@ -10,6 +10,10 @@ tool_timeout_sec = 30
 env_vars = ["RESTNESST_MYSQL_PASSWORD"]
 default_tools_approval_mode = "writes"
 enabled_tools = [
+  "mysql-dev-data-counts",
+  "amenities-list",
+  "amenities-create-local",
+
   "mysql-connection-info",
   "mysql-current-grants",
   "mysql-list-tables",

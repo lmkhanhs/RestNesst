@@ -87,6 +87,11 @@ xóa sau khi kiểm tra quyền thành công; chỉ giữ template không có b�
 
 ## Các tool được cấu hình
 
+Tiện ích có ảnh local được bổ sung qua `amenities-list` và `amenities-create-local`.
+Catalog và cách chạy xem tại
+[`uploads/amenities/README.md`](../../airbnb_service/src/main/resources/static/uploads/amenities/README.md).
+Seed này độc lập với bộ khách sạn/tài khoản đang chờ xác nhận.
+
 | Tool | Công việc |
 | --- | --- |
 | `mysql-connection-info` | Xác nhận database và user |

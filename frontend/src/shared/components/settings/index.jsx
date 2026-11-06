@@ -164,7 +164,19 @@ export function BoxMask({ value }) {
     <FormControlLabel
       label=""
       value={value}
-      control={<Radio sx={{ display: 'none' }} />}
+      control={
+        <Radio
+          sx={{
+            opacity: 0,
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            m: 0,
+            p: 0,
+          }}
+        />
+      }
       sx={{
         m: 0,
         top: 0,

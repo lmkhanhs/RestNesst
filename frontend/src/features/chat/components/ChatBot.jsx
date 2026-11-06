@@ -80,17 +80,20 @@ const ChatBot = () => {
       {!open && (
         <Fab
           color="primary"
-          aria-label="chat"
+          size="medium"
+          aria-label="Mở hộp thoại hỗ trợ trực tuyến"
           onClick={() => setOpen(true)}
           sx={{
             position: "fixed",
-            bottom: 32,
-            right: 32,
-            zIndex: 1300,
-            boxShadow: 6,
+            bottom: { xs: 16, md: 24 },
+            right: { xs: 16, md: 24 },
+            width: 48,
+            height: 48,
+            zIndex: 1250,
+            boxShadow: "0 8px 24px rgba(255, 56, 92, 0.32)",
           }}
         >
-          <ChatIcon sx={{ fontSize: 32 }} />
+          <ChatIcon sx={{ fontSize: 22 }} />
         </Fab>
       )}
 
@@ -100,17 +103,19 @@ const ChatBot = () => {
             elevation={8}
             sx={{
               position: "fixed",
-              bottom: 32,
-              right: 32,
-              width: 370,
-              height: 540,
+              bottom: { xs: 16, md: 24 },
+              right: { xs: 16, md: 24 },
+              width: { xs: "calc(100vw - 32px)", sm: 360 },
+              height: { xs: "min(480px, 75dvh)", sm: 500 },
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
               zIndex: 1400,
-              borderRadius: 4,
-              boxShadow: 8,
-              background: "#fff",
+              borderRadius: 3,
+              boxShadow: "var(--rn-shadow-lg)",
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
             <Box
@@ -143,7 +148,7 @@ const ChatBot = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,
-                background: "#f7f7f7",
+                bgcolor: "var(--rn-bg)",
               }}
             >
               {messages.map((message, index) => (
@@ -154,7 +159,7 @@ const ChatBot = () => {
                       message.sender === "user" ? "flex-end" : "flex-start",
                     maxWidth: "80%",
                     bgcolor:
-                      message.sender === "user" ? "primary.light" : "grey.200",
+                      message.sender === "user" ? "primary.main" : "var(--rn-surface-subtle)",
                     color: message.sender === "user" ? "white" : "text.primary",
                     p: 1.5,
                     borderRadius: 2,
@@ -176,7 +181,7 @@ const ChatBot = () => {
                 p: 2,
                 borderTop: 1,
                 borderColor: "divider",
-                bgcolor: "#fff",
+                bgcolor: "background.paper",
               }}
             >
               <TextField

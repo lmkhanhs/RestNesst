@@ -65,6 +65,7 @@ def main():
                 ("mysql-connection-info", {}),
                 ("mysql-current-grants", {}),
                 ("mysql-list-tables", {}),
+                ("mysql-dev-data-counts", {}),
                 ("mysql-describe-table", {"table_name": "countries"}),
                 ("mysql-list-foreign-keys", {}),
             ]:

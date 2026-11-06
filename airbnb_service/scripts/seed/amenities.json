@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Điều hòa",
+    "description": "Điều hòa giúp điều chỉnh nhiệt độ trong phòng.",
+    "thumbnail_url": "/uploads/amenities/air-conditioning.png"
+  },
+  {
+    "name": "Thang máy",
+    "description": "Thang máy phục vụ di chuyển giữa các tầng.",
+    "thumbnail_url": "/uploads/amenities/elevator.png"
+  },
+  {
+    "name": "Máy sấy tóc",
+    "description": "Máy sấy tóc dành cho khách lưu trú.",
+    "thumbnail_url": "/uploads/amenities/hair-dryer.png"
+  },
+  {
+    "name": "Bàn làm việc",
+    "description": "Bàn làm việc phù hợp sử dụng máy tính cá nhân.",
+    "thumbnail_url": "/uploads/amenities/work-desk.png"
+  },
+  {
+    "name": "Phòng tập thể dục",
+    "description": "Khu tập luyện với thiết bị thể dục.",
+    "thumbnail_url": "/uploads/amenities/fitness-center.png"
+  },
+  {
+    "name": "Spa",
+    "description": "Khu dịch vụ thư giãn và chăm sóc cơ thể.",
+    "thumbnail_url": "/uploads/amenities/spa.png"
+  },
+  {
+    "name": "Lễ tân 24 giờ",
+    "description": "Quầy lễ tân hỗ trợ khách suốt 24 giờ.",
+    "thumbnail_url": "/uploads/amenities/reception-24h.png"
+  },
+  {
+    "name": "Nhà hàng",
+    "description": "Nhà hàng phục vụ ăn uống tại chỗ nghỉ.",
+    "thumbnail_url": "/uploads/amenities/restaurant.png"
+  },
+  {
+    "name": "Đưa đón sân bay",
+    "description": "Dịch vụ di chuyển giữa sân bay và chỗ nghỉ.",
+    "thumbnail_url": "/uploads/amenities/airport-transfer.png"
+  },
+  {
+    "name": "Trạm sạc xe điện",
+    "description": "Điểm sạc dành cho phương tiện chạy điện.",
+    "thumbnail_url": "/uploads/amenities/ev-charging.png"
+  }
+]

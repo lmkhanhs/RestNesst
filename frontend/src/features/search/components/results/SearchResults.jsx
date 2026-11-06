@@ -149,7 +149,7 @@ const Result = ({
           role="group"
           aria-label="Chế độ hiển thị danh sách"
           sx={{
-            bgcolor: "#F1F5F9",
+            bgcolor: "var(--rn-surface-subtle)",
             p: 0.5,
             borderRadius: "12px",
             alignSelf: { xs: "flex-start", sm: "center" },

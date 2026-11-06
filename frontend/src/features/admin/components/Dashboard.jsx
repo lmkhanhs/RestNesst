@@ -5,18 +5,12 @@ import {
   Paper,
   Box,
   Stack,
-  Card,
-  CardContent,
   IconButton,
   Tooltip,
   Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Chip,
-  Avatar,
-  LinearProgress
+  Skeleton,
+  Button
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -27,12 +21,11 @@ import {
   Reply as ReplyIcon,
   Notifications as NotificationsIcon,
   Refresh as RefreshIcon,
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon
+  BarChartOutlined as BarChartOutlinedIcon,
+  HistoryToggleOff as HistoryToggleOffIcon
 } from '@mui/icons-material';
 import Chart from 'chart.js/auto';
 import axiosInstance from "@/shared/api/httpClient.js";
-import CircularProgress from '@mui/material/CircularProgress';
 
 export default function AdminDashboard() {
   const summaryChartRef = useRef(null);
@@ -68,8 +61,6 @@ export default function AdminDashboard() {
       color: 'warning.main'
     },
   ];
-
-  
 
   const getActionIcon = (type) => {
     switch (type) {
@@ -156,14 +147,14 @@ export default function AdminDashboard() {
           {
             label: 'Doanh thu (triệu VND)',
             data: revenueData,
-            backgroundColor: '#42a5f5',
-            borderRadius: 5
+            backgroundColor: '#FF385C',
+            borderRadius: 6
           },
           {
             label: 'Người dùng mới',
             data: usersData,
-            backgroundColor: '#66bb6a',
-            borderRadius: 5
+            backgroundColor: '#0EA5E9',
+            borderRadius: 6
           }
         ]
       }, {
@@ -176,15 +167,14 @@ export default function AdminDashboard() {
             }
           },
           title: { 
-            display: true, 
-            text: 'Tổng hợp Giao dịch & Người dùng mới',
-            font: { size: 16, weight: 'bold' }
+            display: false
           }
         },
         scales: {
           y: {
             beginAtZero: true,
             grid: {
+              color: '#F1F5F9',
               drawBorder: false
             }
           },
@@ -250,112 +240,207 @@ export default function AdminDashboard() {
     fetchTransactionCount();
   }, [refreshKey]);
 
+  const hasChartData = monthlyUsers.length > 0 || monthlyRevenue.length > 0;
+
   return (
-    <Box sx={{ height: '100%', width: '100%', p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={600}>
-          BẢNG ĐIỀU KHIỂN ADMIN
-        </Typography>
-        <Tooltip title="Làm mới">
-          <IconButton aria-label="Làm mới dữ liệu" disabled={loadingSummary} onClick={() => setRefreshKey((key) => key + 1)}>
-            <RefreshIcon />
-          </IconButton>
+    <Box sx={{ width: '100%', p: { xs: 2.5, md: 3.5 } }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        spacing={1.5}
+        sx={{ mb: 3 }}
+      >
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            Tổng quan hệ thống
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+            Biểu đồ doanh thu, tăng trưởng người dùng mới và nhật ký vận hành theo tháng
+          </Typography>
+        </Box>
+        <Tooltip title="Làm mới dữ liệu thống kê">
+          <span>
+            <Button
+              variant="outlined"
+              size="small"
+              aria-label="Làm mới dữ liệu"
+              disabled={loadingSummary}
+              onClick={() => setRefreshKey((key) => key + 1)}
+              startIcon={<RefreshIcon />}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: 'divider',
+                color: 'text.primary'
+              }}
+            >
+              Làm mới
+            </Button>
+          </span>
         </Tooltip>
       </Stack>
 
-      <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
-        {dataSummary.map((item, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card elevation={3} sx={{ height: '100%' }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box sx={{ flex: 1, textAlign: 'center' }}>
-                    <Typography color="text.secondary" gutterBottom>
-                      {item.label}
-                    </Typography>
-                    <Typography variant="h4" component="div" sx={{ mb: 1 }}>
-                      {item.value}
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                      {item.change.startsWith('+') ? (
-                        <ArrowUpwardIcon sx={{ color: 'success.main', fontSize: 16 }} />
-                      ) : (
-                        <ArrowDownwardIcon sx={{ color: 'error.main', fontSize: 16 }} />
-                      )}
-                      <Typography
-                        variant="body2"
-                        sx={{ 
-                          color: item.change.startsWith('+') ? 'success.main' : 'error.main'
-                        }}
-                      >
-                        {item.change}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                  <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                    {item.icon}
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      <Grid container spacing={3}>
+        {/* Biểu đồ Doanh thu & Người dùng theo tháng */}
+        <Grid item xs={12} lg={8}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, sm: 3 },
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+              height: '100%',
+              minHeight: 420,
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ mb: 2 }}
+            >
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  Biểu đồ Doanh thu & Người dùng mới theo tháng
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Đơn vị doanh thu: triệu VND • Dữ liệu tổng hợp 12 tháng
+                </Typography>
+              </Box>
+              <Chip
+                size="small"
+                icon={<BarChartOutlinedIcon fontSize="small" />}
+                label={hasChartData ? "Đang cập nhật" : "Chưa phát sinh dữ liệu"}
+                sx={{
+                  bgcolor: hasChartData ? 'rgba(16, 185, 129, 0.12)' : 'var(--rn-surface-subtle)',
+                  color: hasChartData ? 'success.main' : 'text.secondary',
+                  fontWeight: 600
+                }}
+              />
+            </Stack>
 
-      <Grid container spacing={4} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
-          <Paper elevation={3} sx={{ p: 3, height: 400 }}>
-            {loadingSummary ? (
-              <Stack alignItems="center" justifyContent="center" sx={{ height: 1 }}>
-                <CircularProgress />
-              </Stack>
-            ) : (
-              <canvas ref={summaryChartRef}></canvas>
-            )}
+            <Divider sx={{ mb: 2.5 }} />
+
+            <Box sx={{ position: 'relative', flex: 1, minHeight: 320 }}>
+              {loadingSummary && (
+                <Stack
+                  spacing={1.5}
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    bgcolor: 'var(--rn-surface)',
+                    zIndex: 2,
+                    p: 1
+                  }}
+                >
+                  <Skeleton variant="rectangular" height={28} width="45%" sx={{ borderRadius: 1 }} />
+                  <Skeleton variant="rectangular" height={260} sx={{ borderRadius: 2 }} />
+                </Stack>
+              )}
+
+              {!loadingSummary && !hasChartData && (
+                <Stack
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={1}
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 1,
+                    bgcolor: 'var(--rn-surface)',
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: 'center'
+                  }}
+                >
+                  <BarChartOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    Chưa có dữ liệu biểu đồ trong kỳ thống kê
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', maxWidth: 360 }}>
+                    Khi hệ thống ghi nhận giao dịch thanh toán và người dùng mới, biểu đồ tăng trưởng theo tháng sẽ hiển thị tại đây.
+                  </Typography>
+                </Stack>
+              )}
+
+              <canvas ref={summaryChartRef} />
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Khu vực Hoạt động gần đây (Placeholder UI sạch đẹp theo yêu cầu) */}
+        <Grid item xs={12} lg={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, sm: 3 },
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+              height: '100%',
+              minHeight: 420,
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 2 }}
+            >
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  Hoạt động gần đây
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Nhật ký xét duyệt & sự kiện hệ thống
+                </Typography>
+              </Box>
+              <Chip
+                size="small"
+                label="Trực tiếp"
+                sx={{
+                  bgcolor: 'var(--rn-surface-subtle)',
+                  color: 'text.secondary',
+                  fontWeight: 600
+                }}
+              />
+            </Stack>
+
+            <Divider sx={{ mb: 2.5 }} />
+
+            <Stack
+              alignItems="center"
+              justifyContent="center"
+              spacing={1.25}
+              sx={{
+                flex: 1,
+                p: 3,
+                textAlign: 'center',
+                bgcolor: 'var(--rn-bg)',
+                borderRadius: 2.5,
+                border: '1px dashed var(--rn-border-strong)'
+              }}
+            >
+              <HistoryToggleOffIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                Chưa có hoạt động mới nào
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                Các hoạt động xét duyệt Host, kích hoạt chỗ ở và phản hồi hỗ trợ sẽ được tổng hợp tại đây.
+              </Typography>
+            </Stack>
           </Paper>
         </Grid>
       </Grid>
-
-      {/* <Paper elevation={3} sx={{ p: 3 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6" fontWeight={600}>
-            Hoạt động gần đây
-          </Typography>
-          <Chip 
-            label="Xem tất cả" 
-            color="primary" 
-            variant="outlined"
-            clickable
-          />
-        </Stack>
-        <List>
-          {recentActions.map((action, index) => (
-            <React.Fragment key={action.id}>
-              <ListItem
-                secondaryAction={
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Typography variant="caption" color="text.secondary">
-                      {action.time}
-                    </Typography>
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                      {action.user.charAt(0)}
-                    </Avatar>
-                  </Stack>
-                }
-              >
-                <ListItemIcon>
-                  {getActionIcon(action.type)}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={action.message}
-                  secondary={action.user}
-                />
-              </ListItem>
-              {index < recentActions.length - 1 && <Divider />}
-            </React.Fragment>
-          ))}
-        </List>
-      </Paper> */}
     </Box>
   );
 }

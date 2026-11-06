@@ -190,6 +190,9 @@ const Header = () => {
   };
 
   const renderCenterContent = () => {
+    if (isAdminPage) {
+      return <Box sx={{ flex: 1 }} />;
+    }
     const titleData = getPageTitle();
     if (titleData) {
       return (
@@ -260,7 +263,7 @@ const Header = () => {
         position: "sticky",
         top: 0,
         zIndex: 1100,
-        bgcolor: "rgba(255, 255, 255, 0.94)",
+        bgcolor: "var(--rn-header-bg)",
         backdropFilter: "blur(10px)",
         borderBottom: "1px solid",
         borderColor: "divider",

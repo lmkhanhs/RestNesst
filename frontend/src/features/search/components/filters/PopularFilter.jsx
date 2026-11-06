@@ -17,7 +17,7 @@ const PopularFilter = ({ value = false, onChange }) => (
       cursor: "pointer",
       border: "1px solid",
       borderColor: value ? "primary.main" : "divider",
-      bgcolor: value ? "rgba(217, 27, 66, 0.05)" : "#F8FAFC",
+      bgcolor: value ? "rgba(217, 27, 66, 0.10)" : "var(--rn-surface-subtle)",
       transition: "border-color 150ms ease, background-color 150ms ease",
       "&:hover": {
         borderColor: value ? "primary.main" : "text.secondary",
