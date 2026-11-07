@@ -30,22 +30,67 @@ flowchart LR
 
 Backend hiện không cần MongoDB. `compose.redis.yaml` chỉ khai báo Redis; chưa có Compose chạy toàn bộ hệ thống. Các tích hợp Cloudinary, SMTP, VNPay và bản đồ cần cấu hình riêng để sử dụng chức năng tương ứng.
 
-## Backend: các tầng và luồng xử lý
+## Backend: tổ chức theo nghiệp vụ
 
 Source nằm trong `airbnb_service/src/main/java/com/pbl5cnpm/airbnb_service/`.
 
-| Package | Vai trò |
+```text
+com/pbl5cnpm/airbnb_service/
+├── AirbnbServiceApplication.java
+├── user/             # Hồ sơ, quản lý tài khoản, yêu cầu làm host
+├── auth/             # Đăng nhập, JWT, refresh/logout, blacklist Redis
+├── role/             # Quyền người dùng
+├── listing/          # Chỗ ở, ảnh chỗ ở và truy vấn tìm kiếm
+├── booking/          # Đặt phòng
+├── payment/          # Thanh toán, callback VNPay, tiện ích HMAC
+├── favorite/         # Yêu thích
+├── review/           # Đánh giá và tích hợp AI tóm tắt
+├── chat/             # Tin nhắn và controller WebSocket
+├── amenity/          # Tiện ích chỗ ở
+├── category/         # Danh mục chỗ ở
+├── country/          # Quốc gia
+├── statistics/       # Thống kê user, doanh thu và đánh giá
+├── shared/           # ApiResponse, BaseEntity, exception, mail, storage
+├── configuration/    # Spring, Security, WebSocket, khởi tạo dữ liệu nền
+└── seed/             # Công cụ dữ liệu mẫu được chạy chủ động
+```
+
+Mỗi nghiệp vụ chứa các tầng cần dùng, ví dụ:
+
+```text
+user/
+├── controller/UserController.java
+├── service/UserService.java
+├── repository/
+│   ├── UserRepository.java
+│   └── custom/
+│       ├── UserRepositoryCustom.java
+│       └── impl/UserRepositoryCustomImpl.java
+├── mapper/UserMapper.java
+├── entity/UserEntity.java
+└── dto/
+    ├── request/
+    └── response/
+```
+
+Không tạo tầng rỗng: `role/` hiện không có controller, `review/` chưa có controller riêng. Enum thuộc nghiệp vụ nằm trong `<nghiệp vụ>/enums/`. Tên package dùng chữ thường, gồm `dto/request`, `dto/response`, `repository/custom`.
+
+| Tầng trong nghiệp vụ | Vai trò |
 | --- | --- |
 | `controller/` | Nhận HTTP request, lấy thông tin người dùng, gọi nghiệp vụ và trả response |
 | `service/` | Validation, quy tắc nghiệp vụ, điều phối repository và dịch vụ ngoài |
-| `repository/` | JPA, truy vấn custom và native SQL |
+| `repository/`, `repository/custom/impl/` | JPA, truy vấn custom và native SQL |
 | `mapper/` | Chuyển entity ↔ DTO bằng MapStruct; một số mapper hiện có truy cập repository/dịch vụ |
 | `entity/` | Ánh xạ bảng và quan hệ MySQL |
-| `dto/Request`, `dto/Response` | Hợp đồng dữ liệu vào/ra API |
-| `configuration/`, `exception/` | Cấu hình Spring/Security và ánh xạ lỗi |
-| `seed/` | Công cụ dữ liệu mẫu được chạy chủ động |
+| `dto/request/`, `dto/response/` | Hợp đồng dữ liệu vào/ra API |
 
-Hướng tổ chức khi phát triển là controller xử lý HTTP, service giữ nghiệp vụ, repository giữ truy vấn. Source hiện có một số trách nhiệm còn nằm trong controller/mapper; bảng trên không khẳng định mọi luồng đã tách hoàn toàn.
+`shared/dto/response/ApiResponse`, `shared/entity/BaseEntity`, `shared/exception/`, `shared/mail/` và `shared/storage/` giữ phần dùng chung. `configuration/` giữ các cấu hình Spring/Security và chỉ tham chiếu tới package nghiệp vụ khi cần.
+
+Các nghiệp vụ vẫn có phụ thuộc chéo: booking dùng user/listing, payment dùng booking, listing dùng country/category/amenity/review. DTO thuộc nghiệp vụ cung cấp dữ liệu; ví dụ `statistics/dto/response/StatisticCountUser` được truy vấn từ custom repository của user. Import trực tiếp các kiểu cần thiết; việc chuyển package chưa tách thành các module Maven hay loại bỏ phụ thuộc chéo.
+
+Giữ `AirbnbServiceApplication` tại package gốc để Spring Boot tiếp tục quét component, entity và repository trong toàn bộ các nghiệp vụ. Giữ tên lớp và hậu tố `CustomImpl` của repository fragment; implementation nằm dưới repository của cùng nghiệp vụ để Spring Data tìm được. MapStruct sinh implementation trong package mới của mapper; chạy `mvn clean ...` sau khi đổi package để bỏ class sinh từ vị trí cũ. Test nằm dưới `src/test/java` và phản chiếu package nghiệp vụ.
+
+Controller xử lý HTTP, service giữ nghiệp vụ, repository giữ truy vấn. Source hiện có một số trách nhiệm còn nằm trong controller/mapper; đổi package không thay đổi các trách nhiệm hoặc hành vi đó. Tên lớp cũ, route, JSON, phân quyền, transaction, bảng và SQL được giữ nguyên.
 
 Các luồng chính:
 
@@ -88,6 +133,8 @@ AI tóm tắt này khác với caller chatbot ở cổng 3000 và phân tích c�
 
 Backend dùng [application.yml](../airbnb_service/src/main/resources/application.yml). Bí mật phải được cấp qua môi trường hoặc cấu hình local bị Git bỏ qua; không sao chép giá trị thật vào tài liệu.
 
-Ảnh local nằm trong `airbnb_service/src/main/resources/static/uploads/`, được tham chiếu qua `/uploads/...`. Đây là file trên ổ đĩa backend, không phải browser `localStorage`. Một số luồng upload dùng Cloudinary; giữ nguyên cách lưu URL theo từng luồng.
+Ảnh local nằm trong `upload.directory` (mặc định `src/main/resources/static/uploads/`, tính từ thư mục chạy backend `airbnb_service/`), được tham chiếu qua `/uploads/...`. `UploadResourceConfig` ánh xạ URL này tới thư mục thật trên ổ đĩa để ảnh mới đọc được ngay, không phụ thuộc bản sao classpath. Đây là file backend, không phải browser `localStorage`.
+
+Frontend chuẩn hóa ảnh phòng qua `shared/utils/mediaUrl.js`: đường dẫn tương đối nhận prefix backend, URL cloud đầy đủ giữ nguyên. Sau khi transaction tạo phòng commit, `ListingImageUploadService` chuyển ảnh lên cloud và lưu URL thành công; upload lỗi giữ đường dẫn local. Giữ bản local để các response cũ còn đọc được; chưa có job tự dọn bản sao. Một số luồng upload khác dùng Cloudinary trực tiếp; giữ nguyên cách lưu URL theo từng luồng.
 
 Xem [database.md](database.md) để biết bảng, Redis và quy tắc seed; xem [development.md](development.md) để chạy và kiểm tra từng module.

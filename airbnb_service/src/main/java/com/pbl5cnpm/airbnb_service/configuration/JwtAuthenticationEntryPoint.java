@@ -7,8 +7,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pbl5cnpm.airbnb_service.dto.Response.ApiResponse;
-import com.pbl5cnpm.airbnb_service.exception.ErrorCode;
+import com.pbl5cnpm.airbnb_service.shared.dto.response.ApiResponse;
+import com.pbl5cnpm.airbnb_service.shared.exception.ErrorCode;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -116,7 +116,8 @@ export default function AdminMessages() {
   return (
     <Box
       sx={{
-        height: "calc(100dvh - 200px)",
+        p: { xs: 2, md: 3 },
+        height: "calc(100dvh - 150px)",
         minHeight: 600,
         display: "flex",
         flexDirection: "column",
@@ -132,8 +133,9 @@ export default function AdminMessages() {
       >
         <Box>
           <Typography
-            variant="h5"
-            sx={{ fontWeight: 700, color: "var(--rn-text-primary)" }}
+            variant="h4"
+            component="h1"
+            sx={{ fontWeight: 600, color: "var(--rn-text-primary)" }}
           >
             Tin nhắn hỗ trợ
           </Typography>

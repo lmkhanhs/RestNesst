@@ -198,11 +198,22 @@ export default function AdminCategories() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={600}>
-          Quản lý danh mục
-        </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        spacing={2}
+        sx={{ mb: 3.5 }}
+      >
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight={600}>
+            Quản lý danh mục
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Tổng cộng {categories.length} danh mục • {categories.filter((c) => c.isActive).length} đang hoạt động
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

@@ -4,7 +4,6 @@ import {
   Card,
   Stack,
   Button,
-  Container,
   Typography,
   Avatar,
   Alert,
@@ -51,12 +50,14 @@ const HostRequest = () => {
       const response = await axiosInstance.get("/api/users/host/apply");
       const apiRequests = response.data.result.map((item) => ({
         id: item.id,
-        fullname: item.fullname,
+        fullname: item.fullname || item.username || "Chưa cập nhật",
         avatar: item.thumbnailUrl || item.thumnailUrl || "/default-avatar.png",
         description: item.description || "",
         languages: item.languages || "",
         address: item.country || "",
-        experience: item.didHostYear ? `${item.didHostYear} năm kinh nghiệm` : "",
+        experience:
+          item.hostExperience ||
+          (item.didHostYear ? `${item.didHostYear} năm kinh nghiệm` : ""),
         status: "PENDING", 
         email: item.email,
         phone: item.phone,
@@ -148,13 +149,17 @@ const HostRequest = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 8 }}>
-        <Typography variant="h4" sx={{ mb: 5, fontWeight: 700 }}>
+    <Box sx={{ width: "100%", p: { xs: 2, md: 3 } }}>
+      <Box sx={{ mb: 3.5 }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
           Quản lý yêu cầu lên host
         </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Tổng cộng {requests.length} yêu cầu • {requests.filter((r) => r.status === "PENDING").length} đang chờ duyệt
+        </Typography>
+      </Box>
 
-        {error && (
+      {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
@@ -220,7 +225,27 @@ const HostRequest = () => {
                       </TableCell>
                       <TableCell>{request.fullname}</TableCell>
                       <TableCell>{request.address}</TableCell>
-                      <TableCell>{request.languages}</TableCell>
+                      <TableCell>
+                        {request.languages ? (
+                          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                            {request.languages
+                              .split(",")
+                              .map((lang) => lang.trim())
+                              .filter(Boolean)
+                              .map((lang) => (
+                                <Chip
+                                  key={lang}
+                                  label={lang}
+                                  size="small"
+                                  variant="outlined"
+                                  color="primary"
+                                />
+                              ))}
+                          </Stack>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
                       <TableCell>{getStatusChip(request.status)}</TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1}>
@@ -257,14 +282,9 @@ const HostRequest = () => {
           {selectedRequest && (
             <>
               <DialogTitle>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
                   Chi tiết yêu cầu lên host
                 </Typography>
-
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Chi tiết yêu cầu lên host
-                </Typography>
-
               </DialogTitle>
               <DialogContent>
                 <Stack spacing={3} sx={{ mt: 2 }}>
@@ -310,6 +330,8 @@ const HostRequest = () => {
                     label="Kinh nghiệm"
                     value={selectedRequest.experience}
                     fullWidth
+                    multiline
+                    minRows={2}
                     disabled
                   />
                 </Stack>
@@ -346,8 +368,7 @@ const HostRequest = () => {
             </>
           )}
         </Dialog>
-      </Box>
-    </Container>
+    </Box>
   );
 };
 

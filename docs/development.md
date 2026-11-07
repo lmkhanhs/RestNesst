@@ -132,6 +132,7 @@ Backend gọi AI qua `AiSummarizeService`. `/health` phản ánh khả năng t�
 | Phần sửa | Thư mục chạy | Lệnh / cách kiểm tra |
 | --- | --- | --- |
 | Backend unit test auth/host | `airbnb_service/` | `mvn -Dtest=InvalidTokenRepositoryTest,AuthenticationServiceTest,UserServiceHostApplicationTest test` |
+| Backend cấu trúc package | `airbnb_service/` | `mvn -Dtest=BackendPackageDiscoveryTest test` — kiểm tra discovery của component, MapStruct, JPA và custom repository, không kết nối DB |
 | Backend đầy đủ | `airbnb_service/` | `mvn clean package` — gồm test, context test cần dịch vụ/cấu hình |
 | Backend khi được yêu cầu bỏ test | `airbnb_service/` | `mvn -DskipTests clean package` — không thực thi test, vẫn có thể biên dịch test |
 | Frontend | `frontend/` | `npm run check:imports`, `npm run build`, `npm run lint` |

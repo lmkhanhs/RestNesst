@@ -194,11 +194,22 @@ export default function AdminAmenities() {
   }, []);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={600}>
-          Quản lý tiện nghi
-        </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        spacing={2}
+        sx={{ mb: 3.5 }}
+      >
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight={600}>
+            Quản lý tiện nghi
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Tổng cộng {amenities.length} tiện nghi • {amenities.filter((a) => a.isActive).length} đang hoạt động
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

@@ -8,10 +8,6 @@ import {
   Container,
   Grid,
   Avatar,
-  Menu,
-  MenuItem,
-  Divider,
-  Alert,
   Drawer,
   List,
   ListItemButton,
@@ -31,6 +27,7 @@ import {
   Category as CategoryIcon,
   BookOnline as BookOnlineIcon,
   Public as PublicIcon,
+  Translate as TranslateIcon,
   HowToReg as RequestPageIcon,
   Menu as MenuIcon,
   Close as CloseIcon,
@@ -52,6 +49,7 @@ import AdminAmenities from "@/features/admin/components/Amenities.jsx";
 import AdminCategories from "@/features/admin/components/Categories.jsx";
 import AdminBookings from "@/features/admin/components/Bookings.jsx";
 import AdminCountries from "@/features/admin/components/Countries.jsx";
+import AdminLanguages from "@/features/admin/components/Languages.jsx";
 
 function TabPanel({ children, value, index }) {
   return value === index ? <Box>{children}</Box> : null;
@@ -65,9 +63,6 @@ TabPanel.propTypes = {
 
 export default function AdminPage() {
   const [tabValue, setTabValue] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [listingCount, setListingCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [transactionCount, setTransactionCount] = useState(0);
@@ -126,17 +121,7 @@ export default function AdminPage() {
     setTabValue(newValue);
   };
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSearch = (event) => {
-    setSearchQuery(event.target.value);
-  };
+  const isOverviewTab = tabValue === 0;
 
   const stats = [
     {
@@ -200,6 +185,7 @@ export default function AdminPage() {
     <CategoryIcon key="categories" />,
     <BookOnlineIcon key="bookings" />,
     <PublicIcon key="countries" />,
+    <TranslateIcon key="languages" />,
   ];
 
   const sidebarGroups = [
@@ -224,6 +210,7 @@ export default function AdminPage() {
         { index: 6, label: "Tiện nghi", icon: tabIcons[6] },
         { index: 7, label: "Danh mục", icon: tabIcons[7] },
         { index: 9, label: "Quốc gia", icon: tabIcons[9] },
+        { index: 10, label: "Ngôn ngữ", icon: tabIcons[10] },
       ],
     },
     {
@@ -239,6 +226,14 @@ export default function AdminPage() {
     sidebarGroups
       .flatMap((group) => group.items)
       .find((item) => item.index === tabValue) || sidebarGroups[0].items[0];
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${activeNavItem.label} | RestNesst Admin`;
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [activeNavItem.label]);
 
   const renderSidebarContent = (isMobile = false) => (
     <Box
@@ -320,6 +315,7 @@ export default function AdminPage() {
                   <ListItemButton
                     key={item.index}
                     selected={isSelected}
+                    aria-current={isSelected ? "page" : undefined}
                     onClick={(event) => {
                       handleTabChange(event, item.index);
                       if (isMobile) setMobileOpen(false);
@@ -449,20 +445,202 @@ export default function AdminPage() {
         }}
       >
         <Container maxWidth={false} disableGutters>
-          {/* Tiêu đề trang gọn gàng, không còn khoảng trống thừa */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={2}
-            sx={{ mb: 3 }}
-          >
-            <Stack direction="row" alignItems="center" spacing={1.5}>
+          {isOverviewTab ? (
+            <>
+              {/* Tiêu đề & bộ 4 thẻ KPI tổng quan chỉ hiển thị ở mục Tổng quan */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                spacing={2}
+                sx={{ mb: 3 }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <IconButton
+                    aria-label="Mở menu quản trị"
+                    onClick={() => setMobileOpen(true)}
+                    sx={{
+                      display: { xs: "inline-flex", lg: "none" },
+                      border: "1px solid var(--admin-border)",
+                      bgcolor: "var(--admin-surface)",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <Box>
+                    <Stack direction="row" alignItems="center" spacing={1.25}>
+                      <Typography
+                        variant="h4"
+                        component="h1"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: { xs: "1.35rem", sm: "1.65rem" },
+                          color: "var(--admin-text-primary)",
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        Trang Quản Trị
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label={activeNavItem.label}
+                        sx={{
+                          bgcolor: "rgba(255, 56, 92, 0.1)",
+                          color: "primary.main",
+                          fontWeight: 600,
+                          borderRadius: 1.5,
+                        }}
+                      />
+                    </Stack>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "var(--admin-text-secondary)", mt: 0.25 }}
+                    >
+                      Theo dõi chỉ số vận hành & quản lý toàn bộ hệ thống RestNesst
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Stack>
+
+              <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
+                {stats.map((stat, index) => {
+                  const isZero = Number(stat.rawValue) === 0;
+                  return (
+                    <Grid item xs={12} sm={6} xl={3} key={index}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2.5,
+                          height: "100%",
+                          borderRadius: "var(--admin-radius-lg)",
+                          bgcolor: "var(--admin-surface)",
+                          border: "1px solid var(--admin-border)",
+                          boxShadow: "var(--admin-shadow-sm)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
+                          },
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          alignItems="flex-start"
+                          justifyContent="space-between"
+                          spacing={2}
+                        >
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "var(--admin-text-secondary)",
+                                fontWeight: 600,
+                                mb: 0.75,
+                              }}
+                            >
+                              {stat.title}
+                            </Typography>
+                            <Typography
+                              variant="h4"
+                              sx={{
+                                fontWeight: 700,
+                                color: isZero
+                                  ? "#64748B"
+                                  : "var(--admin-text-primary)",
+                                fontSize: { xs: "1.5rem", sm: "1.75rem" },
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {stat.value}
+                            </Typography>
+                          </Box>
+                          <Avatar
+                            variant="rounded"
+                            sx={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 2.5,
+                              bgcolor: stat.accentBg,
+                              color: stat.accentColor,
+                            }}
+                          >
+                            {stat.icon}
+                          </Avatar>
+                        </Stack>
+
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={0.75}
+                          sx={{
+                            mt: 2,
+                            pt: 1.5,
+                            borderTop: "1px dashed var(--admin-border)",
+                          }}
+                        >
+                          {stat.trend ? (
+                            <>
+                              <TrendingUpIcon
+                                sx={{ fontSize: 16, color: "success.main" }}
+                              />
+                              <Typography
+                                variant="caption"
+                                sx={{ color: "success.main", fontWeight: 600 }}
+                              >
+                                {stat.trend}
+                              </Typography>
+                            </>
+                          ) : isZero ? (
+                            <>
+                              <InfoOutlinedIcon
+                                sx={{ fontSize: 15, color: "var(--admin-text-secondary)" }}
+                              />
+                              <Typography
+                                variant="caption"
+                                sx={{ color: "var(--admin-text-secondary)", fontWeight: 500 }}
+                              >
+                                {stat.emptyHint}
+                              </Typography>
+                            </>
+                          ) : (
+                            <>
+                              <TrendingUpIcon
+                                sx={{ fontSize: 15, color: stat.accentColor }}
+                              />
+                              <Typography
+                                variant="caption"
+                                sx={{ color: "var(--admin-text-secondary)", fontWeight: 500 }}
+                              >
+                                {stat.activeHint}
+                              </Typography>
+                            </>
+                          )}
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </>
+          ) : (
+            /* Thanh mở menu gọn cho thiết bị nhỏ khi ở các mục quản lý riêng */
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.25}
+              sx={{
+                display: { xs: "flex", lg: "none" },
+                mb: 2,
+              }}
+            >
               <IconButton
                 aria-label="Mở menu quản trị"
                 onClick={() => setMobileOpen(true)}
                 sx={{
-                  display: { xs: "inline-flex", lg: "none" },
                   border: "1px solid var(--admin-border)",
                   bgcolor: "var(--admin-surface)",
                   borderRadius: 2,
@@ -470,166 +648,20 @@ export default function AdminPage() {
               >
                 <MenuIcon />
               </IconButton>
-              <Box>
-                <Stack direction="row" alignItems="center" spacing={1.25}>
-                  <Typography
-                    variant="h4"
-                    component="h1"
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: { xs: "1.35rem", sm: "1.65rem" },
-                      color: "var(--admin-text-primary)",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    Trang Quản Trị
-                  </Typography>
-                  <Chip
-                    size="small"
-                    label={activeNavItem.label}
-                    sx={{
-                      bgcolor: "rgba(255, 56, 92, 0.1)",
-                      color: "primary.main",
-                      fontWeight: 600,
-                      borderRadius: 1.5,
-                    }}
-                  />
-                </Stack>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "var(--admin-text-secondary)", mt: 0.25 }}
-                >
-                  Theo dõi chỉ số vận hành & quản lý toàn bộ hệ thống RestNesst
-                </Typography>
-              </Box>
+              <Chip
+                size="small"
+                label={activeNavItem.label}
+                sx={{
+                  bgcolor: "rgba(255, 56, 92, 0.1)",
+                  color: "primary.main",
+                  fontWeight: 600,
+                  borderRadius: 1.5,
+                }}
+              />
             </Stack>
-          </Stack>
+          )}
 
-          {/* Bộ 4 thẻ KPI duy nhất, đồng bộ chiều cao & có trạng thái dữ liệu rỗng */}
-          <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
-            {stats.map((stat, index) => {
-              const isZero = Number(stat.rawValue) === 0;
-              return (
-                <Grid item xs={12} sm={6} xl={3} key={index}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 2.5,
-                      height: "100%",
-                      borderRadius: "var(--admin-radius-lg)",
-                      bgcolor: "var(--admin-surface)",
-                      border: "1px solid var(--admin-border)",
-                      boxShadow: "var(--admin-shadow-sm)",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      transition: "transform 0.18s ease, box-shadow 0.18s ease",
-                      "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
-                      },
-                    }}
-                  >
-                    <Stack
-                      direction="row"
-                      alignItems="flex-start"
-                      justifyContent="space-between"
-                      spacing={2}
-                    >
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: "var(--admin-text-secondary)",
-                            fontWeight: 600,
-                            mb: 0.75,
-                          }}
-                        >
-                          {stat.title}
-                        </Typography>
-                        <Typography
-                          variant="h4"
-                          sx={{
-                            fontWeight: 700,
-                            color: isZero
-                              ? "#64748B"
-                              : "var(--admin-text-primary)",
-                            fontSize: { xs: "1.5rem", sm: "1.75rem" },
-                            lineHeight: 1.2,
-                          }}
-                        >
-                          {stat.value}
-                        </Typography>
-                      </Box>
-                      <Avatar
-                        variant="rounded"
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2.5,
-                          bgcolor: stat.accentBg,
-                          color: stat.accentColor,
-                        }}
-                      >
-                        {stat.icon}
-                      </Avatar>
-                    </Stack>
-
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={0.75}
-                      sx={{
-                        mt: 2,
-                        pt: 1.5,
-                        borderTop: "1px dashed var(--admin-border)",
-                      }}
-                    >
-                      {stat.trend ? (
-                        <>
-                          <TrendingUpIcon
-                            sx={{ fontSize: 16, color: "success.main" }}
-                          />
-                          <Typography
-                            variant="caption"
-                            sx={{ color: "success.main", fontWeight: 600 }}
-                          >
-                            {stat.trend}
-                          </Typography>
-                        </>
-                      ) : isZero ? (
-                        <>
-                          <InfoOutlinedIcon
-                            sx={{ fontSize: 15, color: "var(--admin-text-secondary)" }}
-                          />
-                          <Typography
-                            variant="caption"
-                            sx={{ color: "var(--admin-text-secondary)", fontWeight: 500 }}
-                          >
-                            {stat.emptyHint}
-                          </Typography>
-                        </>
-                      ) : (
-                        <>
-                          <TrendingUpIcon
-                            sx={{ fontSize: 15, color: stat.accentColor }}
-                          />
-                          <Typography
-                            variant="caption"
-                            sx={{ color: "var(--admin-text-secondary)", fontWeight: 500 }}
-                          >
-                            {stat.activeHint}
-                          </Typography>
-                        </>
-                      )}
-                    </Stack>
-                  </Paper>
-                </Grid>
-              );
-            })}
-          </Grid>
-
-          {/* Khung hiển thị nội dung từng Tab */}
+          {/* Khung hiển thị nội dung riêng của từng mục */}
           <Paper
             elevation={0}
             sx={{
@@ -676,32 +708,12 @@ export default function AdminPage() {
             <TabPanel value={tabValue} index={9}>
               <AdminCountries />
             </TabPanel>
+            <TabPanel value={tabValue} index={10}>
+              <AdminLanguages />
+            </TabPanel>
           </Paper>
         </Container>
       </Box>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={handleMenuClose}>Tất cả</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Hôm nay</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Tuần này</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Tháng này</MenuItem>
-        <Divider />
-        <MenuItem onClick={handleMenuClose}>Tùy chỉnh</MenuItem>
-      </Menu>
-
-      {showSuccessAlert && (
-        <Alert
-          severity="success"
-          onClose={() => setShowSuccessAlert(false)}
-          sx={{ position: "fixed", bottom: 24, right: 24, zIndex: 2000 }}
-        >
-          Thao tác thành công!
-        </Alert>
-      )}
     </Box>
   );
 }

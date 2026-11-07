@@ -7,15 +7,17 @@ import Amenities from "./AmenitiesFilter.jsx";
 import CountryFilter from "./CountryFilter.jsx";
 import DateRangeFilter from "./DateRangeFilter.jsx";
 import PopularFilter from "./PopularFilter.jsx";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useFilter } from "@/features/search/hooks/useFilter.js";
 import axios from "axios";
 
+const FILTER_DEBOUNCE_MS = 450;
+
 const Filter = ({ onCloseMobile }) => {
-  const { filterListings } = useFilter();
+  const { filterListings, debouncedFilterListings, flushPendingFilter } = useFilter();
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
-  const [filterState, setFilterState] = useState({
+  const initialFilterState = {
     amenities: [],
     lowestPrice: 0,
     highestPrice: 1000,
@@ -24,7 +26,9 @@ const Filter = ({ onCloseMobile }) => {
     endDate: "",
     popular: false,
     category_id: "",
-  });
+  };
+  const [filterState, setFilterState] = useState(initialFilterState);
+  const filterStateRef = useRef(initialFilterState);
 
   // Khi mount, lấy min/max giá từ API
   useEffect(() => {
@@ -37,43 +41,64 @@ const Filter = ({ onCloseMobile }) => {
       const min = Math.min(...prices);
       const max = Math.max(...prices);
       setPriceRange({ min, max });
-      setFilterState((state) => ({
-        ...state,
-        lowestPrice: min,
-        highestPrice: max,
-      }));
+      setFilterState((state) => {
+        const nextState = {
+          ...state,
+          lowestPrice: min,
+          highestPrice: max,
+        };
+        filterStateRef.current = nextState;
+        return nextState;
+      });
     };
     fetchPriceRange().catch(() => {
       /* The main results panel reports connection failures. */
     });
   }, []);
 
-  // Gọi API filter mỗi khi filterState thay đổi
+  // Cập nhật giao diện tức thì, trì hoãn gọi API lọc để thao tác mượt hơn
   const updateFilter = (newFields) => {
-    let newState = { ...filterState, ...newFields };
-    if (newState.lowestPrice < priceRange.min)
-      newState.lowestPrice = priceRange.min;
-    if (newState.highestPrice > priceRange.max)
-      newState.highestPrice = priceRange.max;
-    setFilterState(newState);
+    const prevState = filterStateRef.current;
+    const rawLowest =
+      "lowestPrice" in newFields ? Number(newFields.lowestPrice) : prevState.lowestPrice;
+    const rawHighest =
+      "highestPrice" in newFields ? Number(newFields.highestPrice) : prevState.highestPrice;
+
+    const nextState = {
+      ...prevState,
+      ...newFields,
+      lowestPrice: Number.isFinite(rawLowest) ? Math.max(0, rawLowest) : priceRange.min,
+      highestPrice: Number.isFinite(rawHighest) ? Math.max(0, rawHighest) : priceRange.max,
+    };
+    filterStateRef.current = nextState;
+    setFilterState(nextState);
+
+    const clampedLowest = Math.max(
+      priceRange.min,
+      Math.min(nextState.lowestPrice, priceRange.max)
+    );
+    const clampedHighest = Math.max(
+      clampedLowest,
+      Math.min(nextState.highestPrice, priceRange.max)
+    );
 
     const filterObj = {
-      lowestPrice: newState.lowestPrice,
-      highestPrice: newState.highestPrice,
+      lowestPrice: clampedLowest,
+      highestPrice: clampedHighest,
     };
-    if (newState.amenities && newState.amenities.length > 0) {
-      filterObj.amenities = newState.amenities;
+    if (nextState.amenities && nextState.amenities.length > 0) {
+      filterObj.amenities = nextState.amenities;
     }
-    if (newState.country && newState.country.trim() !== "")
-      filterObj.country = newState.country;
-    if (newState.startDate && newState.startDate.trim() !== "")
-      filterObj.startDate = newState.startDate;
-    if (newState.endDate && newState.endDate.trim() !== "")
-      filterObj.endDate = newState.endDate;
-    if (newState.popular) filterObj.popular = true;
-    if (newState.category_id) filterObj.category_id = newState.category_id;
+    if (nextState.country && nextState.country.trim() !== "")
+      filterObj.country = nextState.country;
+    if (nextState.startDate && nextState.startDate.trim() !== "")
+      filterObj.startDate = nextState.startDate;
+    if (nextState.endDate && nextState.endDate.trim() !== "")
+      filterObj.endDate = nextState.endDate;
+    if (nextState.popular) filterObj.popular = true;
+    if (nextState.category_id) filterObj.category_id = nextState.category_id;
 
-    filterListings(filterObj);
+    debouncedFilterListings(filterObj, FILTER_DEBOUNCE_MS);
   };
 
   const handlePriceChange = (range) => {
@@ -95,7 +120,7 @@ const Filter = ({ onCloseMobile }) => {
   };
 
   const handleResetFilters = () => {
-    setFilterState({
+    const resetState = {
       amenities: [],
       lowestPrice: priceRange.min,
       highestPrice: priceRange.max,
@@ -104,20 +129,35 @@ const Filter = ({ onCloseMobile }) => {
       endDate: "",
       popular: false,
       category_id: "",
-    });
+    };
+    filterStateRef.current = resetState;
+    setFilterState(resetState);
     filterListings({
       lowestPrice: priceRange.min,
       highestPrice: priceRange.max,
     });
   };
 
+  const handleCloseMobileAndFlush = () => {
+    flushPendingFilter();
+    onCloseMobile?.();
+  };
+
+  const effectiveLowest = Math.max(
+    priceRange.min,
+    Math.min(filterState.lowestPrice, priceRange.max)
+  );
+  const effectiveHighest = Math.max(
+    effectiveLowest,
+    Math.min(filterState.highestPrice, priceRange.max)
+  );
+
   const activeFilterCount =
     (filterState.amenities?.length || 0) +
     (filterState.country ? 1 : 0) +
     (filterState.startDate || filterState.endDate ? 1 : 0) +
     (filterState.popular ? 1 : 0) +
-    (filterState.lowestPrice > priceRange.min ||
-    filterState.highestPrice < priceRange.max
+    (effectiveLowest > priceRange.min || effectiveHighest < priceRange.max
       ? 1
       : 0);
 
@@ -226,7 +266,7 @@ const Filter = ({ onCloseMobile }) => {
               color="primary"
               fullWidth
               startIcon={<CheckRoundedIcon />}
-              onClick={onCloseMobile}
+              onClick={handleCloseMobileAndFlush}
               className="rn-interactive-btn"
               sx={{
                 display: { xs: "inline-flex", md: "none" },

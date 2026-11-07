@@ -516,12 +516,23 @@ export default function AdminReports() {
   }, []);
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
-          Thống kê & Báo cáo
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
+    <Box sx={{ width: '100%', p: { xs: 2, md: 3 } }}>
+      <Stack
+        direction={{ xs: 'column', lg: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', lg: 'center' }}
+        spacing={2}
+        sx={{ mb: 4 }}
+      >
+        <Box>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+            Thống kê & Báo cáo
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Phân tích doanh thu, người dùng mới, đánh giá và lịch sử giao dịch theo kỳ
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
               label="Từ ngày"

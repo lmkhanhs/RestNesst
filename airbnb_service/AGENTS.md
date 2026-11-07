@@ -5,9 +5,10 @@
 ## Cấu trúc và trách nhiệm
 
 - Java 17, Spring Boot 3.3.8, Maven. Source: `src/main/java/com/pbl5cnpm/airbnb_service/`.
-- `controller/`: HTTP, binding request và response; không truy vấn DB hoặc chứa nghiệp vụ phức tạp.
-- `service/`: quy tắc nghiệp vụ, validation và transaction của một thao tác.
-- `repository/`: JPA và native SQL; `mapper/`: chuyển đổi bằng MapStruct; `entity/` và `dto/`: mô hình dữ liệu và hợp đồng API.
+- Tổ chức theo nghiệp vụ: `user/`, `auth/`, `role/`, `listing/`, `booking/`, `payment/`, `favorite/`, `review/`, `chat/`, `amenity/`, `category/`, `country/`, `statistics/`. Xem [kiến trúc backend](../docs/architecture.md#backend-tổ-chức-theo-nghiệp-vụ).
+- Trong mỗi nghiệp vụ, chỉ tạo các tầng cần dùng: `controller/` cho HTTP, `service/` cho nghiệp vụ/validation/transaction, `repository/` cho JPA/SQL, `mapper/` cho MapStruct, `entity/`, `enums/`, `dto/request/`, `dto/response/`. Không đưa lớp nghiệp vụ mới về các package tầng ở gốc.
+- Custom repository đặt tại `<nghiệp vụ>/repository/custom/`, implementation tại `custom/impl/`; giữ tên fragment và hậu tố `Impl` để Spring Data phát hiện được.
+- `shared/` giữ `dto/response/ApiResponse`, `entity/BaseEntity`, `exception/`, `mail/`, `storage/`. Chỉ đưa code dùng chung thực tế vào đây; entity/DTO riêng nằm trong nghiệp vụ sở hữu nó.
 - `configuration/`: cấu hình Spring; `src/main/resources/application.yml`: cấu hình runtime. Không tạo thêm `application.properties` chứa cùng khóa.
 - `scripts/` và package `seed/`: công cụ dev gọi chủ động; không tự chạy seed mẫu khi backend khởi động.
 
@@ -15,6 +16,7 @@
 
 - Theo format xung quanh, Java thụt 4 dấu cách; PascalCase cho class, camelCase cho method/biến. Dùng constructor injection theo cách sẵn có.
 - Refactor một luồng có phạm vi rõ. Giữ cả message, error code, HTTP status, thứ tự validation và cách xóa mềm hiện tại khi chúng ảnh hưởng kết quả.
+- Giữ `AirbnbServiceApplication` tại package gốc để Spring quét mọi nghiệp vụ. Khi chuyển package, cập nhật import, tham chiếu tên lớp đầy đủ và test tương ứng; test phản chiếu package production. Dùng `mvn clean ...` để loại class/MapStruct cũ trước khi kiểm tra.
 - Không tự sửa tên cột/field cũ như `amenites`, `thumnailUrl`, `deteted`, `avgStart`; chúng có thể được dùng bởi SQL, mapper và frontend.
 - Khi chuyển nghiệp vụ giữa service, giữ ranh giới transaction và exception. Truy vấn có tham số; không nối đầu vào vào SQL.
 - Thay đổi entity/DTO phải kiểm tra mapper, repository/custom SQL và caller. Không dùng `ddl-auto=update` như lý do để đổi schema ngoài yêu cầu.
@@ -36,7 +38,7 @@ Chạy từ `airbnb_service/`. Dùng Maven đã cài; wrapper đang thiếu `.mv
 | --- | --- |
 | Kiểm tra Java/Maven | `java -version`, `mvn -v` |
 | Chạy backend | `mvn spring-boot:run` |
-| Unit test không cần DB | `mvn -Dtest=InvalidTokenRepositoryTest,AuthenticationServiceTest,UserServiceHostApplicationTest test` |
+| Unit test không cần DB | `mvn -Dtest=InvalidTokenRepositoryTest,AuthenticationServiceTest,UserServiceHostApplicationTest,ListingsAdminDetailTest,ListingsAdminDetailSecurityTest,BackendPackageDiscoveryTest test` |
 | Toàn bộ test | `mvn test` |
 | Build gồm test | `mvn clean package` |
 | Build khi người dùng yêu cầu bỏ test | `mvn -DskipTests clean package` |

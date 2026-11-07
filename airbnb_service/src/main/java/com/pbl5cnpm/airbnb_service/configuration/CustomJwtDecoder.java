@@ -14,9 +14,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
 import com.nimbusds.jose.JOSEException;
-import com.pbl5cnpm.airbnb_service.dto.Request.IntrospectRequest;
-import com.pbl5cnpm.airbnb_service.dto.Response.IntrospectResponse;
-import com.pbl5cnpm.airbnb_service.service.AuthenticationService;
+import com.pbl5cnpm.airbnb_service.auth.dto.request.IntrospectRequest;
+import com.pbl5cnpm.airbnb_service.auth.dto.response.IntrospectResponse;
+import com.pbl5cnpm.airbnb_service.auth.service.AuthenticationService;
 
 @Component
 public class CustomJwtDecoder implements JwtDecoder {

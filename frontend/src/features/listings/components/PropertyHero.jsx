@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Chip,
@@ -14,35 +15,19 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import SquareFootRoundedIcon from "@mui/icons-material/SquareFootRounded";
 import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import { Export, Heart } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import Images from "./PropertyImages.jsx";
 import Details from "./PropertyDetails.jsx";
-import axiosInstance from "@/shared/api/httpClient.js";
+import { getMediaUrl } from "@/shared/utils/mediaUrl.js";
+import useFavorites from "@/features/favorites/hooks/useFavorites.js";
 
 const Hero = ({ property }) => {
   const navigate = useNavigate();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isSaved, isPending, setSaved, loading: favoritesLoading, error: favoritesError } = useFavorites();
+  const isFavorite = isSaved(property?.id);
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
-
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token || !property?.id) return;
-
-    const fetchFavorites = async () => {
-      try {
-        const res = await axiosInstance.get("/api/users/favorites");
-        if (res.data?.result?.favorites) {
-          setIsFavorite(
-            res.data.result.favorites.some((fav) => fav.id === property.id)
-          );
-        }
-      } catch {
-        // Không yêu cầu đăng nhập khi chỉ xem trang chi tiết
-      }
-    };
-    fetchFavorites();
-  }, [property?.id]);
 
   const handleShare = async () => {
     try {
@@ -72,34 +57,11 @@ const Hero = ({ property }) => {
       return;
     }
 
-    if (isFavorite) {
-      setIsFavorite(false);
-      try {
-        await axiosInstance.delete("/api/users/favorites", {
-          data: { listingId: property.id },
-        });
-        setToast({
-          open: true,
-          message: "Đã bỏ lưu khỏi danh sách yêu thích.",
-          severity: "info",
-        });
-      } catch {
-        setIsFavorite(true);
-      }
-    } else {
-      setIsFavorite(true);
-      try {
-        await axiosInstance.post("/api/users/favorites", {
-          listingId: property.id,
-        });
-        setToast({
-          open: true,
-          message: "Đã lưu vào danh sách yêu thích!",
-          severity: "success",
-        });
-      } catch {
-        setIsFavorite(false);
-      }
+    try {
+      await setSaved(property.id, !isFavorite);
+      setToast({ open: true, message: isFavorite ? "Đã bỏ lưu khỏi danh sách yêu thích." : "Đã lưu vào danh sách yêu thích!", severity: "success" });
+    } catch (failure) {
+      setToast({ open: true, message: failure.message, severity: "error" });
     }
   };
 
@@ -164,16 +126,27 @@ const Hero = ({ property }) => {
               key={cat.id || cat.name}
               size="small"
               label={cat.name}
+              avatar={<Avatar src={getMediaUrl(cat.thumnailUrl)} alt="" aria-hidden="true" variant="rounded">
+                <CategoryOutlinedIcon sx={{ fontSize: 18 }} />
+              </Avatar>}
               sx={{
                 fontWeight: 600,
                 bgcolor: "var(--rn-surface-2)",
                 color: "var(--rn-text-secondary)",
                 border: "1px solid var(--rn-border-subtle)",
+                minHeight: 36,
+                height: "auto",
+                maxWidth: "100%",
+                py: 0.5,
+                "& .MuiChip-avatar": { bgcolor: "transparent", color: "text.secondary", width: 24, height: 24 },
+                "& .MuiChip-label": { whiteSpace: "normal", overflowWrap: "anywhere" },
               }}
             />
           ))}
         </Stack>
       </Stack>
+
+      {favoritesError && <Alert severity="error" sx={{ mb: 2 }}>{favoritesError}</Alert>}
 
       {/* Tiêu đề phòng & cụm nút Chia sẻ / Lưu */}
       <Stack
@@ -286,6 +259,8 @@ const Hero = ({ property }) => {
           <Button
             variant="outlined"
             onClick={handleSave}
+            disabled={isPending(property.id) || favoritesLoading}
+            aria-pressed={isFavorite}
             startIcon={
               <Heart
                 weight={isFavorite ? "fill" : "regular"}

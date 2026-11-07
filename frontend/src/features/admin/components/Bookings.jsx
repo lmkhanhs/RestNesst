@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import Pagination from '@mui/material/Pagination';
 import axiosInstance from '@/shared/api/httpClient.js';
+import { getMediaUrl } from '@/shared/utils/mediaUrl.js';
 
 
 export default function AdminBookings() {
@@ -176,11 +177,16 @@ export default function AdminBookings() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={600}>
-          Xem danh sách đặt phòng
-        </Typography>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3.5 }}>
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight={600}>
+            Xem danh sách đặt phòng
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Hiển thị {filteredBookings.length} đơn đặt phòng • Trang {page}/{totalPages}
+          </Typography>
+        </Box>
       </Stack>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -252,7 +258,7 @@ export default function AdminBookings() {
               filteredBookings.map((booking) => (
                 <TableRow key={booking.bookingId} hover sx={{ transition: 'background 0.2s' }}>
                   <TableCell>
-                    <img src={booking.primaryUrl} alt={booking.title} style={{ width: 60, height: 40, borderRadius: 8, objectFit: 'cover' }} />
+                    <img src={getMediaUrl(booking.primaryUrl)} alt={booking.title} style={{ width: 60, height: 40, borderRadius: 8, objectFit: 'cover' }} />
                   </TableCell>
                   <TableCell>
                     <Typography variant="subtitle2">{booking.title}</Typography>
@@ -357,7 +363,7 @@ export default function AdminBookings() {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                  <img src={selectedBooking.primaryUrl} alt={selectedBooking.title} style={{ width: 220, height: 150, borderRadius: 12, objectFit: 'cover', marginBottom: 8 }} />
+                  <img src={getMediaUrl(selectedBooking.primaryUrl)} alt={selectedBooking.title} style={{ width: 220, height: 150, borderRadius: 12, objectFit: 'cover', marginBottom: 8 }} />
                   <Typography variant="caption" color="text.secondary">Mã đặt phòng: #{selectedBooking.bookingId}</Typography>
                   <Typography variant="caption" color="text.secondary">Listing ID: {selectedBooking.listingId}</Typography>
                 </Box>

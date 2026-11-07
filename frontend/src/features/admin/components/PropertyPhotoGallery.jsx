@@ -47,7 +47,7 @@ export default function PropertyPhotoGallery({ images, title }) {
       <Box sx={{ position: 'relative' }}>
         <Box sx={{
           display: 'grid', gap: 1, overflow: 'hidden', borderRadius: 2.5,
-          height: { xs: 250, sm: 340, lg: 420 },
+          height: { xs: 220, sm: 300, lg: 340 },
           gridTemplateColumns: { xs: '1fr', sm: count <= 2 ? `repeat(${count}, 1fr)` : count === 3 ? '2fr 1fr' : '2fr 1fr 1fr' },
           gridTemplateRows: { xs: '1fr', sm: count > 2 ? 'repeat(2, minmax(0, 1fr))' : '1fr' },
         }}>

@@ -1,3 +1,5 @@
+import BookedRooms from "@/features/profile/components/BookedRooms.jsx";
+import FavoriteRooms from "@/features/profile/components/FavoriteRooms.jsx";
 import { BACKEND_URL } from "@/shared/config/environment.js";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -27,6 +29,8 @@ import {
   DialogContent,
   DialogActions,
   Autocomplete,
+  Checkbox,
+  Chip,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -34,28 +38,20 @@ import {
   Message as MessageIcon,
   Hotel as HotelIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
-  RateReview as RateReviewIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  CheckBox as CheckBoxIcon,
+  Translate as TranslateIcon,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/shared/api/httpClient.js";
 import PropTypes from "prop-types";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Chip from "@mui/material/Chip";
 import SendIcon from "@mui/icons-material/Send";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
-import CheckIcon from "@mui/icons-material/Check";
 import Rating from "@mui/material/Rating";
 import { analyzeSentiment } from "@/features/reviews/api/sentimentAnalysis.js";
 import { summarizeReviewComment } from "@/features/reviews/api/summarizeReview.js";
 
 const UserProfile = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -70,7 +66,9 @@ const UserProfile = () => {
     address: "", // Thêm address
   });
   const [bookedRooms, setBookedRooms] = useState([]);
-  const [favoriteRooms, setFavoriteRooms] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsError, setBookingsError] = useState("");
+  const [bookingsReload, setBookingsReload] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [passwordData, setPasswordData] = useState({
@@ -109,6 +107,9 @@ const UserProfile = () => {
   const [reviewSummaryResult, setReviewSummaryResult] = useState(null);
   const [summarizeCommentError, setSummarizeCommentError] = useState("");
   const [countryOptions, setCountryOptions] = useState([]);
+  const [languageOptions, setLanguageOptions] = useState([]);
+  const [selectedHostLanguages, setSelectedHostLanguages] = useState([]);
+  const [hostRequestSubmitting, setHostRequestSubmitting] = useState(false);
 
   const handleSummarizeUserComment = async () => {
     const commentText = (reviewForm.comment || "").trim();
@@ -183,37 +184,26 @@ const UserProfile = () => {
     fetchUserData();
   }, []);
 
-  const fetchFavorites = async () => {
-    try {
-      const res = await axiosInstance.get("/api/users/favorites");
-      if (res.data?.result?.favorites) {
-        setFavoriteRooms(res.data.result.favorites);
-        console.log("favoriteRooms", res.data.result.favorites);
+
+  useEffect(() => {
+    if (currentTab !== 1) return undefined;
+    const controller = new AbortController();
+    setBookingsLoading(true);
+    setBookingsError("");
+    const fetchBookedRooms = async () => {
+      try {
+        const res = await axiosInstance.get("/api/bookings/my", { signal: controller.signal });
+        if (!Array.isArray(res.data?.result)) throw new Error("Invalid booking response");
+        if (!controller.signal.aborted) setBookedRooms(res.data.result);
+      } catch {
+        if (!controller.signal.aborted) setBookingsError("Không thể tải phòng đã đặt. Vui lòng thử lại.");
+      } finally {
+        if (!controller.signal.aborted) setBookingsLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching favorites:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
-  useEffect(() => {
-    if (currentTab === 1) {
-      const fetchBookedRooms = async () => {
-        try {
-          const res = await axiosInstance.get("/api/bookings/my");
-          if (res.data?.result) {
-            setBookedRooms(res.data.result);
-          }
-        } catch (err) {
-          setBookedRooms([]);
-        }
-      };
-      fetchBookedRooms();
-    }
-  }, [currentTab]);
+    };
+    fetchBookedRooms();
+    return () => controller.abort();
+  }, [currentTab, bookingsReload]);
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
@@ -282,18 +272,6 @@ const UserProfile = () => {
     }
   };
 
-  const deleteFavorite = async (listingId) => {
-    try {
-      const res = await axiosInstance.delete("/api/users/favorites", {
-        data: { listingId },
-      });
-      if (res.data.code === 200) {
-        fetchFavorites();
-      }
-    } catch (err) {
-      // Có thể hiển thị thông báo lỗi nếu cần
-    }
-  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -332,6 +310,9 @@ const UserProfile = () => {
 
   const handleHostRequestChange = (e) => {
     const { name, value } = e.target;
+    if (hostRequestError) {
+      setHostRequestError("");
+    }
     setHostRequestData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -344,9 +325,12 @@ const UserProfile = () => {
   };
 
   const applyHostRequest = async ({
+    fullname,
     country,
     language,
+    languageIds,
     didHostYear,
+    experience,
     description,
   }) => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -354,9 +338,12 @@ const UserProfile = () => {
       throw new Error("Không tìm thấy thông tin người dùng");
     const payload = {
       userId: user.id,
+      fullname,
       country,
       language,
+      languageIds,
       didHostYear,
+      experience,
       description,
     };
     return axiosInstance.post("/api/users/host/apply", payload);
@@ -367,41 +354,66 @@ const UserProfile = () => {
     setHostRequestError("");
     setHostRequestSuccess(false);
 
-    // Validate
-    if (
-      !hostRequestData.fullname ||
-      !hostRequestData.description ||
-      !hostRequestData.languages ||
-      !hostRequestData.experience
-    ) {
-      setHostRequestError("Vui lòng điền đầy đủ thông tin.");
+    if (!hostRequestData.fullname?.trim()) {
+      setHostRequestError("Vui lòng nhập họ và tên.");
+      return;
+    }
+    if (!hostRequestData.description?.trim()) {
+      setHostRequestError("Vui lòng nhập mô tả bản thân hoặc đội nhóm.");
+      return;
+    }
+    if (selectedHostLanguages.length === 0) {
+      setHostRequestError("Vui lòng chọn ít nhất một ngôn ngữ có thể giao tiếp.");
+      return;
+    }
+    if (!hostRequestData.address?.trim()) {
+      setHostRequestError("Vui lòng chọn quốc gia.");
+      return;
+    }
+    if (!hostRequestData.experience?.trim()) {
+      setHostRequestError("Vui lòng nhập kinh nghiệm đón tiếp hoặc vận hành chỗ ở.");
       return;
     }
 
     try {
-      // Gọi API apply host
+      setHostRequestSubmitting(true);
+      const languageNames = selectedHostLanguages
+        .map((item) => item.name)
+        .filter(Boolean);
+      const languageIds = selectedHostLanguages
+        .map((item) => item.id)
+        .filter((id) => typeof id === "number");
+
       const res = await applyHostRequest({
-        country: hostRequestData.address,
-        language: hostRequestData.languages,
-        didHostYear: hostRequestData.experience,
-        description: hostRequestData.description,
+        fullname: hostRequestData.fullname.trim(),
+        country: hostRequestData.address.trim(),
+        language: languageNames.join(", "),
+        languageIds,
+        didHostYear: hostRequestData.experience.trim(),
+        experience: hostRequestData.experience.trim(),
+        description: hostRequestData.description.trim(),
       });
       console.log("Kết quả trả về từ API apply host:", res.data);
       setHostRequestSuccess(true);
-      setTimeout(() => setHostRequestSuccess(false), 3000);
+      setTimeout(() => setHostRequestSuccess(false), 3500);
+      setSelectedHostLanguages([]);
       setHostRequestData({
-        fullname: "",
+        fullname: formData.fullname || hostRequestData.fullname.trim(),
         description: "",
         languages: "",
         address: "",
         experience: "",
         avatar: null,
       });
-      setHostRequestPreview("");
+      setHostRequestPreview(formData.thumnailUrl || "");
     } catch (err) {
       setHostRequestError(
-        err.response?.data?.message || "Gửi yêu cầu thất bại, vui lòng thử lại."
+        err.response?.data?.message ||
+          err.message ||
+          "Gửi yêu cầu thất bại, vui lòng thử lại."
       );
+    } finally {
+      setHostRequestSubmitting(false);
     }
   };
 
@@ -777,211 +789,11 @@ const UserProfile = () => {
   );
 
   const renderBookedRooms = () => (
-    <Card sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3, fontWeight: 700 }}>
-        Phòng đã đặt
-      </Typography>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          Xác nhận trả phòng thành công!
-        </Alert>
-      )}
-      <TableContainer
-        component={Paper}
-        sx={{ background: "#232323", borderRadius: 3 }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow sx={{ background: "#232323" }}>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>Ảnh</TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Tên chỗ ở
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Địa chỉ
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Khu vực
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Giá/đêm
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Tổng tiền
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Nhận phòng
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Trả phòng
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                bookingStatus
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {bookedRooms.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={9}
-                  align="center"
-                  sx={{ color: "#bdbdbd", py: 6 }}
-                >
-                  Bạn chưa đặt phòng nào.
-                </TableCell>
-              </TableRow>
-            ) : (
-              bookedRooms.map((room) => (
-                <TableRow
-                  key={room.bookingId}
-                  sx={{
-                    background: "#18191a",
-                    "&:hover": { background: "#232323" },
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate(`/property/${room.listingId}`)}
-                >
-                  <TableCell>
-                    <Avatar
-                      variant="rounded"
-                      src={
-                        room.primaryUrl
-                          ? room.primaryUrl.startsWith("http")
-                            ? room.primaryUrl
-                            : `${BACKEND_URL}/${room.primaryUrl}`
-                          : "/default-room.jpg"
-                      }
-                      alt={room.title}
-                      sx={{ width: 56, height: 56 }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff", fontWeight: 500 }}>
-                    {room.title}
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>{room.address}</TableCell>
-                  <TableCell sx={{ color: "#fff" }}>{room.city}</TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.price ? room.price.toLocaleString() : ""} VND
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.totalPrice ? room.totalPrice.toLocaleString() : ""}{" "}
-                    VND
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.checkInDate}
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.checkOutDate}
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
-                        label={room.bookingStatus}
-                        sx={{
-                          fontWeight: 600,
-                          color: "#fff",
-                          bgcolor:
-                            room.bookingStatus === "PENDING"
-                              ? "#fbc02d"
-                              : room.bookingStatus === "CONFIRMED"
-                              ? "#1976d2"
-                              : room.bookingStatus === "PAID"
-                              ? "#43a047"
-                              : room.bookingStatus === "CANCELLED"
-                              ? "#d32f2f"
-                              : room.bookingStatus === "SUCCESS"
-                              ? "#1976d2"
-                              : "#757575",
-                          textTransform: "uppercase",
-                          letterSpacing: 1,
-                        }}
-                      />
-                      {room.bookingStatus &&
-                        room.bookingStatus.trim().toUpperCase() === "PAID" && (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<CheckIcon />}
-                            sx={{
-                              ml: 1,
-                              borderRadius: 99,
-                              borderColor: "#43a047",
-                              color: "#43a047",
-                              fontWeight: 700,
-                              fontSize: 13,
-                              px: 2,
-                              py: 0.5,
-                              minWidth: 0,
-                              background: "rgba(67, 160, 71, 0.08)",
-                              transition: "all 0.2s",
-                              "&:hover": {
-                                background: "#43a047",
-                                color: "#fff",
-                                borderColor: "#43a047",
-                              },
-                            }}
-                            disabled={loading}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConfirmCheckout(room.bookingId);
-                            }}
-                          >
-                            Xác nhận trả phòng
-                          </Button>
-                        )}
-                      {room.bookingStatus &&
-                        room.bookingStatus.trim().toUpperCase() === "SUCCESS" &&
-                        room.commented === false && (
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            size="large"
-                            startIcon={<RateReviewIcon />}
-                            sx={{
-                              ml: 1,
-                              borderRadius: 99,
-                              borderColor: "#1976d2",
-                              color: "#1976d2",
-                              fontWeight: 700,
-                              fontSize: 16,
-                              px: 3,
-                              py: 1.5,
-                              minWidth: 0,
-                              background: "rgba(25, 118, 210, 0.08)",
-                              transition: "all 0.2s",
-                              display: "flex",
-                              flexDirection: "row",
-                              alignItems: "center",
-                              lineHeight: 1.2,
-                              "&:hover": {
-                                background: "#1976d2",
-                                color: "#fff",
-                                borderColor: "#1976d2",
-                              },
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedBookingForReview(room);
-                              setOpenReviewDialog(true);
-                            }}
-                          >
-                            Đánh Giá
-                          </Button>
-                        )}
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <>
+      <BookedRooms rooms={bookedRooms} error={error} success={success} loading={loading}
+        fetching={bookingsLoading} loadError={bookingsError} onReload={() => setBookingsReload((value) => value + 1)}
+        onConfirmCheckout={handleConfirmCheckout}
+        onReview={(room) => { setSelectedBookingForReview(room); setOpenReviewDialog(true); }} />
       {/* Dialog đánh giá */}
       <Dialog
         open={openReviewDialog}
@@ -1002,7 +814,7 @@ const UserProfile = () => {
           của khách
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ mb: 3, p: 2, bgcolor: "#18191a", borderRadius: 2 }}>
+          <Box sx={{ mb: 3, p: 2, bgcolor: "background.neutral", borderRadius: 2 }}>
             <Typography
               sx={{
                 fontWeight: 600,
@@ -1024,15 +836,15 @@ const UserProfile = () => {
                       display: "flex",
                       alignItems: "center",
                       gap: 2,
-                      bgcolor: "#232323",
+                      bgcolor: "background.paper",
                       borderRadius: 2,
                       p: 2,
                     }}
                   >
                     <span style={{ fontSize: 22 }}>{c.icon}</span>
-                    <span style={{ fontSize: 15, color: "#fff", minWidth: 90 }}>
+                    <Box component="span" sx={{ fontSize: 15, color: "text.primary", minWidth: 90 }}>
                       {c.label}
-                    </span>
+                    </Box>
                     <Rating
                       value={criteriaRatings[c.key]}
                       onChange={(_, v) =>
@@ -1050,20 +862,20 @@ const UserProfile = () => {
             sx={{
               mb: 3,
               p: 2,
-              bgcolor: "#18191a",
+              bgcolor: "background.neutral",
               borderRadius: 2,
               textAlign: "center",
             }}
           >
-            <span style={{ fontSize: 16, color: "#bdbdbd" }}>
+            <Box component="span" sx={{ fontSize: 16, color: "text.secondary" }}>
               Số sao tổng quát:{" "}
-            </span>
+            </Box>
             <span style={{ color: "#2196F3", fontWeight: 600, fontSize: 18 }}>
               {calcAvgRating()}
             </span>
-            <span style={{ color: "#bdbdbd" }}>/5</span>
+            <Box component="span" sx={{ color: "text.secondary" }}>/5</Box>
           </Box>
-          <Box sx={{ mb: 3, p: 2, bgcolor: "#18191a", borderRadius: 2 }}>
+          <Box sx={{ mb: 3, p: 2, bgcolor: "background.neutral", borderRadius: 2 }}>
             <Typography
               sx={{
                 fontWeight: 600,
@@ -1088,10 +900,10 @@ const UserProfile = () => {
               fullWidth
               sx={{
                 mt: 1,
-                bgcolor: "#232323",
+                bgcolor: "background.paper",
                 borderRadius: 2,
-                input: { color: "#fff" },
-                textarea: { color: "#fff" },
+                input: { color: "text.primary" },
+                textarea: { color: "text.primary" },
               }}
             />
             <Stack
@@ -1142,7 +954,7 @@ const UserProfile = () => {
                 sx={{
                   mt: 2,
                   p: 2,
-                  bgcolor: "#232323",
+                  bgcolor: "background.paper",
                   borderRadius: 2,
                   border: "1px solid rgba(33, 150, 243, 0.5)",
                 }}
@@ -1152,7 +964,7 @@ const UserProfile = () => {
                 >
                   ✨ Bản tóm tắt từ AI:
                 </Typography>
-                <Typography sx={{ color: "#fff", fontSize: 14, lineHeight: 1.6 }}>
+                <Typography sx={{ color: "text.primary", fontSize: 14, lineHeight: 1.6 }}>
                   {reviewSummaryResult.summary}
                 </Typography>
                 <Stack direction="row" spacing={1.5} sx={{ mt: 1.5 }}>
@@ -1173,7 +985,7 @@ const UserProfile = () => {
                     size="small"
                     variant="text"
                     onClick={() => setReviewSummaryResult(null)}
-                    sx={{ color: "#bdbdbd" }}
+                    sx={{ color: "text.secondary" }}
                   >
                     Đóng
                   </Button>
@@ -1200,120 +1012,10 @@ const UserProfile = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Card>
+    </>
   );
 
-  const renderFavoriteRooms = () => (
-    <Card sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 4, fontWeight: 900, fontSize: 32 }}>
-        Danh sách phòng yêu thích
-      </Typography>
-      <TableContainer
-        component={Paper}
-        sx={{ background: "#232323", borderRadius: 3 }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow sx={{ background: "#232323" }}>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>Ảnh</TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Tên chỗ ở
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Địa chỉ
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Khu vực
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Giá/đêm
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Chủ sở hữu
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: 700 }}>
-                Hành động
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {favoriteRooms.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  align="center"
-                  sx={{ color: "#bdbdbd", py: 6 }}
-                >
-                  Bạn chưa thêm phòng nào vào danh sách yêu thích.
-                </TableCell>
-              </TableRow>
-            ) : (
-              favoriteRooms.map((room) => (
-                <TableRow
-                  key={room.id}
-                  sx={{
-                    background: "#18191a",
-                    "&:hover": { background: "#232323" },
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate(`/property/${room.id}`)}
-                >
-                  <TableCell>
-                    <Avatar
-                      variant="rounded"
-                      src={
-                        room.primaryThumnail
-                          ? room.primaryThumnail.startsWith("http")
-                            ? room.primaryThumnail
-                            : `${BACKEND_URL}/${room.primaryThumnail}`
-                          : "/default-room.jpg"
-                      }
-                      alt={room.title}
-                      sx={{ width: 56, height: 56 }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff", fontWeight: 500 }}>
-                    {room.title}
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.address || "-"}
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.city || "-"}
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.price ? room.price.toLocaleString() : ""} VND
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff" }}>
-                    {room.owner || "-"}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      color="error"
-                      variant="contained"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteFavorite(room.id);
-                      }}
-                      sx={{
-                        fontWeight: 700,
-                        borderRadius: 2,
-                        px: 2,
-                        background: "#b71c1c",
-                        "&:hover": { background: "#c62828" },
-                      }}
-                    >
-                      Bỏ yêu thích
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Card>
-  );
+  const renderFavoriteRooms = () => <FavoriteRooms />;
 
   const renderMessages = () => (
     <Card sx={{ p: 3 }}>
@@ -1403,28 +1105,101 @@ const UserProfile = () => {
             multiline
             minRows={3}
           />
-          <TextField
-            fullWidth
-            name="languages"
-            label="Ngôn ngữ sử dụng (VD: Tiếng Việt, English, ... )"
-            value={hostRequestData.languages}
-            onChange={handleHostRequestChange}
+          <Autocomplete
+            multiple
+            disableCloseOnSelect
+            options={languageOptions}
+            value={selectedHostLanguages}
+            onChange={(_, newValue) => {
+              if (hostRequestError) {
+                setHostRequestError("");
+              }
+              setSelectedHostLanguages(newValue);
+              setHostRequestData((prev) => ({
+                ...prev,
+                languages: newValue.map((item) => item.name).join(", "),
+              }));
+            }}
+            getOptionLabel={(option) => option?.name || ""}
+            isOptionEqualToValue={(option, val) => option.id === val.id}
+            noOptionsText="Chưa có ngôn ngữ khả dụng"
+            renderOption={(optionProps, option, { selected }) => (
+              <li {...optionProps} key={option.id ?? option.name}>
+                <Checkbox
+                  icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+                  checkedIcon={<CheckBoxIcon fontSize="small" />}
+                  style={{ marginRight: 8 }}
+                  checked={selected}
+                />
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{ width: "100%" }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: selected ? 600 : 400 }}>
+                    {option.name}
+                  </Typography>
+                  {option.code && (
+                    <Chip
+                      label={option.code.toUpperCase()}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 22, fontSize: "0.7rem", fontWeight: 700 }}
+                    />
+                  )}
+                </Stack>
+              </li>
+            )}
+            renderTags={(tagValue, getTagProps) =>
+              tagValue.map((option, index) => (
+                <Chip
+                  {...getTagProps({ index })}
+                  key={option.id ?? option.name}
+                  icon={<TranslateIcon sx={{ fontSize: "16px !important" }} />}
+                  label={
+                    option.code
+                      ? `${option.name} (${option.code.toUpperCase()})`
+                      : option.name
+                  }
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Ngôn ngữ có thể giao tiếp"
+                placeholder={
+                  selectedHostLanguages.length === 0
+                    ? "Chọn một hoặc nhiều ngôn ngữ..."
+                    : "Thêm ngôn ngữ..."
+                }
+                helperText="Chọn các ngôn ngữ bạn có thể sử dụng để hỗ trợ khách lưu trú"
+                fullWidth
+                sx={{ bgcolor: "background.paper" }}
+              />
+            )}
           />
           <Autocomplete
             options={countryOptions}
-            value={hostRequestData.address || ""}
-            onChange={(_, newValue) =>
+            value={hostRequestData.address || null}
+            onChange={(_, newValue) => {
+              if (hostRequestError) {
+                setHostRequestError("");
+              }
               setHostRequestData((prev) => ({
                 ...prev,
                 address: newValue || "",
-              }))
-            }
+              }));
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label="Quốc gia"
                 placeholder="Chọn quốc gia..."
-                size="small"
                 fullWidth
                 sx={{ borderRadius: 2, bgcolor: "background.paper" }}
                 InputProps={{ ...params.InputProps, sx: { borderRadius: 2 } }}
@@ -1437,22 +1212,29 @@ const UserProfile = () => {
           <TextField
             fullWidth
             name="experience"
-            label="Kinh nghiệm (VD: 8 năm Host, 24 năm ngành khách sạn, ... )"
+            label="Kinh nghiệm (VD: 2 năm quản lý căn hộ ngắn hạn, 5 năm ngành khách sạn...)"
             value={hostRequestData.experience}
             onChange={handleHostRequestChange}
+            multiline
+            minRows={2}
           />
           <Button
             fullWidth
             size="large"
             type="submit"
             variant="contained"
+            disabled={hostRequestSubmitting}
             sx={{
               bgcolor: "primary.main",
               color: "white",
               "&:hover": { bgcolor: "primary.dark" },
             }}
           >
-            Gửi yêu cầu
+            {hostRequestSubmitting ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Gửi yêu cầu"
+            )}
           </Button>
         </Stack>
       </form>
@@ -1460,22 +1242,32 @@ const UserProfile = () => {
   );
 
   useEffect(() => {
-    axiosInstance.get("/api/countries").then((res) => {
-      setCountryOptions(res.data.result.map((c) => c.name));
-    });
+    axiosInstance
+      .get("/api/countries")
+      .then((res) => {
+        setCountryOptions((res.data?.result || []).map((c) => c.name));
+      })
+      .catch(() => setCountryOptions([]));
+
+    axiosInstance
+      .get("/api/languages")
+      .then((res) => {
+        setLanguageOptions(res.data?.result || []);
+      })
+      .catch(() => setLanguageOptions([]));
   }, []);
 
   return (
     <Container maxWidth="lg">
       <Box
         sx={{
-          py: 8,
+          py: { xs: 3, md: 4 },
           display: "flex",
           minHeight: "100vh",
           flexDirection: "column",
         }}
       >
-        <Typography variant="h4" sx={{ mb: 5 }}>
+        <Typography variant="h4" sx={{ mb: 3 }}>
           Thông tin cá nhân
         </Typography>
 
@@ -1483,9 +1275,10 @@ const UserProfile = () => {
           <Tabs
             value={currentTab}
             onChange={handleTabChange}
-            aria-label="profile tabs"
+            aria-label="Các mục tài khoản"
             variant="scrollable"
             scrollButtons="auto"
+            allowScrollButtonsMobile
           >
             <Tab
               icon={<EditIcon />}

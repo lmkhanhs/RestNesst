@@ -20,7 +20,6 @@
     "@mui/material": "^5.15.2",
     "@mui/system": "^5.17.1",
     "@mui/x-date-pickers": "7.28.3",
-    "@mui/x-date-pickers-pro": "7.28.3",
     "@phosphor-icons/react": "^2.0.15",
     "@reduxjs/toolkit": "^1.9.7",
     "@stomp/stompjs": "^7.1.1",

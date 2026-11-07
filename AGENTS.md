@@ -15,7 +15,7 @@ Trước khi sửa một module, đọc `AGENTS.md` tương ứng bên dưới, 
 
 | Phạm vi | Hướng dẫn | Tài liệu chi tiết |
 | --- | --- | --- |
-| Java/Spring Boot, seed, ảnh upload | [airbnb_service/AGENTS.md](airbnb_service/AGENTS.md) | [Backend README](airbnb_service/README.md) |
+| Java/Spring Boot, seed, ảnh upload | [airbnb_service/AGENTS.md](airbnb_service/AGENTS.md) | [Backend README](airbnb_service/README.md), [kiến trúc theo nghiệp vụ](docs/architecture.md#backend-tổ-chức-theo-nghiệp-vụ) |
 | React/Vite, giao diện | [frontend/AGENTS.md](frontend/AGENTS.md) | [Frontend README](frontend/README.md), [kiến trúc](frontend/docs/architecture.md) |
 | FastAPI/BARTpho | [ai-service/AGENTS.md](ai-service/AGENTS.md) | [AI README](ai-service/README.md) |
 | MCP MySQL, mọi thao tác dữ liệu dev | [tools/database-toolbox/AGENTS.md](tools/database-toolbox/AGENTS.md) | [Toolbox README](tools/database-toolbox/README.md) |

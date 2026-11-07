@@ -22,7 +22,7 @@ export default function ListingTabs({
 }) {
   const [categories, setCategories] = useState([ALL_CATEGORIES]);
   const [categoryError, setCategoryError] = useState("");
-  const { filterListings } = useFilter();
+  const { filterListings, debouncedFilterListings, cancelPendingFilter } = useFilter();
   const searchCtx = useContext(SearchContext);
 
   useEffect(() => {
@@ -46,10 +46,14 @@ export default function ListingTabs({
   const selectCategory = (event, index) => {
     const category = categories[index] || ALL_CATEGORIES;
     handleChangeTab?.(event, index);
-    filterListings({ category_id: category.id === "all" ? "" : category.id });
+    debouncedFilterListings(
+      { category_id: category.id === "all" ? "" : category.id },
+      300
+    );
   };
 
   const handleResetAll = (event) => {
+    cancelPendingFilter();
     handleChangeTab?.(event, 0);
     if (searchCtx?.updateSearchResults) {
       searchCtx.updateSearchResults([], false);

@@ -1,4 +1,7 @@
+import HostProperties from "../components/HostProperties.jsx";
+import { formatHostPrice, normalizeHostProperty } from "../utils/propertyDisplay.js";
 import { BACKEND_URL } from "@/shared/config/environment.js";
+import { getMediaUrl } from "@/shared/utils/mediaUrl.js";
 import { useState, useEffect, useRef } from "react";
 import {
   Box,
@@ -24,9 +27,7 @@ import {
   Paper,
   IconButton,
   Tooltip,
-  Badge,
   Divider,
-  Menu,
   MenuItem,
   Stack,
   Alert,
@@ -35,19 +36,16 @@ import {
   CircularProgress,
   CardContent,
   Autocomplete,
+  Checkbox,
 } from "@mui/material";
 import {
   Add as AddIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
   AttachMoney as MoneyIcon,
   Star as StarIcon,
   Message as MessageIcon,
-  Notifications as NotificationsIcon,
-  FilterList as FilterIcon,
   Search as SearchIcon,
-  Sort as SortIcon,
   Visibility as VisibilityIcon,
   Bookmark as BookmarkIcon,
   Share as ShareIcon,
@@ -60,22 +58,25 @@ import {
   LocationOn as LocationOnIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  CheckBox as CheckBoxIcon,
 } from "@mui/icons-material";
 import PropTypes from "prop-types";
 import axiosInstance from "@/shared/api/httpClient.js";
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
 
-function TabPanel({ children, value, index }) {
+function TabPanel({ children, value, index, flush = false }) {
   return (
     <div hidden={value !== index}>
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: flush ? 0 : 3, minWidth: 0 }}>{children}</Box>}
     </div>
   );
 }
 
 TabPanel.propTypes = {
   children: PropTypes.node,
+  flush: PropTypes.bool,
   index: PropTypes.number.isRequired,
   value: PropTypes.number.isRequired,
 };
@@ -84,11 +85,8 @@ export default function HostPage() {
   const [tabValue, setTabValue] = useState(0);
   const [properties, setProperties] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedProperty, setSelectedProperty] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [propertiesLoading, setPropertiesLoading] = useState(true);
+  const [propertiesError, setPropertiesError] = useState("");
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState("");
@@ -96,6 +94,7 @@ export default function HostPage() {
   const [openPropertyDialog, setOpenPropertyDialog] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
   const [countryOptions, setCountryOptions] = useState([]);
+  const [languageOptions, setLanguageOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [newProperty, setNewProperty] = useState({
@@ -155,6 +154,14 @@ export default function HostPage() {
         throw new Error("Không tìm thấy thông tin người dùng");
       const res = await axiosInstance.get(`/api/users/host/${user.id}`);
       if (res.data && res.data.result) {
+        const parsedLanguages = Array.isArray(res.data.result.languages)
+          ? res.data.result.languages
+          : res.data.result.languages
+          ? res.data.result.languages
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : [];
         setHostInfo({
           name: res.data.result.fullname || "Prateek",
           avatar:
@@ -163,14 +170,19 @@ export default function HostPage() {
           reviews: 473,
           rating: 4.26,
           yearsHosting: res.data.result.didHostYear || 8,
-          languages: Array.isArray(res.data.result.languages)
-            ? res.data.result.languages
-            : res.data.result.languages
-            ? [res.data.result.languages]
-            : ["English", "French", "Hindi"],
-          country: res.data.result.country || "Jaipur, India",
+          languages:
+            parsedLanguages.length > 0 ? parsedLanguages : ["Tiếng Việt"],
+          country: res.data.result.country || "Việt Nam",
           description: res.data.result.description || "Hi All! ...",
         });
+        setHostEdit((prev) => ({
+          ...prev,
+          name: res.data.result.fullname || "",
+          location: res.data.result.country || "",
+          languages: parsedLanguages,
+          yearsHosting: res.data.result.didHostYear || 0,
+          description: res.data.result.description || "",
+        }));
       }
     } catch (err) {
       setHostInfo(null);
@@ -187,6 +199,12 @@ export default function HostPage() {
     axiosInstance.get("/api/countries").then((res) => {
       setCountryOptions(res.data.result.map((c) => c.name));
     });
+    axiosInstance
+      .get("/api/languages")
+      .then((res) => {
+        setLanguageOptions((res.data?.result || []).map((l) => l.name));
+      })
+      .catch(() => setLanguageOptions([]));
   }, []);
 
   useEffect(() => {
@@ -383,16 +401,17 @@ export default function HostPage() {
           },
         });
       }
-      if (res.data && (res.data.code === 200 || res.status === 200)) {
+      if (res.data?.result && [200, 201].includes(res.data.code ?? res.status)) {
         setShowSuccessAlert(true);
         handleClosePropertyDialog();
         setProperties((prev) => {
           if (isEditMode) {
             return prev.map((p) =>
-              p.id === editingPropertyId ? { ...p, ...res.data.result } : p
+              p.id === editingPropertyId ? normalizeHostProperty({ ...p, ...res.data.result,
+                title: res.data.result?.title ?? res.data.result?.name ?? newProperty.title }) : p
             );
           } else {
-            return [...prev, res.data.result];
+            return [...prev, normalizeHostProperty(res.data.result)];
           }
         });
       } else {
@@ -419,48 +438,6 @@ export default function HostPage() {
     }
   };
 
-  const handleMenuOpen = (event, property) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedProperty(property);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedProperty(null);
-  };
-
-  const handleSearch = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const handleSort = (value) => {
-    setSortBy(value);
-    handleMenuClose();
-  };
-
-  const handleFilter = (status) => {
-    setFilterStatus(status);
-    handleMenuClose();
-  };
-
-  const handleShare = (property) => {
-    // Implement share functionality
-    console.log("Sharing property:", property);
-    handleMenuClose();
-  };
-
-  const handleBookmark = (property) => {
-    // Implement bookmark functionality
-    console.log("Bookmarking property:", property);
-    handleMenuClose();
-  };
-
-  const handleViewStats = (property) => {
-    // Implement view stats functionality
-    console.log("Viewing stats for property:", property);
-    handleMenuClose();
-  };
-
   const handleOpenChat = (message) => {
     setSelectedChat(message.id);
   };
@@ -469,28 +446,6 @@ export default function HostPage() {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-
-  const filteredProperties = properties.filter((property) => {
-    const matchesSearch =
-      property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.address.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || property.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
-
-  const sortedProperties = [...filteredProperties].sort((a, b) => {
-    switch (sortBy) {
-      case "price-asc":
-        return a.price - b.price;
-      case "price-desc":
-        return b.price - a.price;
-      case "rating":
-        return b.avgStart - a.avgStart;
-      default:
-        return b.id - a.id;
-    }
-  });
 
   // Handle image file selection
   const handleImageChange = (e) => {
@@ -531,18 +486,6 @@ export default function HostPage() {
     setNewMessage("");
   };
 
-  const getImageUrl = (img) => {
-    if (!img) return "/default-image.png"; // fallback nếu không có ảnh
-    if (img.startsWith("http")) return img;
-    return `${BACKEND_URL}/${img}`; // thay bằng domain backend thật của bạn
-  };
-
-  const getAmenityImageUrl = (url) => {
-    if (!url) return "/default-image.png";
-    if (url.startsWith("http")) return url;
-    return `${BACKEND_URL}${url}`;
-  };
-
   const MAX_DESC = 180;
   const desc = hostInfo?.description || "";
   const isLong = desc.length > MAX_DESC;
@@ -573,34 +516,15 @@ export default function HostPage() {
 
   const fetchPropertiesFromAPI = async () => {
     try {
-      setIsLoading(true);
+      setPropertiesLoading(true);
+      setPropertiesError("");
       const res = await axiosInstance.get("/api/listings/host");
-      if (res.data && res.data.result) {
-        setProperties(
-          res.data.result.map((item) => ({
-            id: item.id,
-            title: item.name,
-            address: item.address,
-            city: item.city,
-            country: item.country,
-            images: item.images || [],
-            amenites: item.amenites || [],
-            categories: item.categories || [],
-            description: item.description || "",
-            startDate: item.startDate,
-            endDate: item.endDate,
-            price: item.price,
-            status: item.status,
-            avgStart: item.avgStart,
-            area: item.area || "",
-            // ... các trường khác nếu cần
-          }))
-        );
-      }
-    } catch (err) {
-      setProperties([]);
+      if (!Array.isArray(res.data?.result)) throw new Error("Invalid host listings response");
+      setProperties(res.data.result.map(normalizeHostProperty));
+    } catch {
+      setPropertiesError("Không thể tải danh sách chỗ ở. Vui lòng thử lại.");
     } finally {
-      setIsLoading(false);
+      setPropertiesLoading(false);
     }
   };
 
@@ -620,16 +544,25 @@ export default function HostPage() {
     setNewProperty({ ...newProperty, categories: newSelected });
   };
 
+  const prices = properties.map((room) => Number(room.price)).filter((price) => Number.isFinite(price) && price > 0);
+  const ratings = properties.map((room) => Number(room.avgStart)).filter((rating) => Number.isFinite(rating) && rating > 0);
+  const propertyStats = [
+    { label: "Tổng chỗ ở", value: properties.length, icon: <HomeIcon /> },
+    { label: "Đang hoạt động", value: properties.filter((room) => ["ACTIVE", "AVAILABLE"].includes(String(room.status).toUpperCase())).length, icon: <VisibilityIcon /> },
+    { label: "Giá trung bình / đêm", value: prices.length ? formatHostPrice(prices.reduce((sum, price) => sum + price, 0) / prices.length) : "Chưa cập nhật", icon: <MoneyIcon /> },
+    { label: "Điểm trung bình chỗ ở", value: ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) : "Chưa có đánh giá", icon: <StarIcon /> },
+  ];
+
   return (
     <Container
       maxWidth="lg"
       sx={{ fontFamily: '"Be Vietnam Pro", sans-serif' }}
     >
-      <Box sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ mt: { xs: 3, md: 4 }, mb: 4 }}>
         {/* Header Section */}
         <Paper
           elevation={0}
-          sx={{ p: 3, mb: 3, bgcolor: "background.default" }}
+          sx={{ p: 0, mb: 3, bgcolor: "transparent" }}
         >
           <Grid container alignItems="center" spacing={2}>
             <Grid item xs={12} md={6}>
@@ -637,142 +570,40 @@ export default function HostPage() {
                 Bảng điều khiển chủ nhà
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Quản lý tài sản và đặt phòng của bạn
+                Theo dõi và cập nhật chỗ ở của bạn
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
-                <Tooltip title="Thông báo">
-                  <IconButton>
-                    <Badge badgeContent={3} color="error">
-                      <NotificationsIcon />
-                    </Badge>
-                  </IconButton>
-                </Tooltip>
+              <Stack direction="row" spacing={2} justifyContent={{ xs: "flex-start", md: "flex-end" }}>
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
                   onClick={handleAddProperty}
+                  sx={{ minHeight: 48, borderRadius: 2 }}
                 >
-                  Thêm tài sản mới
+                  Thêm chỗ ở mới
                 </Button>
               </Stack>
             </Grid>
           </Grid>
         </Paper>
 
-        {/* Search and Filter Section */}
-        <Paper
-          elevation={0}
-          sx={{ p: 2, mb: 3, bgcolor: "background.default" }}
-        >
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                placeholder="Tìm kiếm tài sản..."
-                value={searchQuery}
-                onChange={handleSearch}
-                InputProps={{
-                  startAdornment: (
-                    <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
-                <Button
-                  startIcon={<FilterIcon />}
-                  onClick={(e) => handleMenuOpen(e, { type: "filter" })}
-                >
-                  Lọc
-                </Button>
-                <Button
-                  startIcon={<SortIcon />}
-                  onClick={(e) => handleMenuOpen(e, { type: "sort" })}
-                >
-                  Sắp xếp
-                </Button>
+        {/* Summary uses listing data, not estimated booking revenue. */}
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }, gap: { xs: 1.5, sm: 2 }, mb: 3 }}>
+          {propertyStats.map((stat) => (
+            <Paper key={stat.label} elevation={0} sx={{ p: { xs: 2, sm: 2.5 }, border: 1, borderColor: "divider", borderRadius: 2.5, minWidth: 0 }}>
+              <Stack direction="row" gap={1.25} alignItems="center" sx={{ mb: 1.5 }}>
+                <Box sx={{ display: "grid", placeItems: "center", color: "text.secondary", "& svg": { fontSize: 20 } }}>{stat.icon}</Box>
+                <Typography variant="body2" color="text.secondary">{stat.label}</Typography>
               </Stack>
-            </Grid>
-          </Grid>
-        </Paper>
-
-        {/* Stats Overview */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: "primary.main" }}>
-                  <MoneyIcon />
-                </Avatar>
-                <Box>
-                  <Typography variant="h6">
-                    ${properties.reduce((sum, p) => sum + p.price, 0)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tổng doanh thu
-                  </Typography>
-                </Box>
-              </Stack>
+              <Typography variant="h5" sx={{ fontWeight: 750, overflowWrap: "anywhere" }}>{propertiesLoading || propertiesError ? "—" : stat.value}</Typography>
             </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: "success.main" }}>
-                  <VisibilityIcon />
-                </Avatar>
-                <Box>
-                  <Typography variant="h6">{properties.length}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tài sản đang hoạt động
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: "warning.main" }}>
-                  <StarIcon />
-                </Avatar>
-                <Box>
-                  <Typography variant="h6">
-                    {(
-                      properties.reduce((sum, p) => sum + p.avgStart, 0) /
-                      properties.length
-                    ).toFixed(1)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Đánh giá trung bình
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: "info.main" }}>
-                  <MessageIcon />
-                </Avatar>
-                <Box>
-                  <Typography variant="h6">{messages.length}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tin nhắn mới
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
-          </Grid>
-        </Grid>
+          ))}
+        </Box>
 
         {/* Main Content */}
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs value={tabValue} onChange={handleTabChange}>
+          <Tabs value={tabValue} onChange={handleTabChange} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile aria-label="Các mục chủ nhà">
             <Tab
               icon={<AdminPanelSettingsIcon />}
               label="Thông tin Host"
@@ -1054,20 +885,45 @@ export default function HostPage() {
                   autoHighlight
                   clearOnEscape
                 />
-                <TextField
-                  label="Ngôn ngữ (phân cách bởi dấu phẩy)"
+                <Autocomplete
+                  multiple
+                  disableCloseOnSelect
+                  options={Array.from(
+                    new Set([...languageOptions, ...(hostEdit.languages || [])])
+                  )}
                   value={
-                    Array.isArray(hostEdit.languages)
-                      ? hostEdit.languages.join(", ")
-                      : ""
+                    Array.isArray(hostEdit.languages) ? hostEdit.languages : []
                   }
-                  onChange={(e) =>
+                  onChange={(_, newValue) =>
                     setHostEdit({
                       ...hostEdit,
-                      languages: e.target.value.split(",").map((s) => s.trim()),
+                      languages: newValue,
                     })
                   }
-                  fullWidth
+                  noOptionsText="Chưa có ngôn ngữ khả dụng"
+                  renderOption={(optionProps, option, { selected }) => (
+                    <li {...optionProps} key={option}>
+                      <Checkbox
+                        icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+                        checkedIcon={<CheckBoxIcon fontSize="small" />}
+                        style={{ marginRight: 8 }}
+                        checked={selected}
+                      />
+                      {option}
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Ngôn ngữ có thể giao tiếp"
+                      placeholder={
+                        hostEdit.languages?.length
+                          ? "Thêm ngôn ngữ..."
+                          : "Chọn một hoặc nhiều ngôn ngữ..."
+                      }
+                      fullWidth
+                    />
+                  )}
                 />
                 <TextField
                   label="Số năm làm Host"
@@ -1109,226 +965,9 @@ export default function HostPage() {
         </TabPanel>
 
         {/* Tab Tài sản */}
-        <TabPanel value={tabValue} index={1}>
-          <Grid container spacing={3}>
-            {sortedProperties.map((property) => (
-              <Grid item xs={12} md={6} key={property.id}>
-                <Card
-                  sx={{
-                    p: 0,
-                    borderRadius: 6,
-                    // boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-                    bgcolor: "rgba(24,25,26,0.7)",
-                    color: "#fff",
-                    overflow: "hidden",
-                    mb: 3,
-                    position: "relative",
-                    // border: "1.5px solid rgba(255,255,255,0.18)",
-                    backdropFilter: "blur(8px)",
-                    minHeight: 420,
-                    transition: "box-shadow 0.3s, transform 0.2s",
-                    "&:hover": {
-                      boxShadow: 16,
-                      transform: "translateY(-4px) scale(1.01)",
-                    },
-                  }}
-                >
-                  {/* Ảnh đại diện với overlay */}
-                  <Box
-                    sx={{
-                      position: "relative",
-                      height: 200,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <img
-                      src={getImageUrl(property.images[0])}
-                      alt={property.title}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                        borderTopLeftRadius: 24,
-                        borderTopRightRadius: 24,
-                        filter: "brightness(0.85)",
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        background:
-                          "linear-gradient(180deg,rgba(0,0,0,0.2) 60%,rgba(24,25,26,0.8) 100%)",
-                      }}
-                    />
-                    {property.status && (
-                      <Chip
-                        label={
-                          property.status?.toLowerCase() === "active"
-                            ? "Đang hoạt động"
-                            : "Không hoạt động"
-                        }
-                        sx={{
-                          position: "absolute",
-                          top: 16,
-                          left: 16,
-                          bgcolor:
-                            property.status?.toLowerCase() === "active"
-                              ? "#43ea7f"
-                              : "#bdbdbd",
-                          color: "#18191a",
-                          fontWeight: 700,
-                          fontSize: 13,
-                          borderRadius: 99,
-                          px: 2,
-                          py: 0.5,
-                          boxShadow: 2,
-                          letterSpacing: 0.5,
-                        }}
-                      />
-                    )}
-                  </Box>
-                  {/* Nội dung */}
-                  <Box
-                    sx={{
-                      p: 3,
-                      pt: 2,
-                      fontFamily: '"Be Vietnam Pro", sans-serif',
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      fontWeight={800}
-                      sx={{
-                        mb: 0.5,
-                        color: "#fff",
-                        textAlign: "center",
-                        letterSpacing: 0.2,
-                        textShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                      }}
-                    >
-                      {property.title}
-                    </Typography>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="center"
-                      spacing={1}
-                      sx={{ mb: 1 }}
-                    >
-                      <LocationOnIcon sx={{ fontSize: 18, color: "#ff385c" }} />
-                      <Typography variant="body2" sx={{ color: "#bdbdbd" }}>
-                        {property.address}, {property.city}, {property.country}
-                      </Typography>
-                    </Stack>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="center"
-                      spacing={2}
-                      sx={{ mb: 2 }}
-                    >
-                      <Stack direction="row" alignItems="center" spacing={0.5}>
-                        <StarIcon sx={{ color: "#ffd700", fontSize: 22 }} />
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            color: "#ffd700",
-                            fontWeight: 700,
-                            fontFamily: '"Be Vietnam Pro", sans-serif',
-                          }}
-                        >
-                          {property.avgStart}
-                        </Typography>
-                      </Stack>
-                      <Typography
-                        variant="h5"
-                        fontWeight={900}
-                        sx={{
-                          color: "#ff385c",
-                          ml: 2,
-                          background: "rgba(255,255,255,0.08)",
-                          px: 2,
-                          py: 0.5,
-                          borderRadius: 2,
-                          boxShadow: 1,
-                          fontFamily: '"Be Vietnam Pro", sans-serif',
-                        }}
-                      >
-                        {property.price?.toLocaleString("vi-VN")}₫/đêm
-                      </Typography>
-                    </Stack>
-                    {/* Amenities dạng icon tròn nhỏ */}
-                    <Stack
-                      direction="row"
-                      spacing={1.5}
-                      justifyContent="center"
-                      sx={{ flexWrap: "wrap", mb: 2 }}
-                    >
-                      {property.amenites.slice(0, 5).map((amenity, idx) => (
-                        <Tooltip title={amenity.name} key={idx}>
-                          <Avatar
-                            src={getAmenityImageUrl(amenity.thumnailUrl)}
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              bgcolor: "#232323",
-                              color: "#fff",
-                              fontWeight: 600,
-                              fontSize: 16,
-                              border: "2px solid #232323",
-                              boxShadow: 1,
-                              fontFamily: '"Be Vietnam Pro", sans-serif',
-                            }}
-                          >
-                            {amenity.thumnailUrl ? "" : amenity.name?.[0]}
-                          </Avatar>
-                        </Tooltip>
-                      ))}
-                      {property.amenites.length > 5 && (
-                        <Avatar
-                          sx={{
-                            width: 32,
-                            height: 32,
-                            bgcolor: "#232323",
-                            color: "#fff",
-                            fontWeight: 600,
-                            fontSize: 16,
-                            fontFamily: '"Be Vietnam Pro", sans-serif',
-                          }}
-                        >
-                          +{property.amenites.length - 5}
-                        </Avatar>
-                      )}
-                    </Stack>
-                    <Divider
-                      sx={{ my: 1.5, borderColor: "rgba(255,255,255,0.12)" }}
-                    />
-                    {/* Nút Edit icon tròn nổi bật */}
-                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                      <IconButton
-                        sx={{
-                          bgcolor: "#ff385c",
-                          color: "#fff",
-                          borderRadius: "50%",
-                          boxShadow: 2,
-                          fontFamily: '"Be Vietnam Pro", sans-serif',
-                          "&:hover": { bgcolor: "#d32f2f" },
-                        }}
-                        onClick={() => handleEditProperty(property)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Box>
-                  </Box>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+        <TabPanel value={tabValue} index={1} flush>
+          <HostProperties properties={properties} loading={propertiesLoading} error={propertiesError}
+            onReload={fetchPropertiesFromAPI} onAdd={handleAddProperty} onEdit={handleEditProperty} />
         </TabPanel>
 
         {/* Tab Tin nhắn */}
@@ -1874,41 +1513,6 @@ export default function HostPage() {
         </TabPanel>
       </Box>
 
-      {/* Property Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={() => handleSort("price-asc")}>
-          Sắp xếp theo giá (Thấp đến cao)
-        </MenuItem>
-        <MenuItem onClick={() => handleSort("price-desc")}>
-          Sắp xếp theo giá (Cao đến thấp)
-        </MenuItem>
-        <MenuItem onClick={() => handleSort("rating")}>
-          Sắp xếp theo đánh giá
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => handleFilter("all")}>Tất cả tài sản</MenuItem>
-        <MenuItem onClick={() => handleFilter("active")}>
-          Tài sản đang hoạt động
-        </MenuItem>
-        <MenuItem onClick={() => handleFilter("inactive")}>
-          Tài sản không hoạt động
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => handleViewStats(selectedProperty)}>
-          Xem thống kê
-        </MenuItem>
-        <MenuItem onClick={() => handleShare(selectedProperty)}>
-          Chia sẻ tài sản
-        </MenuItem>
-        <MenuItem onClick={() => handleBookmark(selectedProperty)}>
-          Lưu tài sản
-        </MenuItem>
-      </Menu>
-
       {/* Success Alert */}
       {showSuccessAlert && (
         <Alert
@@ -1916,7 +1520,7 @@ export default function HostPage() {
           onClose={() => setShowSuccessAlert(false)}
           sx={{ position: "fixed", bottom: 24, right: 24, zIndex: 2000 }}
         >
-          Đã lưu tài sản thành công!
+          Đã lưu chỗ ở thành công!
         </Alert>
       )}
 
@@ -1928,7 +1532,7 @@ export default function HostPage() {
         fullWidth
       >
         <DialogTitle>
-          {isEditMode ? "Chỉnh sửa tài sản" : "Thêm tài sản mới"}
+          {isEditMode ? "Chỉnh sửa chỗ ở" : "Thêm chỗ ở mới"}
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -2136,7 +1740,7 @@ export default function HostPage() {
                         sx={{ width: 100, height: 100, position: "relative" }}
                       >
                         <img
-                          src={img}
+                          src={getMediaUrl(img)}
                           alt={`preview-${idx}`}
                           style={{
                             width: "100%",

@@ -1,128 +1,67 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
+import { useId, useState } from 'react';
+import PropTypes from 'prop-types';
 import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Typography,
-} from "@mui/material";
-import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  IconButton, Stack, Typography, useMediaQuery, useTheme,
+} from '@mui/material';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
-const AboutThisPlace = ({ description }) => {
+export default function AboutThisPlace({ description, title }) {
   const [open, setOpen] = useState(false);
-
-  const safeDescription =
-    description?.trim() ||
-    "Chỗ nghỉ được thiết kế ấm cúng, đầy đủ tiện nghi sinh hoạt và thuận tiện di chuyển tới các địa điểm tham quan nổi bật.";
-  const isLong = safeDescription.length > 260;
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const headingId = useId();
+  const contentId = useId();
+  const text = description?.trim() || 'Chủ nhà chưa cập nhật phần giới thiệu chỗ ở.';
+  const paragraphs = text.split(/\n\s*\n/).filter(Boolean);
+  const isLong = text.length > 260 || text.split('\n').length > 4;
 
   return (
     <Box sx={{ my: 3.5 }}>
-      <Typography
-        variant="h6"
-        sx={{
-          mb: 1.5,
-          fontWeight: 800,
-          fontFamily: "var(--rn-font-display)",
-          color: "var(--rn-text-primary)",
-          fontSize: "1.25rem",
-        }}
-      >
+      <Typography component="h2" variant="h6" sx={{ mb: 1.5, fontWeight: 750 }}>
         Giới thiệu về chỗ ở này
       </Typography>
-
-      <Typography
-        variant="body1"
-        sx={{
-          color: "var(--rn-text-secondary)",
-          lineHeight: 1.75,
-          whiteSpace: "pre-line",
-          display: "-webkit-box",
-          WebkitLineClamp: 4,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}
-      >
-        {safeDescription}
+      <Typography color="text.secondary" sx={{ lineHeight: 1.8, whiteSpace: 'pre-line', overflowWrap: 'anywhere',
+        display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        {text}
       </Typography>
-
       {isLong && (
-        <Button
-          onClick={() => setOpen(true)}
-          endIcon={<ArrowForwardIosRoundedIcon sx={{ fontSize: 13 }} />}
-          sx={{
-            mt: 1.5,
-            px: 0,
-            color: "var(--rn-brand-primary)",
-            fontWeight: 700,
-            textTransform: "none",
-            "&:hover": {
-              bgcolor: "transparent",
-              textDecoration: "underline",
-            },
-          }}
-        >
+        <Button onClick={() => setOpen(true)} endIcon={<ArrowForwardRoundedIcon />}
+          aria-haspopup="dialog" sx={{ mt: 1.5, minHeight: 44, fontWeight: 700, px: 0.5 }}>
           Xem thêm chi tiết
         </Button>
       )}
-
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: "20px",
-            bgcolor: "var(--rn-surface-card)",
-            color: "var(--rn-text-primary)",
-            border: "1px solid var(--rn-border-subtle)",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            px: 3,
-            py: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderBottom: "1px solid var(--rn-border-subtle)",
-            fontWeight: 800,
-            fontFamily: "var(--rn-font-display)",
-          }}
-        >
-          Giới thiệu về chỗ ở này
-          <IconButton
-            onClick={() => setOpen(false)}
-            sx={{ color: "var(--rn-text-secondary)" }}
-          >
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm" fullScreen={fullScreen}
+        aria-labelledby={headingId} aria-describedby={contentId}
+        transitionDuration={reducedMotion ? 0 : undefined}
+        sx={{ '& .MuiDialog-paperFullScreen': { m: 0, width: '100%', maxWidth: '100%', height: '100%', maxHeight: '100%', borderRadius: 0 } }}
+        PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3, bgcolor: 'background.paper',
+          color: 'text.primary', maxHeight: fullScreen ? '100%' : 'calc(100% - 48px)' } }}>
+        <DialogTitle component="div" sx={{ px: { xs: 2.5, sm: 4 }, pt: 3, pb: 2.5, borderBottom: 1, borderColor: 'divider', position: 'relative', pr: { xs: 8, sm: 9 } }}>
+          <Typography id={headingId} component="h2" variant="h5" sx={{ fontWeight: 750, lineHeight: 1.35 }}>
+            Giới thiệu về chỗ ở này
+          </Typography>
+          {title && <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75, overflowWrap: 'anywhere' }}>{title}</Typography>}
+          <IconButton autoFocus aria-label="Đóng giới thiệu" onClick={() => setOpen(false)}
+            sx={{ position: 'absolute', right: { xs: 12, sm: 20 }, top: 16, width: 44, height: 44, bgcolor: 'action.hover' }}>
             <CloseRoundedIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Typography
-            variant="body1"
-            sx={{
-              color: "var(--rn-text-secondary)",
-              lineHeight: 1.8,
-              whiteSpace: "pre-line",
-            }}
-          >
-            {safeDescription}
-          </Typography>
+        <DialogContent sx={{ px: { xs: 2.5, sm: 4 }, py: 3, '&.MuiDialogContent-root': { pt: 3 } }}>
+          <Stack id={contentId} gap={2.5} sx={{ maxWidth: '65ch' }}>
+            {paragraphs.map((paragraph, index) => (
+              <Typography key={index} sx={{ lineHeight: 1.9, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{paragraph}</Typography>
+            ))}
+          </Stack>
         </DialogContent>
+        <DialogActions sx={{ px: { xs: 2.5, sm: 4 }, py: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Button variant="contained" onClick={() => setOpen(false)} sx={{ minHeight: 44, px: 3 }}>Đóng</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );
-};
+}
 
-AboutThisPlace.propTypes = {
-  description: PropTypes.string,
-};
-
-export default AboutThisPlace;
+AboutThisPlace.propTypes = { description: PropTypes.string, title: PropTypes.string };

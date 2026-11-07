@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useContext, useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Avatar,
   Typography,
   Box,
   TextField,
@@ -23,13 +24,28 @@ import {
   Rating,
   Snackbar,
 } from '@mui/material';
-import { Add as AddIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { Add as AddIcon, PersonOutlineRounded, Settings as SettingsIcon } from '@mui/icons-material';
 import axiosInstance from '@/shared/api/httpClient.js';
+import { SearchContext } from '@/features/search/context/SearchContext.jsx';
 import CreatePropertyDialog from './CreatePropertyDialog.jsx';
 import PropertyDetailsDialog from './PropertyDetailsDialog.jsx';
 import { getPropertyMediaUrl } from '../utils/propertyDetails.js';
 
+function sortByDisplayOrder(items) {
+  return [...items].sort(
+    (first, second) => (first.orderNumber ?? 0) - (second.orderNumber ?? 0) || first.id - second.id
+  );
+}
+
+function resolveDisplayText(...candidates) {
+  const matched = candidates.find(
+    (value) => typeof value === 'string' && value.trim()
+  );
+  return matched ? matched.trim() : '';
+}
+
 export default function AdminProperties({ onPropertyCreated }) {
+  const searchCtx = useContext(SearchContext);
   const [properties, setProperties] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
@@ -50,31 +66,52 @@ export default function AdminProperties({ onPropertyCreated }) {
       setError('');
       try {
         const res = await axiosInstance.get('/api/listings/all');
-        const listings = res.data.result;
-        
+        const listings = Array.isArray(res.data?.result) ? res.data.result : [];
+        const hostCache = new Map();
+
         const propertiesWithOwner = await Promise.all(
           listings.map(async (item) => {
-            let ownerName = '';
-            try {
-              const hostRes = await axiosInstance.get(`/api/users/host/${item.hostId}`);
-              ownerName = hostRes.data.result.fullname || '';
-            } catch (e) {
-              ownerName = 'Không xác định';
+            let ownerName = resolveDisplayText(item.hostName);
+            let ownerAvatar = getPropertyMediaUrl(item.hostThumnailUrl);
+
+            if (!ownerName && item.hostId != null) {
+              try {
+                if (!hostCache.has(item.hostId)) {
+                  hostCache.set(
+                    item.hostId,
+                    axiosInstance.get(`/api/users/host/${item.hostId}`).then((hostRes) => hostRes.data?.result)
+                  );
+                }
+                const hostInfo = await hostCache.get(item.hostId);
+                ownerName = resolveDisplayText(hostInfo?.fullname, hostInfo?.username, hostInfo?.email);
+                if (!ownerAvatar) {
+                  ownerAvatar = getPropertyMediaUrl(hostInfo?.thumnailUrl);
+                }
+              } catch {
+                ownerName = '';
+              }
             }
+
+            if (!ownerName) {
+              ownerName = item.hostId != null ? `Chủ nhà #${item.hostId}` : 'Chưa cập nhật';
+            }
+
             return {
               id: item.id,
-              name: item.name,
-              location: item.city,
+              name: item.name || `Chỗ ở #${item.id}`,
+              location: item.city || 'Chưa cập nhật',
               price: item.price ? `${item.price.toLocaleString()} VND` : '',
               owner: ownerName,
+              ownerId: item.hostId ?? null,
+              ownerAvatar,
               status: item.access ? 'Đã kích hoạt' : 'Đang chờ kích hoạt',
               rating: item.avgStart ?? 0,
               images: (item.images || []).map(getPropertyMediaUrl).filter(Boolean),
-              orderNumber: item.position || 0,
+              orderNumber: item.position ?? 0,
             };
           })
         );
-        setProperties(propertiesWithOwner);
+        setProperties(sortByDisplayOrder(propertiesWithOwner));
       } catch (err) {
         setError('Không thể tải danh sách chỗ ở');
       } finally {
@@ -100,11 +137,22 @@ export default function AdminProperties({ onPropertyCreated }) {
   const handleOwnerChange = (e) => setOwnerFilter(e.target.value);
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
 
+  const ownerOptions = useMemo(() => {
+    const names = new Set();
+    properties.forEach((item) => {
+      if (item.owner && item.owner !== 'Chưa cập nhật') {
+        names.add(item.owner);
+      }
+    });
+    return Array.from(names);
+  }, [properties]);
+
   const filteredData = properties.filter(
     (item) =>
-      (item.name.toLowerCase().includes(searchTerm) ||
-        item.location.toLowerCase().includes(searchTerm)) &&
-      (ownerFilter === 'all' || item.owner.toLowerCase().includes(ownerFilter.toLowerCase())) &&
+      ((item.name || '').toLowerCase().includes(searchTerm) ||
+        (item.location || '').toLowerCase().includes(searchTerm) ||
+        (item.owner || '').toLowerCase().includes(searchTerm)) &&
+      (ownerFilter === 'all' || item.owner === ownerFilter) &&
       (statusFilter === 'all' || item.status === statusFilter)
   );
 
@@ -128,6 +176,7 @@ export default function AdminProperties({ onPropertyCreated }) {
         property.id === id ? { ...property, status: newStatus } : property
       );
       setProperties(updatedProperties);
+      searchCtx?.updateSearchResults?.([], false);
       setAlertSeverity('success');
       setAlertMessage('Cập nhật trạng thái thành công!');
       setShowSuccessAlert(true);
@@ -148,6 +197,7 @@ export default function AdminProperties({ onPropertyCreated }) {
       await axiosInstance.delete(`/api/listings/${id}`);
       const updatedProperties = properties.filter(property => property.id !== id);
       setProperties(updatedProperties);
+      searchCtx?.updateSearchResults?.([], false);
       setAlertSeverity('success');
       setAlertMessage('Gỡ bỏ thành công!');
       setShowSuccessAlert(true);
@@ -165,16 +215,25 @@ export default function AdminProperties({ onPropertyCreated }) {
   const handleSaveOrderNumber = async (id, value) => {
     try {
       await axiosInstance.put(`/api/listings/${id}/${value}`);
-      setProperties((previous) => previous.map((property) =>
-        property.id === id ? { ...property, orderNumber: value } : property
-      ));
+      setProperties((previous) =>
+        sortByDisplayOrder(
+          previous.map((property) =>
+            property.id === id ? { ...property, orderNumber: value } : property
+          )
+        )
+      );
+      setSelectedProperty((previous) =>
+        previous && previous.id === id ? { ...previous, orderNumber: value } : previous
+      );
+      searchCtx?.updateSearchResults?.([], false);
       setAlertSeverity('success');
-      setAlertMessage('Cập nhật số thứ tự thành công!');
+      setAlertMessage(`Cập nhật số thứ tự thành #${value} thành công!`);
       setShowSuccessAlert(true);
     } catch (err) {
       setAlertSeverity('error');
       setAlertMessage('Có lỗi khi cập nhật số thứ tự!');
       setShowSuccessAlert(true);
+      throw err;
     }
   };
 
@@ -193,9 +252,14 @@ export default function AdminProperties({ onPropertyCreated }) {
     <Box sx={{ width: '100%', minWidth: 0, p: { xs: 2, sm: 3 } }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}
         alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" sx={{ mb: 3 }}>
-        <Typography variant="h4" component="h2" sx={{ fontWeight: 600 }}>
-          Quản lý chỗ ở
-        </Typography>
+        <Box>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+            Quản lý chỗ ở
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Tổng cộng {properties.length} chỗ ở • {properties.filter((p) => p.status === 'Đã kích hoạt').length} đã kích hoạt
+          </Typography>
+        </Box>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreateDialog(true)}
           sx={{ minHeight: 44, flexShrink: 0 }}>
           Thêm chỗ ở mới
@@ -214,8 +278,11 @@ export default function AdminProperties({ onPropertyCreated }) {
           <InputLabel>Chủ sở hữu</InputLabel>
           <Select value={ownerFilter} label="Chủ sở hữu" onChange={handleOwnerChange}>
             <MenuItem value="all">Tất cả</MenuItem>
-            <MenuItem value="Chủ A">Chủ A</MenuItem>
-            <MenuItem value="Chủ B">Chủ B</MenuItem>
+            {ownerOptions.map((ownerName) => (
+              <MenuItem key={ownerName} value={ownerName}>
+                {ownerName}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
         <FormControl sx={{ minWidth: 200 }}>
@@ -236,14 +303,21 @@ export default function AdminProperties({ onPropertyCreated }) {
           <Typography>Đang tải dữ liệu...</Typography>
         </Box>
       ) : (
-        <TableContainer component={Paper} elevation={3}>
-          <Table>
+        <TableContainer
+          component={Paper}
+          elevation={3}
+          role="region"
+          aria-label="Danh sách chỗ ở quản trị"
+          tabIndex={0}
+          sx={{ overflowX: 'auto' }}
+        >
+          <Table stickyHeader aria-label="Bảng quản lý chỗ ở">
             <TableHead>
               <TableRow>
-                {['Ảnh', 'Tên chỗ ở', 'Địa điểm', 'Giá', 'Chủ sở hữu', 'Trạng thái', 'Đánh giá', 'Hành động'].map((header) => (
+                {['Thứ tự', 'Ảnh', 'Tên chỗ ở', 'Địa điểm', 'Giá', 'Chủ sở hữu', 'Trạng thái', 'Đánh giá', 'Hành động'].map((header) => (
                   <TableCell
                     key={header}
-                    sx={{ fontWeight: 600 }}
+                    sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}
                   >
                     {header}
                   </TableCell>
@@ -254,7 +328,7 @@ export default function AdminProperties({ onPropertyCreated }) {
             <TableBody>
               {filteredData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     {properties.length === 0
                       ? 'Chưa có chỗ ở. Chọn “Thêm chỗ ở mới” để tạo chỗ ở đầu tiên.'
                       : 'Không có chỗ ở phù hợp với bộ lọc.'}
@@ -263,6 +337,14 @@ export default function AdminProperties({ onPropertyCreated }) {
               )}
               {filteredData.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      label={`#${item.orderNumber ?? 0}`}
+                      sx={{ fontWeight: 700 }}
+                    />
+                  </TableCell>
                   <TableCell>
                     <Box
                       component="img"
@@ -279,7 +361,27 @@ export default function AdminProperties({ onPropertyCreated }) {
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.location}</TableCell>
                   <TableCell>{item.price}</TableCell>
-                  <TableCell>{item.owner}</TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 140 }}>
+                      <Avatar
+                        src={item.ownerAvatar || undefined}
+                        alt=""
+                        sx={{ width: 32, height: 32, bgcolor: 'action.hover', color: 'text.secondary', fontSize: '0.875rem' }}
+                      >
+                        <PersonOutlineRounded fontSize="small" />
+                      </Avatar>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
+                          {item.owner}
+                        </Typography>
+                        {item.ownerId != null && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>
+                            Mã: #{item.ownerId}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Stack>
+                  </TableCell>
                   <TableCell>
                     <Chip 
                       label={item.status}

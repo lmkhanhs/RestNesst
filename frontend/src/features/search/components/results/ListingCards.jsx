@@ -1,5 +1,5 @@
-import { BACKEND_URL } from "@/shared/config/environment.js";
-import { Card, Box, Typography, IconButton, Button, Stack } from "@mui/material";
+import { getMediaUrl } from "@/shared/utils/mediaUrl.js";
+import { Alert, Card, Box, Typography, IconButton, Button, Stack } from "@mui/material";
 import Slider from "react-slick";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -8,8 +8,8 @@ import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import axiosInstance from "@/shared/api/httpClient.js";
-import { useState, useEffect } from "react";
+import useFavorites from "@/features/favorites/hooks/useFavorites.js";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import "./SearchMap.css";
 
@@ -45,9 +45,7 @@ const sliderSettings = {
 };
 
 export const getImageUrl = (img) => {
-  if (!img) return FALLBACK_ROOM_IMAGE;
-  if (img.startsWith("http") || img.startsWith("data:")) return img;
-  return `${BACKEND_URL}/${img.replace(/^\/+/, "")}`;
+  return getMediaUrl(img) || FALLBACK_ROOM_IMAGE;
 };
 
 export const formatNightlyPrice = (price) => {
@@ -57,41 +55,14 @@ export const formatNightlyPrice = (price) => {
 };
 
 const Properties = ({ properties, compact = false }) => {
-  const [favoriteIds, setFavoriteIds] = useState([]);
+  const { isSaved, isPending, setSaved, loading, error, reload } = useFavorites();
+  const [favoriteError, setFavoriteError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const res = await axiosInstance.get("/api/users/favorites");
-        if (res.data?.result?.favorites) {
-          setFavoriteIds(res.data.result.favorites.map((fav) => fav.id || fav));
-        }
-      } catch (err) {
-        // Ignore unauthenticated favorite fetch errors
-      }
-    };
-    if (localStorage.getItem("accessToken")) fetchFavorites();
-  }, []);
-
   const handleFavorite = async (listingId) => {
-    if (favoriteIds.includes(listingId)) {
-      setFavoriteIds((prev) => prev.filter((id) => id !== listingId));
-      try {
-        await axiosInstance.delete("/api/users/favorites", {
-          data: { listingId },
-        });
-      } catch (err) {
-        setFavoriteIds((prev) => [...prev, listingId]);
-      }
-    } else {
-      setFavoriteIds((prev) => [...prev, listingId]);
-      try {
-        await axiosInstance.post("/api/users/favorites", { listingId });
-      } catch (err) {
-        setFavoriteIds((prev) => prev.filter((id) => id !== listingId));
-      }
-    }
+    setFavoriteError("");
+    try { await setSaved(listingId, !isSaved(listingId)); }
+    catch (failure) { setFavoriteError(failure.message); }
   };
 
   if (!properties || properties.length === 0) {
@@ -103,13 +74,18 @@ const Properties = ({ properties, compact = false }) => {
   }
 
   return (
+    <>
+    {(favoriteError || error) && <Alert severity="error" sx={{ mb: 2 }}
+      action={<Button color="inherit" onClick={() => { setFavoriteError(''); reload(); }} sx={{ minHeight: 44 }}>Thử lại</Button>}>
+      {favoriteError || error}
+    </Alert>}
     <Box
       className={compact ? "rn-room-grid rn-room-grid--compact" : "rn-room-grid"}
       role="list"
       aria-label="Danh sách phòng nghỉ"
     >
       {properties.map((property) => {
-        const isFav = favoriteIds.includes(property.id);
+        const isFav = isSaved(property.id);
         const roomName = property.name || property.title || "Chỗ ở RestNesst";
         const images =
           Array.isArray(property.images) && property.images.length > 0
@@ -203,6 +179,7 @@ const Properties = ({ properties, compact = false }) => {
                     : `Lưu ${roomName} vào danh sách yêu thích`
                 }
                 aria-pressed={isFav}
+                disabled={isPending(property.id) || loading}
                 className="rn-interactive-btn"
                 sx={{
                   position: "absolute",
@@ -471,6 +448,7 @@ const Properties = ({ properties, compact = false }) => {
         );
       })}
     </Box>
+    </>
   );
 };
 

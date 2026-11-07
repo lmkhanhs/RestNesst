@@ -1,6 +1,4 @@
-import { BACKEND_URL } from "@/shared/config/environment.js";
-import React, { useState, useEffect, useCallback } from "react";
-import PropTypes from "prop-types";
+import { Fragment, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -13,15 +11,14 @@ import {
   Grid,
   Divider,
   Paper,
-  Tooltip,
-  Card,
+  Alert,
+  Avatar,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import PersonIcon from "@mui/icons-material/Person";
-import GroupIcon from "@mui/icons-material/Group";
-import Image from "@/shared/components/Image.jsx";
+import ImageNotSupportedOutlinedIcon from "@mui/icons-material/ImageNotSupportedOutlined";
 import { keyframes } from "@mui/system";
 import axiosInstance from "@/shared/api/httpClient.js";
+import { normalizeReservationData } from "../utils/reservationData.js";
 
 const fadeIn = keyframes`
   from {
@@ -37,89 +34,53 @@ const fadeIn = keyframes`
 const ReservationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { roomData } = location.state || {};
-  const [paymentInfo, setPaymentInfo] = useState({
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-    postalCode: "",
-  });
+  const rawRoomData = location.state?.roomData;
+  const roomData = normalizeReservationData(rawRoomData);
+  const [paymentError, setPaymentError] = useState("");
+  const [paying, setPaying] = useState(false);
+  const paymentPending = useRef(false);
   const [currentStep, setCurrentStep] = useState(1);
   const message =
     "Tôi muốn đặt phòng này cho chuyến đi của mình. Mong được phục vụ tốt nhất.";
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
-  const [favoriteRooms, setFavoriteRooms] = useState([]);
-  const [favoriteIds, setFavoriteIds] = useState([]);
 
   const totalSteps = 2;
   const progress = (currentStep / totalSteps) * 100;
 
-  const fetchFavoriteRooms = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/api/users/favorites");
-      if (res.data?.result?.favorites) {
-        setFavoriteRooms(res.data.result.favorites);
-        setFavoriteIds(res.data.result.favorites.map((fav) => fav.id || fav));
-      }
-    } catch (err) {}
-  }, []);
-
-  useEffect(() => {
-    if (roomData && localStorage.getItem("accessToken")) fetchFavoriteRooms();
-  }, [roomData, fetchFavoriteRooms]);
-
   if (!roomData) {
     return (
-      <Container>
-        <Typography variant="h5" sx={{ textAlign: "center", mt: 4 }}>
-          Không tìm thấy thông tin đặt phòng. Vui lòng quay lại trang chủ và thử
-          lại.
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => navigate("/")}
-          sx={{ display: "block", mx: "auto", mt: 2 }}
-        >
-          Quay lại trang chủ
-        </Button>
+      <Container maxWidth="sm" sx={{ py: 6 }}>
+        <Alert severity="warning">
+          {rawRoomData
+            ? "Thông tin đặt phòng chưa đầy đủ. Vui lòng kiểm tra phòng đã đặt trước khi thử lại."
+            : "Không tìm thấy thông tin đặt phòng. Vui lòng chọn chỗ ở và ngày lưu trú."}
+        </Alert>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 3 }}>
+          {rawRoomData && <Button variant="contained" onClick={() => navigate("/profile")} sx={{ minHeight: 44 }}>Kiểm tra phòng đã đặt</Button>}
+          <Button variant="outlined" onClick={() => navigate("/")} sx={{ minHeight: 44 }}>Quay lại trang chủ</Button>
+        </Box>
       </Container>
     );
   }
-
-  if (!roomData.images || !roomData.title || !roomData.price) {
-    return (
-      <Container>
-        <Typography variant="h5" sx={{ textAlign: "center", mt: 4 }}>
-          Dữ liệu phòng không hợp lệ. Vui lòng thử lại.
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => navigate("/")}
-          sx={{ display: "block", mx: "auto", mt: 2 }}
-        >
-          Quay lại trang chủ
-        </Button>
-      </Container>
-    );
-  }
-
-  const handleInputChange = (e) => {
-    setPaymentInfo({
-      ...paymentInfo,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleNext = () => {
     setCurrentStep(currentStep + 1);
   };
 
   const handlePayment = async () => {
+    if (paymentPending.current) return;
+    setPaymentError("");
+    if (!selectedPaymentMethod) {
+      setPaymentError("Vui lòng chọn phương thức thanh toán.");
+      return;
+    }
+    paymentPending.current = true;
+    setPaying(true);
     try {
       // Lấy bookingId từ roomData đã truyền sang
-      const bookingId = roomData.bookingId || roomData.id;
+      const bookingId = roomData.bookingId;
       if (!bookingId) {
-        console.error("Không tìm thấy bookingId.");
+        setPaymentError("Không tìm thấy mã đặt phòng. Vui lòng kiểm tra phòng đã đặt.");
         return;
       }
       // Gửi payment với bookingId đã có
@@ -149,10 +110,13 @@ const ReservationPage = () => {
       if (response.data?.result) {
         window.location.href = response.data.result;
       } else {
-        console.error("Không tìm thấy URL thanh toán trong response");
+        setPaymentError("Chưa nhận được đường dẫn thanh toán. Vui lòng thử lại.");
       }
-    } catch (error) {
-      console.error("Có lỗi xảy ra khi thanh toán:", error);
+    } catch {
+      setPaymentError("Không thể kết nối thanh toán. Vui lòng thử lại.");
+    } finally {
+      paymentPending.current = false;
+      setPaying(false);
     }
   };
 
@@ -169,8 +133,8 @@ const ReservationPage = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <FormControl fullWidth>
-                      <InputLabel>Phương thức thanh toán</InputLabel>
-                      <Select
+                      <InputLabel id="payment-method-label">Phương thức thanh toán</InputLabel>
+                      <Select labelId="payment-method-label"
                         value={selectedPaymentMethod}
                         onChange={(e) =>
                           setSelectedPaymentMethod(e.target.value)
@@ -252,9 +216,9 @@ const ReservationPage = () => {
                   disabled={!selectedPaymentMethod}
                   sx={{
                     mt: 2,
-                    backgroundColor: "#000000",
+                    backgroundColor: "primary.main",
                     "&:hover": {
-                      backgroundColor: "#333333",
+                      backgroundColor: "primary.dark",
                     },
                     padding: 1.5,
                   }}
@@ -274,7 +238,7 @@ const ReservationPage = () => {
               p: 4,
               mb: 3,
               borderRadius: 2,
-              border: "1px solid #e0e0e0",
+              border: 1, borderColor: "divider",
             }}
           >
             <Typography
@@ -282,7 +246,7 @@ const ReservationPage = () => {
               sx={{
                 mb: 3,
                 fontWeight: 600,
-                color: "#2C3E50",
+                color: "text.primary",
               }}
             >
               2. Xem lại yêu cầu của bạn
@@ -293,24 +257,24 @@ const ReservationPage = () => {
                   sx={{
                     mb: 3,
                     p: 2,
-                    backgroundColor: "#F8F9FA",
+                    backgroundColor: "background.neutral",
                     borderRadius: 1,
                   }}
                 >
                   <Typography
                     variant="subtitle1"
                     sx={{
-                      color: "#2C3E50",
+                      color: "text.primary",
                       fontWeight: 500,
                       mb: 2,
                     }}
                   >
                     Bằng việc chọn nút bên dưới, bạn đồng ý với:
                   </Typography>
-                  <ul
-                    style={{
+                  <Box component="ul"
+                    sx={{
                       paddingLeft: "25px",
-                      color: "#546E7A",
+                      color: "text.secondary",
                       "& li": {
                         marginBottom: "8px",
                       },
@@ -319,15 +283,16 @@ const ReservationPage = () => {
                     <li>Nội quy nhà</li>
                     <li>Chính sách hủy phòng</li>
                     <li>Quy chuẩn an toàn</li>
-                  </ul>
+                  </Box>
                 </Box>
                 <Button
                   variant="contained"
                   fullWidth
                   onClick={handlePayment}
+                  disabled={paying || !selectedPaymentMethod}
                   sx={{
                     mt: 2,
-                    backgroundColor: "#FF385C",
+                    backgroundColor: "primary.main",
                     padding: "14px",
                     fontSize: "16px",
                     fontWeight: 600,
@@ -336,13 +301,13 @@ const ReservationPage = () => {
                     boxShadow: "0 4px 12px rgba(255, 56, 92, 0.3)",
                     transition: "all 0.2s ease-in-out",
                     "&:hover": {
-                      backgroundColor: "#E61E4D",
+                      backgroundColor: "primary.dark",
                       transform: "translateY(-1px)",
                       boxShadow: "0 6px 16px rgba(255, 56, 92, 0.4)",
                     },
                   }}
                 >
-                  Thanh toán ngay
+                  {paying ? "Đang chuyển đến thanh toán..." : "Thanh toán ngay"}
                 </Button>
               </>
             )}
@@ -354,100 +319,14 @@ const ReservationPage = () => {
     }
   };
 
-  const renderGuestInfo = () => {
-    if (!roomData.guests) return null;
-
-    return (
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-          Khách
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {roomData.guests > 1 ? <GroupIcon /> : <PersonIcon />}
-          <Tooltip title="Số người trong phòng" placement="top">
-            <Typography>
-              {roomData.guests} {roomData.guests > 1 ? "người" : "người"}
-            </Typography>
-          </Tooltip>
-        </Box>
-      </Box>
-    );
-  };
-
-  const addFavorite = async (listingId) => {
-    try {
-      const res = await axiosInstance.post("/api/users/favorites", {
-        listingId,
-      });
-      if (res.data.code === 200) {
-        fetchFavoriteRooms();
-      }
-    } catch (err) {}
-  };
-
-  const deleteFavorite = async (listingId) => {
-    try {
-      const res = await axiosInstance.delete("/api/users/favorites", {
-        data: { listingId },
-      });
-      if (res.data.code === 200) {
-        fetchFavoriteRooms();
-      }
-    } catch (err) {}
-  };
-
-  const renderFavoriteRooms = () => {
-    console.log("favoriteRooms", favoriteRooms);
-    if (favoriteRooms.length === 0) return null;
-
-    return (
-      <Card sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 3 }}>
-          Your Favorite Rooms
-        </Typography>
-        <Grid container spacing={3}>
-          {favoriteRooms.map((room) => (
-            <Grid item xs={12} md={6} key={room.id}>
-              <Paper sx={{ p: 2, display: "flex", alignItems: "center" }}>
-                <Image
-                  src={
-                    room.primaryThumbnail.startsWith("http")
-                      ? room.primaryThumbnail
-                      : `${BACKEND_URL}/${room.primaryThumbnail}`
-                  }
-                  alt={room.title}
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    objectFit: "cover",
-                    borderRadius: 8,
-                    marginRight: 16,
-                  }}
-                />
-                <div>
-                  <Typography variant="subtitle1">{room.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Giá: {room.price} VND / đêm
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Từ {room.startDate} đến {room.endDate}
-                  </Typography>
-                </div>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Card>
-    );
-  };
-
   return (
     <Container
       maxWidth="lg"
       sx={{
         py: 4,
-        bgcolor: "#fff",
+        bgcolor: "background.paper",
         animation: `${fadeIn} 0.5s ease-out`,
+        "@media (prefers-reduced-motion: reduce)": { animation: "none", "& *": { transition: "none !important" } },
         "& .MuiPaper-root": {
           transition: "transform 0.2s ease-in-out",
           "&:hover": {
@@ -479,6 +358,7 @@ const ReservationPage = () => {
         />
       </Box>
 
+      {paymentError && <Alert severity="error" sx={{ mb: 3 }}>{paymentError}</Alert>}
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <Typography
@@ -494,9 +374,9 @@ const ReservationPage = () => {
           </Typography>
 
           {[1, 2].map((step) => (
-            <React.Fragment key={`step-${step}`}>
+            <Fragment key={`step-${step}`}>
               {renderStepContent(step)}
-            </React.Fragment>
+            </Fragment>
           ))}
         </Grid>
 
@@ -508,9 +388,9 @@ const ReservationPage = () => {
               borderRadius: 2,
               position: "sticky",
               top: 24,
-              bgcolor: "#fff",
+              bgcolor: "background.paper",
               boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-              border: "1px solid #e0e0e0",
+              border: 1, borderColor: "divider",
               "&:hover": {
                 boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
               },
@@ -523,22 +403,10 @@ const ReservationPage = () => {
 
             <Box sx={{ mb: 2 }}>
               <Box sx={{ position: "relative" }}>
-                <Image
-                  src={
-                    roomData?.images?.[0]
-                      ? roomData.images[0].startsWith("http")
-                        ? roomData.images[0]
-                        : `${BACKEND_URL}/${roomData.images[0]}`
-                      : ""
-                  }
-                  alt="Room Preview"
-                  sx={{
-                    width: "100%",
-                    height: 200,
-                    borderRadius: 2,
-                    objectFit: "cover",
-                  }}
-                />
+                <Avatar variant="rounded" src={roomData.imageUrl} alt={roomData.title}
+                  sx={{ width: "100%", height: 200, borderRadius: 2, bgcolor: "action.hover" }}>
+                  <ImageNotSupportedOutlinedIcon sx={{ fontSize: 40, color: "text.secondary" }} aria-hidden="true" />
+                </Avatar>
               </Box>
               <Box sx={{ mt: 2 }}>
                 <Typography
@@ -549,7 +417,7 @@ const ReservationPage = () => {
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
                   <Typography sx={{ fontSize: "0.9rem" }}>
-                    {`⭐ ${roomData.avgStart || 0} (${roomData.reviews || 0})`}
+                    {`⭐ ${roomData.avgStart || 0} (${roomData.reviewCount} đánh giá)`}
                   </Typography>
                   {roomData.popular && (
                     <Typography
@@ -649,22 +517,6 @@ const ReservationPage = () => {
       </Grid>
     </Container>
   );
-};
-
-ReservationPage.propTypes = {
-  roomData: PropTypes.shape({
-    price: PropTypes.number,
-    checkIn: PropTypes.string,
-    checkOut: PropTypes.string,
-    guests: PropTypes.number,
-    numberOfNights: PropTypes.number,
-    totalPrice: PropTypes.number,
-    images: PropTypes.arrayOf(PropTypes.string),
-    title: PropTypes.string,
-    avgStart: PropTypes.number,
-    reviews: PropTypes.number,
-    popular: PropTypes.bool,
-  }),
 };
 
 export default ReservationPage;

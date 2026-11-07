@@ -43,7 +43,7 @@ const Details = ({ property }) => {
 
             <Divider sx={{ borderColor: "var(--rn-border-subtle)" }} />
 
-            <AboutThisPlace description={property.description} />
+            <AboutThisPlace description={property.description} title={property.title} />
 
             <Divider sx={{ borderColor: "var(--rn-border-subtle)" }} />
 

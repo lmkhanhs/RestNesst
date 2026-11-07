@@ -188,10 +188,15 @@ export default function AdminUsers() {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
-        Quản lý người dùng
-      </Typography>
+    <Box sx={{ width: '100%', p: { xs: 2, md: 3 } }}>
+      <Box sx={{ mb: 3.5 }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+          Quản lý người dùng
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Tổng cộng {users.length} tài khoản • {users.filter((u) => u.isActive === true).length} đang hoạt động
+        </Typography>
+      </Box>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         <TextField
           label="Tìm kiếm người dùng..."

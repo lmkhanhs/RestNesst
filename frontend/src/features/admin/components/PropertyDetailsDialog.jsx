@@ -1,24 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Alert, Avatar, Box, Button, Chip, CircularProgress, Dialog, DialogActions,
   DialogContent, DialogTitle, Divider, IconButton, Stack, TextField,
   Typography, useMediaQuery, useTheme,
 } from '@mui/material';
-import { CheckCircleOutline, CloseRounded, DeleteOutlineRounded, HighlightOffRounded, LocationOnOutlined, SaveOutlined, StarRounded } from '@mui/icons-material';
+import {
+  CheckCircleOutline, CloseRounded, DeleteOutlineRounded,
+  HighlightOffRounded, LocationOnOutlined, SaveOutlined, StarRounded,
+} from '@mui/icons-material';
 import axiosInstance from '@/shared/api/httpClient.js';
 import { formatPropertyDate, getPropertyMediaUrl } from '../utils/propertyDetails.js';
 import PropertyPhotoGallery from './PropertyPhotoGallery.jsx';
+
+function validateOrderValue(rawValue) {
+  const trimmed = String(rawValue ?? '').trim();
+  if (!trimmed) {
+    return 'Vui lòng nhập số thứ tự hiển thị (từ 0 trở lên).';
+  }
+  if (!/^\d+$/.test(trimmed)) {
+    return 'Số thứ tự phải là số nguyên không âm (0, 1, 2...).';
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isSafeInteger(parsed) || parsed < 0) {
+    return 'Số thứ tự không hợp lệ.';
+  }
+  return '';
+}
 
 export default function PropertyDetailsDialog({ property, busy, onClose, onStatusUpdate, onRemove, onSaveOrder }) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const orderInputId = useId();
+  const orderErrorId = `${orderInputId}-error`;
+  const orderInputRef = useRef(null);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [order, setOrder] = useState('');
+  const [orderError, setOrderError] = useState('');
   const [savingOrder, setSavingOrder] = useState(false);
   const disabled = busy || savingOrder;
 
@@ -27,12 +49,14 @@ export default function PropertyDetailsDialog({ property, busy, onClose, onStatu
     setLoading(true);
     setError('');
     setDetail(null);
+    setOrderError('');
     axiosInstance.get(`/api/listings/admin/${property.id}`, { signal: controller.signal })
       .then((response) => {
         if (controller.signal.aborted) return;
         if (response.data.code !== 200 || !response.data.result) throw new Error('Không thể tải chi tiết chỗ ở.');
-        setDetail(response.data.result);
-        setOrder(String(response.data.result.position ?? 0));
+        const initialPosition = response.data.result.position ?? 0;
+        setDetail({ ...response.data.result, position: initialPosition });
+        setOrder(String(initialPosition));
       })
       .catch((requestError) => {
         if (!controller.signal.aborted) setError(requestError.response?.data?.message || requestError.message || 'Không thể tải chi tiết chỗ ở.');
@@ -43,11 +67,29 @@ export default function PropertyDetailsDialog({ property, busy, onClose, onStatu
 
   const saveOrder = async (event) => {
     event.preventDefault();
-    const value = Number(order);
-    if (disabled || !order.trim() || !Number.isSafeInteger(value) || value < 0) return;
+    if (disabled) return;
+    const validationMessage = validateOrderValue(order);
+    if (validationMessage) {
+      setOrderError(validationMessage);
+      orderInputRef.current?.focus();
+      return;
+    }
+    const value = Number(order.trim());
+    setOrderError('');
     setSavingOrder(true);
-    try { await onSaveOrder(property.id, value); }
-    finally { setSavingOrder(false); }
+    try {
+      await onSaveOrder(property.id, value);
+      setDetail((prev) => (prev ? { ...prev, position: value } : prev));
+      setOrder(String(value));
+    } catch (saveError) {
+      setOrderError(
+        saveError?.response?.data?.message ||
+        saveError?.message ||
+        'Không thể cập nhật số thứ tự. Vui lòng thử lại.'
+      );
+    } finally {
+      setSavingOrder(false);
+    }
   };
 
   const title = detail?.title || property.name || `Chỗ ở #${property.id}`;
@@ -72,18 +114,89 @@ export default function PropertyDetailsDialog({ property, busy, onClose, onStatu
         {detail && (
           <Stack spacing={3}>
             <PropertyPhotoGallery images={detail.images || []} title={title} />
-            <Box>
-              <Stack direction="row" useFlexGap flexWrap="wrap" alignItems="center" gap={1} sx={{ mb: 1 }}>
-                <Chip size="small" color={detail.access ? 'success' : 'warning'} label={detail.access ? 'Đã kích hoạt' : 'Đang chờ kích hoạt'} />
-                <Chip size="small" variant="outlined" label={detail.status === 'ACTIVE' ? 'Đang hoạt động' : 'Không hoạt động'} />
-                {detail.popular && <Chip size="small" variant="outlined" color="primary" label="Đang xu hướng" />}
-              </Stack>
-              <Typography variant="h4" component="h2" sx={{ fontSize: { xs: '1.35rem', sm: '1.75rem' }, fontWeight: 700, overflowWrap: 'anywhere' }}>{title}</Typography>
-              <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 1 }}>
-                <LocationOnOutlined aria-hidden="true" sx={{ color: 'text.secondary', fontSize: 20, flexShrink: 0 }} />
-                <Typography color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>{address || 'Chưa cập nhật địa chỉ'}</Typography>
-              </Stack>
-            </Box>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              justifyContent="space-between"
+              alignItems={{ xs: 'stretch', sm: 'center' }}
+            >
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Stack direction="row" useFlexGap flexWrap="wrap" alignItems="center" gap={1} sx={{ mb: 1 }}>
+                  <Chip size="small" color={detail.access ? 'success' : 'warning'} label={detail.access ? 'Đã kích hoạt' : 'Đang chờ kích hoạt'} />
+                  <Chip size="small" variant="outlined" label={detail.status === 'ACTIVE' ? 'Đang hoạt động' : 'Không hoạt động'} />
+                  {detail.popular && <Chip size="small" variant="outlined" color="primary" label="Đang xu hướng" />}
+                  <Chip size="small" variant="outlined" label={`Thứ tự: #${detail.position ?? 0}`} />
+                </Stack>
+                <Typography variant="h4" component="h2" sx={{ fontSize: { xs: '1.35rem', sm: '1.75rem' }, fontWeight: 700, overflowWrap: 'anywhere' }}>{title}</Typography>
+                <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 1 }}>
+                  <LocationOnOutlined aria-hidden="true" sx={{ color: 'text.secondary', fontSize: 20, flexShrink: 0 }} />
+                  <Typography color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>{address || 'Chưa cập nhật địa chỉ'}</Typography>
+                </Stack>
+              </Box>
+              <Box
+                component="form"
+                onSubmit={saveOrder}
+                noValidate
+                sx={{ flexShrink: 0 }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <TextField
+                    inputRef={orderInputRef}
+                    id={orderInputId}
+                    name="position"
+                    label="Số thứ tự"
+                    type="number"
+                    size="small"
+                    required
+                    disabled={disabled}
+                    error={Boolean(orderError)}
+                    value={order}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setOrder(next);
+                      if (orderError && !validateOrderValue(next)) {
+                        setOrderError('');
+                      }
+                    }}
+                    onBlur={() => setOrderError(validateOrderValue(order))}
+                    sx={{
+                      width: 120,
+                      '& .MuiInputBase-input': { fontSize: '1rem' },
+                    }}
+                    inputProps={{
+                      min: 0,
+                      step: 1,
+                      inputMode: 'numeric',
+                      enterKeyHint: 'done',
+                      'aria-describedby': orderError ? orderErrorId : undefined,
+                      'aria-invalid': orderError ? 'true' : 'false',
+                    }}
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    startIcon={savingOrder ? <CircularProgress size={14} color="inherit" /> : <SaveOutlined />}
+                    disabled={disabled}
+                    sx={{ minHeight: 40, px: 1.75, whiteSpace: 'nowrap' }}
+                  >
+                    {savingOrder ? 'Đang lưu...' : 'Lưu'}
+                  </Button>
+                </Stack>
+                {orderError && (
+                  <Typography
+                    id={orderErrorId}
+                    role="alert"
+                    variant="caption"
+                    color="error"
+                    sx={{ display: 'block', mt: 0.5, maxWidth: 220 }}
+                  >
+                    {orderError}
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
             <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 2fr) minmax(0, 1fr)' }, alignItems: 'start' }}>
               <Box sx={{ minWidth: 0 }}>
                 <Stack spacing={3}>
@@ -149,20 +262,11 @@ export default function PropertyDetailsDialog({ property, busy, onClose, onStatu
                       ['Ngày tạo', formatPropertyDate(detail.createdAt)],
                       ['Cập nhật lần cuối', formatPropertyDate(detail.updatedAt)],
                     ].map(([label, value]) => (
-                      <Box key={label} sx={{ mb: 1.5 }}>
+                      <Box key={label} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
                         <Typography component="dt" variant="caption" color="text.secondary">{label}</Typography>
                         <Typography component="dd" variant="body2" sx={{ m: 0, mt: 0.25, fontWeight: 600 }}>{value}</Typography>
                       </Box>
                     ))}
-                  </Box>
-                  <Divider />
-                  <Box component="form" onSubmit={saveOrder}>
-                    <Stack spacing={1.5}>
-                      <TextField label="Số thứ tự hiển thị" type="number" fullWidth required disabled={disabled}
-                        value={order} onChange={(event) => setOrder(event.target.value)} inputProps={{ min: 0, step: 1 }} />
-                      <Button type="submit" variant="outlined" startIcon={<SaveOutlined />} disabled={disabled || !order.trim()}
-                        sx={{ minHeight: 44 }}>{savingOrder ? 'Đang lưu...' : 'Lưu số thứ tự'}</Button>
-                    </Stack>
                   </Box>
                 </Stack>
               </Box>

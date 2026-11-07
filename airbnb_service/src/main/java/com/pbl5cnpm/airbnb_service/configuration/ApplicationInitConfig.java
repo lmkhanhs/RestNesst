@@ -8,20 +8,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.pbl5cnpm.airbnb_service.entity.AmenitesEntity;
-import com.pbl5cnpm.airbnb_service.entity.CategoriesEntity;
-import com.pbl5cnpm.airbnb_service.entity.CountriesEntity;
-import com.pbl5cnpm.airbnb_service.entity.RoleEntity;
-import com.pbl5cnpm.airbnb_service.entity.UserEntity;
-import com.pbl5cnpm.airbnb_service.enums.RoleName;
-import com.pbl5cnpm.airbnb_service.repository.AmenitiesRepository;
-import com.pbl5cnpm.airbnb_service.repository.CategoriesRepository;
-import com.pbl5cnpm.airbnb_service.repository.CountriesRepository;
-import com.pbl5cnpm.airbnb_service.repository.ListingsRepository;
-import com.pbl5cnpm.airbnb_service.repository.ReviewsRepository;
-import com.pbl5cnpm.airbnb_service.repository.RoleRepository;
-import com.pbl5cnpm.airbnb_service.repository.UserRepository;
-import com.pbl5cnpm.airbnb_service.service.RoleService;
+import com.pbl5cnpm.airbnb_service.amenity.entity.AmenitesEntity;
+import com.pbl5cnpm.airbnb_service.category.entity.CategoriesEntity;
+import com.pbl5cnpm.airbnb_service.country.entity.CountriesEntity;
+import com.pbl5cnpm.airbnb_service.language.entity.LanguageEntity;
+import com.pbl5cnpm.airbnb_service.role.entity.RoleEntity;
+import com.pbl5cnpm.airbnb_service.user.entity.UserEntity;
+import com.pbl5cnpm.airbnb_service.role.enums.RoleName;
+import com.pbl5cnpm.airbnb_service.amenity.repository.AmenitiesRepository;
+import com.pbl5cnpm.airbnb_service.category.repository.CategoriesRepository;
+import com.pbl5cnpm.airbnb_service.country.repository.CountriesRepository;
+import com.pbl5cnpm.airbnb_service.language.repository.LanguageRepository;
+import com.pbl5cnpm.airbnb_service.listing.repository.ListingsRepository;
+import com.pbl5cnpm.airbnb_service.review.repository.ReviewsRepository;
+import com.pbl5cnpm.airbnb_service.role.repository.RoleRepository;
+import com.pbl5cnpm.airbnb_service.user.repository.UserRepository;
+import com.pbl5cnpm.airbnb_service.role.service.RoleService;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class ApplicationInitConfig {
     CategoriesRepository categoriesRepository;
     AmenitiesRepository amenitiesRepository;
     CountriesRepository countriesRepository;
+    LanguageRepository languageRepository;
     ListingsRepository listingsRepository;
     UserRepository userRepository;
     ReviewsRepository reviewsRepository;
@@ -52,6 +55,7 @@ public class ApplicationInitConfig {
 
             createdBaseAmenities();
             createdBaseCountries();
+            createdBaseLanguages();
             if (userRepository.findByUsername("admin").isEmpty()) {
                 Set<RoleEntity> roles = new HashSet<>(this.roleRepository.findAll());
 
@@ -175,6 +179,42 @@ public class ApplicationInitConfig {
                     .isActive(true)
                     .build();
             this.countriesRepository.save(entity);
+        }
+    }
+
+    private void createdBaseLanguages() {
+        createdBaseLanguage("Tiếng Việt", "vi",
+                "Ngôn ngữ chính thức tại Việt Nam, thuận tiện giao tiếp và hỗ trợ khách lưu trú nội địa.");
+        createdBaseLanguage("Tiếng Anh", "en",
+                "Ngôn ngữ giao tiếp quốc tế phổ biến nhất với du khách nước ngoài trên toàn cầu.");
+        createdBaseLanguage("Tiếng Hàn", "ko",
+                "Phù hợp đón tiếp nhóm du khách Hàn Quốc du lịch nghỉ dưỡng và công tác.");
+        createdBaseLanguage("Tiếng Nhật", "ja",
+                "Hỗ trợ giao tiếp chu đáo với du khách Nhật Bản lưu trú ngắn và dài ngày.");
+        createdBaseLanguage("Tiếng Trung", "zh",
+                "Thuận lợi tư vấn lịch trình và hỗ trợ du khách sử dụng tiếng Trung phổ thông.");
+        createdBaseLanguage("Tiếng Pháp", "fr",
+                "Phù hợp giao tiếp với du khách Pháp và cộng đồng các quốc gia nói tiếng Pháp.");
+        createdBaseLanguage("Tiếng Đức", "de",
+                "Hỗ trợ du khách khu vực Trung Âu tìm hiểu văn hóa và trải nghiệm bản địa.");
+        createdBaseLanguage("Tiếng Tây Ban Nha", "es",
+                "Ngôn ngữ phổ biến của du khách Tây Ban Nha và khu vực Mỹ Latinh.");
+        createdBaseLanguage("Tiếng Nga", "ru",
+                "Phù hợp đón tiếp du khách Nga yêu thích nghỉ dưỡng biển dài ngày.");
+        createdBaseLanguage("Tiếng Thái", "th",
+                "Thuận tiện hỗ trợ du khách Thái Lan trong khu vực Đông Nam Á.");
+    }
+
+    private void createdBaseLanguage(String name, String code, String description) {
+        if (this.languageRepository.findByName(name).isEmpty()) {
+            LanguageEntity entity = LanguageEntity.builder()
+                    .name(name)
+                    .code(code)
+                    .description(description)
+                    .deleted(false)
+                    .isActive(true)
+                    .build();
+            this.languageRepository.save(entity);
         }
     }
 

@@ -214,11 +214,22 @@ export default function AdminCountries() {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={4}>
-        <Typography variant="h4" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FlagIcon color="primary" /> Quản lý Quốc gia
-        </Typography>
+    <Box sx={{ width: '100%', p: { xs: 2, md: 3 } }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        justifyContent="space-between"
+        spacing={2}
+        mb={3.5}
+      >
+        <Box>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FlagIcon color="primary" /> Quản lý Quốc gia
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Tổng cộng {countries.length} quốc gia • {countries.filter((c) => c.isActive).length} đang hoạt động
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

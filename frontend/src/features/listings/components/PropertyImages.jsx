@@ -17,19 +17,13 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import ArrowForwardIosRoundedIcon from "@mui/icons-material/ArrowForwardIosRounded";
 import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
-import { BACKEND_URL } from "@/shared/config/environment.js";
+import { getMediaUrl } from "@/shared/utils/mediaUrl.js";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80";
 
 const getImageUrl = (img) => {
-  if (!img || typeof img !== "string") return FALLBACK_IMAGE;
-  const trimmed = img.trim();
-  if (!trimmed) return FALLBACK_IMAGE;
-  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
-    return trimmed;
-  }
-  return `${BACKEND_URL}/${trimmed.replace(/^\/+/, "")}`;
+  return getMediaUrl(img) || FALLBACK_IMAGE;
 };
 
 const Images = ({ images = [], title = "Chỗ nghỉ RestNesst" }) => {

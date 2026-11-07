@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -14,6 +14,7 @@ import DateRangeSelector from "./DateRangeSelector.jsx";
 import PricingBreakdown from "./PricingBreakdown.jsx";
 import PropTypes from "prop-types";
 import axiosInstance from "@/shared/api/httpClient.js";
+import dayjs from "dayjs";
 
 const BookingCard = ({
   id,
@@ -28,6 +29,8 @@ const BookingCard = ({
 }) => {
   const [value, setValue] = useState([null, null]);
   const [errorMsg, setErrorMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const bookingPending = useRef(false);
   const navigate = useNavigate();
 
   const numericPrice = Number(price || 0);
@@ -50,9 +53,19 @@ const BookingCard = ({
   };
 
   const handleReserveClick = async () => {
+    if (bookingPending.current) return;
     setErrorMsg("");
     if (!value[0] || !value[1]) {
       setErrorMsg("Vui lòng chọn ngày nhận phòng và ngày trả phòng.");
+      return;
+    }
+    const firstAvailable = startDate ? dayjs(startDate) : dayjs();
+    const lastAvailable = endDate ? dayjs(endDate) : dayjs().add(6, "months");
+    if (!value[0].isValid() || !value[1].isValid()
+        || value[1].isBefore(value[0], "day")
+        || value[0].isBefore(firstAvailable, "day")
+        || value[1].isAfter(lastAvailable, "day")) {
+      setErrorMsg("Vui lòng chọn ngày hợp lệ trong lịch trống của chỗ ở.");
       return;
     }
 
@@ -60,12 +73,14 @@ const BookingCard = ({
 
     const bookingData = {
       listingId: id,
-      checkInDate: value[0].toISOString().split("T")[0],
-      checkOutDate: value[1].toISOString().split("T")[0],
+      checkInDate: value[0].format("YYYY-MM-DD"),
+      checkOutDate: value[1].format("YYYY-MM-DD"),
       totalPrice: totalPrice,
       content: "Xin chào! Tôi muốn đặt phòng này.",
     };
 
+    bookingPending.current = true;
+    setSubmitting(true);
     try {
       const response = await axiosInstance.post("/api/bookings", bookingData);
       if (response.data && response.data.result) {
@@ -79,13 +94,13 @@ const BookingCard = ({
               totalPrice: response.data.result.totalPrice,
               images: images,
               title: response.data.result.title || title,
-              avgStart: response.data.result.avgStart || avgStart,
-              reviews: response.data.result.reviews || reviews,
-              popular: response.data.result.popular || popular,
-              guests: response.data.result.guests || 1,
-              price: response.data.result.price || numericPrice,
+              avgStart: response.data.result.avgStart ?? avgStart,
+              reviews: response.data.result.reviews ?? reviewCount,
+              popular: response.data.result.popular ?? popular,
+              guests: response.data.result.guests ?? 1,
+              price: response.data.result.price ?? numericPrice,
               bookingId:
-                response.data.result.bookingId || response.data.result.id,
+                response.data.result.bookingId ?? response.data.result.id,
               id: id,
             },
           },
@@ -98,6 +113,9 @@ const BookingCard = ({
         error.response?.data?.message ||
           "Vui lòng đăng nhập hoặc kiểm tra lại ngày đặt phòng."
       );
+    } finally {
+      bookingPending.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -184,11 +202,14 @@ const BookingCard = ({
       <Button
         fullWidth
         variant="contained"
+        color="primary"
         onClick={handleReserveClick}
+        disabled={submitting}
         sx={{
           mt: 2.25,
-          bgcolor: "var(--rn-brand-primary)",
-          "&:hover": { bgcolor: "var(--rn-brand-primary-hover)" },
+          bgcolor: "primary.main",
+          "&:hover": { bgcolor: "primary.dark" },
+          minHeight: 48,
           py: 1.4,
           borderRadius: "14px",
           fontSize: "0.98rem",
@@ -197,7 +218,7 @@ const BookingCard = ({
           boxShadow: "0 8px 20px rgba(255, 56, 92, 0.25)",
         }}
       >
-        Đặt phòng ngay
+        {submitting ? "Đang đặt phòng..." : "Đặt phòng ngay"}
       </Button>
 
       <Stack

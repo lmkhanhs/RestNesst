@@ -65,26 +65,43 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
     updateSelection(nextSelected);
   };
 
-  const handleAutocompleteChange = (_, selectedObjects) => {
-    const nextSelectedIds = selectedObjects.map((item) => item.id);
-    updateSelection(nextSelectedIds);
-  };
-
-  const handleClearAll = () => {
-    updateSelection([]);
-  };
-
   const previewAmenities = useMemo(
     () => amenitiesList.slice(0, PREVIEW_LIMIT),
     [amenitiesList]
   );
 
-  const hiddenCount = Math.max(0, amenitiesList.length - PREVIEW_LIMIT);
+  const extraAmenities = useMemo(
+    () => amenitiesList.slice(PREVIEW_LIMIT),
+    [amenitiesList]
+  );
+
+  const previewIdSet = useMemo(
+    () => new Set(previewAmenities.map((item) => item.id)),
+    [previewAmenities]
+  );
+
+  const hiddenCount = extraAmenities.length;
 
   const selectedAmenityObjects = useMemo(
     () => amenitiesList.filter((item) => selected.includes(item.id)),
     [amenitiesList, selected]
   );
+
+  const selectedExtraAmenityObjects = useMemo(
+    () => extraAmenities.filter((item) => selected.includes(item.id)),
+    [extraAmenities, selected]
+  );
+
+  const handleAutocompleteChange = (_, selectedExtraObjects) => {
+    const preservedPreviewIds = selected.filter((id) => previewIdSet.has(id));
+    const nextExtraIds = selectedExtraObjects.map((item) => item.id);
+    updateSelection([...preservedPreviewIds, ...nextExtraIds]);
+  };
+
+  const handleClearExtra = () => {
+    const preservedPreviewIds = selected.filter((id) => previewIdSet.has(id));
+    updateSelection(preservedPreviewIds);
+  };
 
   const renderAmenityItem = (amenity) => {
     const isChecked = selected.includes(amenity.id);
@@ -181,12 +198,12 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
           )}
         </Stack>
 
-        {amenitiesList.length > PREVIEW_LIMIT && (
-          <Tooltip title="Mở đầy đủ danh sách tiện nghi">
+        {hiddenCount > 0 && (
+          <Tooltip title="Mở danh sách tiện nghi khác">
             <IconButton
               type="button"
               size="small"
-              aria-label="Mở đầy đủ danh sách tiện nghi"
+              aria-label="Mở danh sách tiện nghi khác"
               onClick={() => setOpenModal(true)}
               sx={{
                 width: 32,
@@ -361,13 +378,13 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
               component="span"
               sx={{ fontWeight: 700, color: "var(--rn-text-primary)" }}
             >
-              Chọn tiện nghi phòng
+              Chọn tiện nghi khác
             </Typography>
             <Typography
               variant="caption"
               sx={{ display: "block", color: "var(--rn-text-secondary)" }}
             >
-              Tìm kiếm nhanh hoặc nhấn chọn trực tiếp vào biểu tượng tiện nghi
+              Tìm kiếm nhanh hoặc chọn thêm tiện nghi ngoài {PREVIEW_LIMIT} mục chính bên ngoài
             </Typography>
           </Box>
           <IconButton
@@ -379,13 +396,13 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ p: 3 }}>
+        <DialogContent sx={{ p: 3, overscrollBehavior: "contain" }}>
           <Stack spacing={2.5}>
-            {/* Ô chọn & tìm kiếm dạng tag giống phần Thêm chỗ ở mới bên Admin */}
+            {/* Ô chọn & tìm kiếm dạng tag cho các tiện nghi khác ngoài 2 mục chính */}
             <Autocomplete
               multiple
-              options={amenitiesList}
-              value={selectedAmenityObjects}
+              options={extraAmenities}
+              value={selectedExtraAmenityObjects}
               onChange={handleAutocompleteChange}
               disableCloseOnSelect
               getOptionLabel={(option) => option.name || ""}
@@ -422,8 +439,8 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Tiện nghi đã chọn"
-                  placeholder="Gõ để tìm và chọn tiện nghi..."
+                  label="Tiện nghi khác đã chọn"
+                  placeholder="Gõ để tìm tiện nghi khác..."
                   size="small"
                 />
               )}
@@ -441,10 +458,10 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
                   color: "var(--rn-text-secondary)",
                 }}
               >
-                Tất cả biểu tượng tiện nghi ({amenitiesList.length})
+                Tiện nghi khác ({extraAmenities.length})
               </Typography>
               <Grid container spacing={1.25}>
-                {amenitiesList.map((amenity) => (
+                {extraAmenities.map((amenity) => (
                   <Grid item xs={12} sm={6} key={amenity.id}>
                     {renderAmenityItem(amenity)}
                   </Grid>
@@ -466,8 +483,8 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
             type="button"
             color="inherit"
             startIcon={<RestartAltRoundedIcon fontSize="small" />}
-            disabled={selected.length === 0}
-            onClick={handleClearAll}
+            disabled={selectedExtraAmenityObjects.length === 0}
+            onClick={handleClearExtra}
             sx={{
               textTransform: "none",
               fontWeight: 600,
@@ -489,7 +506,9 @@ const Amenities = ({ value = [], onChange, showIcon = true }) => {
               "&:hover": { bgcolor: "primary.dark" },
             }}
           >
-            {selected.length > 0 ? `Xong (${selected.length})` : "Đóng"}
+            {selectedExtraAmenityObjects.length > 0
+              ? `Xong (${selectedExtraAmenityObjects.length})`
+              : "Đóng"}
           </Button>
         </DialogActions>
       </Dialog>

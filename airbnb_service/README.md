@@ -1,4 +1,16 @@
-# Chạy backend với Redis blacklist
+# Backend RestNesst
+
+## Cấu trúc source
+
+Backend tổ chức theo nghiệp vụ trong `src/main/java/com/pbl5cnpm/airbnb_service/`: `user/`, `auth/`, `role/`, `listing/`, `booking/`, `payment/`, `favorite/`, `review/`, `chat/`, `amenity/`, `category/`, `country/`, `statistics/`.
+
+Mỗi nghiệp vụ chứa controller, service, repository, mapper, entity, enum và DTO tương ứng khi cần. Ví dụ `user/controller/UserController.java`, `user/service/UserService.java`, `user/repository/UserRepository.java`. Package DTO dùng `dto/request/` và `dto/response/`; custom repository nằm trong `repository/custom/impl/`.
+
+Phần dùng chung ở `shared/`; cấu hình Spring ở `configuration/`; công cụ seed ở `seed/`. Test phản chiếu cấu trúc nghiệp vụ dưới `src/test/java/`. Xem [kiến trúc](../docs/architecture.md#backend-tổ-chức-theo-nghiệp-vụ) và [hướng dẫn backend](AGENTS.md) trước khi thêm code.
+
+Sau khi đổi package, dùng `mvn clean` trước lệnh test/build để xóa class và mapper sinh ở vị trí cũ. Việc tổ chức lại source giữ nguyên tên lớp, API và schema dữ liệu.
+
+## Chạy backend với Redis blacklist
 
 MySQL lưu dữ liệu nghiệp vụ và yêu cầu làm host ngay trong bảng `users`.
 Backend không còn cần MongoDB.
@@ -23,6 +35,22 @@ Mặc định Redis ở `localhost:6379`. Có thể đặt `REDIS_HOST`, `REDIS_
 đặt host Redis thành tên service trên cùng Docker network.
 
 ## Hành vi
+
+### Danh sách yêu thích
+
+`GET /api/users/favorites` đọc favorite bằng JPQL, fetch quan hệ `FavoriteEntity.listing` cùng review, lọc theo user hiện tại và `deteted = false`, sắp xếp theo ngày lưu mới nhất. Không dùng native `SELECT l.*` trả về entity khác với domain của `FavoriteRepository`, vì Spring Data có thể trả tuple/null hoặc lỗi chuyển kiểu sang `ListingEntity`. Việc đọc và map DTO nằm trong transaction read-only để đọc được quan hệ ảnh.
+
+GET giữ `result.favorites` và các field ảnh `primaryThumnail`, giá, địa chỉ hiện tại; bổ sung `savedAt` từ `favorites.createdAt`, `avgStart` là trung bình rating của review thực tế (null nếu chưa có), `reviewCount`, `positiveReviewCount`, `negativeReviewCount`, `unclassifiedReviewCount`. Chỉ đếm nhãn `POSITIVE`/`NEGATIVE` đã lưu; nhãn khác hoặc null thuộc nhóm chưa phân loại, không suy diễn từ số sao và không gọi model AI trong GET. Không trả nội dung bình luận hoặc thông tin người đánh giá qua endpoint này.
+
+POST vẫn trả `204`; DELETE xóa mềm và gửi ID trong request body. Không thay schema hay cập nhật dữ liệu có sẵn. Ngày lưu phản ánh lần lưu hiện tại theo hành vi POST có sẵn; thêm lại favorite đã bỏ sẽ cập nhật ngày này.
+
+```bash
+mvn -Dtest=FavoriteRepositoryTest test
+```
+
+Test này dùng H2 chỉ trong test scope, ép thay datasource bằng database trong bộ nhớ và cấu hình JPA riêng, không chạy startup seed hay truy cập MySQL dev. Kiểm tra lọc đúng user/xóa mềm, kiểu entity trả về, DTO ảnh và chu trình thêm, đọc, bỏ, thêm lại không tạo bản ghi trùng.
+
+### Blacklist token
 
 - Login tạo JWT như trước; không ghi blacklist.
 - Logout ghi ID (`jti`) của access và refresh token với key
@@ -49,7 +77,7 @@ Không triển khai Redis rỗng với khóa ký cũ khi còn blacklist chưa h�
 ## Kiểm thử
 
 ```bash
-mvn -Dtest=InvalidTokenRepositoryTest,AuthenticationServiceTest,UserServiceHostApplicationTest test
+mvn -Dtest=InvalidTokenRepositoryTest,AuthenticationServiceTest,UserServiceHostApplicationTest,ListingsAdminDetailTest,ListingsAdminDetailSecurityTest,BackendPackageDiscoveryTest test
 ```
 
 Các unit test không cần MySQL/Redis đang chạy. Test context hiện có
@@ -63,6 +91,8 @@ docker compose -f compose.redis.yaml exec redis redis-cli TTL restnesst:auth:bla
 ```
 
 Thay `JTI` bằng ID lấy từ kết quả scan. TTL dương giảm dần, key tự biến mất khi hết hạn.
+
+`BackendPackageDiscoveryTest` kiểm tra component/MapStruct, entity JPA và các custom repository vẫn được Spring phát hiện từ package gốc sau khi tổ chức lại source. Test này không khởi động backend hay kết nối database; không thay thế kiểm tra tích hợp.
 
 ## Yêu cầu làm host trong MySQL
 
@@ -97,6 +127,20 @@ UPDATE users SET host_application_pending = TRUE WHERE id IN (1, 2, 3);
 
 Các ID trên chỉ minh họa; không chạy trực tiếp nếu chưa đối chiếu dữ liệu thực tế.
 Dừng ghi yêu cầu trong lúc chuyển dữ liệu để không bỏ sót yêu cầu mới.
+
+## Ảnh local và Cloudinary
+
+Ảnh mới được lưu trong `upload.directory`, API tạm trả đường dẫn `/uploads/...`. `UploadResourceConfig` phục vụ trực tiếp thư mục này, nên ảnh vừa tạo đọc được ngay khi backend đang chạy, kể cả khi chạy từ JAR; không cần chép ảnh vào `target/classes` hay khởi động lại.
+
+Frontend dùng `shared/utils/mediaUrl.js`: đường dẫn tương đối nhận prefix từ `VITE_BACKEND_URL` (mặc định `http://localhost:8080`); URL đầy đủ `http://` hoặc `https://` từ Cloudinary giữ nguyên. Backend phải được khởi động từ `airbnb_service/` nếu dùng đường dẫn upload tương đối; khi triển khai có thể đặt `upload.directory` bằng đường dẫn ổ đĩa/mount riêng qua `UPLOAD_DIRECTORY`.
+
+Luồng chuyển ảnh lên Cloudinary chỉ bắt đầu sau khi transaction tạo phòng commit. Khi upload thành công, backend lưu URL cloud đầy đủ; khi lỗi hoặc không nhận được URL, đường dẫn local vẫn được giữ. Bản local chưa bị xóa sau upload để các response/trang đang mở tham chiếu `/uploads/...` vẫn tải được; hiện chưa có job tự dọn những bản sao này. Ảnh đã bị xóa hoặc URL đã thành `null` từ trước không được tự phục hồi.
+
+Kiểm tra mapping HTTP và vòng đời upload không cần DB/cloud thật:
+
+```bash
+mvn -Dtest=UploadResourceConfigTest,ListingCreationImageTest,ListingImageUploadServiceTest test
+```
 
 ## Chi tiết chỗ ở cho quản trị viên
 

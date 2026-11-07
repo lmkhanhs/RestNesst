@@ -3,8 +3,10 @@ import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Provider as ReduxProvider } from "react-redux";
 import { PersistGate } from "redux-persist/lib/integration/react";
-import { LocalizationProvider } from "@mui/x-date-pickers-pro";
-import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { viVN } from "@mui/x-date-pickers/locales";
+import "dayjs/locale/vi";
 
 import { store, persistor } from "./store/store.js";
 import { SearchProvider } from "@/features/search/context/SearchContext.jsx";
@@ -21,7 +23,8 @@ export default function AppProviders({ children }) {
     <HelmetProvider>
       <ReduxProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="vi"
+            localeText={viVN.components.MuiLocalizationProvider.defaultProps.localeText}>
             <SettingsProvider>
               <CollapseDrawerProvider>
                 <SearchProvider>
