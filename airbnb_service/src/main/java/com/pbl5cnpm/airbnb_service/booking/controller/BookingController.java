@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pbl5cnpm.airbnb_service.booking.dto.request.BookingRequest;
 import com.pbl5cnpm.airbnb_service.shared.dto.response.ApiResponse;
 import com.pbl5cnpm.airbnb_service.booking.dto.response.BookingResponse;
+import com.pbl5cnpm.airbnb_service.booking.dto.response.HostBookingResponse;
 import com.pbl5cnpm.airbnb_service.booking.service.BookingService;
 
 import lombok.RequiredArgsConstructor;
@@ -76,6 +77,32 @@ public class BookingController {
                 .code(200)
                 .message("Get booking by page")
                 .result(this.bookingService.handlerGetBookingForAdmin(pageable))
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('HOST') or hasAuthority('ADMIN')")
+    @GetMapping("/bookings/host")
+    public ApiResponse<List<HostBookingResponse>> getBookingsForHost() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return ApiResponse.<List<HostBookingResponse>>builder()
+                .code(200)
+                .message("Get bookings for host")
+                .result(this.bookingService.handleGetBookingsForHost(username))
+                .build();
+    }
+
+    @PreAuthorize("hasAuthority('HOST') or hasAuthority('ADMIN')")
+    @PutMapping("/bookings/host/{id}/status")
+    public ApiResponse<HostBookingResponse> updateBookingStatusByHost(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return ApiResponse.<HostBookingResponse>builder()
+                .code(200)
+                .message("Update host booking status successfully")
+                .result(this.bookingService.handleUpdateBookingStatusByHost(username, id, status))
                 .build();
     }
     

@@ -1,4 +1,5 @@
 import HostProperties from "../components/HostProperties.jsx";
+import HostAnalyticsManagement from "../components/HostAnalyticsManagement.jsx";
 import { formatHostPrice, normalizeHostProperty } from "../utils/propertyDisplay.js";
 import { BACKEND_URL } from "@/shared/config/environment.js";
 import { getMediaUrl } from "@/shared/utils/mediaUrl.js";
@@ -53,6 +54,7 @@ import {
   AttachFile as AttachFileIcon,
   EmojiEmotions as EmojiIcon,
   Home as HomeIcon,
+  BarChart as BarChartIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
   Language as LanguageIcon,
   LocationOn as LocationOnIcon,
@@ -408,7 +410,8 @@ export default function HostPage() {
           if (isEditMode) {
             return prev.map((p) =>
               p.id === editingPropertyId ? normalizeHostProperty({ ...p, ...res.data.result,
-                title: res.data.result?.title ?? res.data.result?.name ?? newProperty.title }) : p
+                title: res.data.result?.title ?? res.data.result?.name ?? newProperty.title,
+                reviews: res.data.result?.reviews ?? p.reviews }) : p
             );
           } else {
             return [...prev, normalizeHostProperty(res.data.result)];
@@ -566,7 +569,7 @@ export default function HostPage() {
         >
           <Grid container alignItems="center" spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h4" gutterBottom>
+              <Typography component="h1" variant="h4" gutterBottom>
                 Bảng điều khiển chủ nhà
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -610,6 +613,11 @@ export default function HostPage() {
               iconPosition="start"
             />
             <Tab icon={<HomeIcon />} label="Tài sản" iconPosition="start" />
+            <Tab
+              icon={<BarChartIcon />}
+              label="Thống kê & Quản lý"
+              iconPosition="start"
+            />
             <Tab icon={<MessageIcon />} label="Tin nhắn" iconPosition="start" />
           </Tabs>
         </Box>
@@ -970,8 +978,20 @@ export default function HostPage() {
             onReload={fetchPropertiesFromAPI} onAdd={handleAddProperty} onEdit={handleEditProperty} />
         </TabPanel>
 
+        {/* Tab Thống kê & Quản lý */}
+        <TabPanel value={tabValue} index={2} flush>
+          <HostAnalyticsManagement
+            properties={properties}
+            propertiesLoading={propertiesLoading}
+            propertiesError={propertiesError}
+            onReloadProperties={fetchPropertiesFromAPI}
+            onAddProperty={handleAddProperty}
+            onEditProperty={handleEditProperty}
+          />
+        </TabPanel>
+
         {/* Tab Tin nhắn */}
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={3}>
           <Grid container spacing={2.5}>
             {/* Danh sách chat */}
             <Grid item xs={12} md={4}>
