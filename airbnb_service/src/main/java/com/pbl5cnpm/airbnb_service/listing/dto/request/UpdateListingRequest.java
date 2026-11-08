@@ -25,6 +25,8 @@ public class UpdateListingRequest {
     String description;
     String address;
     String city;
+    Double latitude;
+    Double longitude;
     String area;
     String country;
     List<MultipartFile> imgs;

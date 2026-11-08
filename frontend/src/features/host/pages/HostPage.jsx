@@ -1,6 +1,7 @@
 import HostProperties from "../components/HostProperties.jsx";
 import HostAnalyticsManagement from "../components/HostAnalyticsManagement.jsx";
 import { formatHostPrice, normalizeHostProperty } from "../utils/propertyDisplay.js";
+import { geocodeAddress, isValidCoordinate } from "@/features/listings/utils/propertyCoordinates.js";
 import { BACKEND_URL } from "@/shared/config/environment.js";
 import { getMediaUrl } from "@/shared/utils/mediaUrl.js";
 import { useState, useEffect, useRef } from "react";
@@ -287,7 +288,10 @@ export default function HostPage() {
       title: "",
       description: "",
       address: "",
+      city: "",
       country: "",
+      latitude: "",
+      longitude: "",
       avgStart: 0,
       popular: false,
       startDate: "",
@@ -312,6 +316,8 @@ export default function HostPage() {
       address: property.address || "",
       city: property.city || "",
       country: property.country || "",
+      latitude: property.latitude ?? "",
+      longitude: property.longitude ?? "",
       area: property.area || "",
       startDate: property.startDate || "",
       endDate: property.endDate || "",
@@ -332,7 +338,10 @@ export default function HostPage() {
       title: "",
       description: "",
       address: "",
+      city: "",
       country: "",
+      latitude: "",
+      longitude: "",
       avgStart: 0,
       popular: false,
       startDate: "",
@@ -361,6 +370,10 @@ export default function HostPage() {
       formData.append("address", newProperty.address || "");
       formData.append("city", newProperty.city || "");
       formData.append("country", newProperty.country || "");
+      if (isValidCoordinate(newProperty.latitude, newProperty.longitude)) {
+        formData.append("latitude", String(Number(newProperty.latitude)));
+        formData.append("longitude", String(Number(newProperty.longitude)));
+      }
       formData.append("area", newProperty.area || "");
       formData.append("startDate", newProperty.startDate || "");
       formData.append("endDate", newProperty.endDate || "");
@@ -1621,6 +1634,56 @@ export default function HostPage() {
                   </MenuItem>
                 ))}
               </Select>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="Vĩ độ (tùy chọn)"
+                type="number"
+                fullWidth
+                value={newProperty.latitude ?? ""}
+                inputProps={{ step: "any", min: -90, max: 90 }}
+                helperText="Để trống hệ thống tự lấy theo địa chỉ"
+                onChange={(e) =>
+                  setNewProperty({ ...newProperty, latitude: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                label="Kinh độ (tùy chọn)"
+                type="number"
+                fullWidth
+                value={newProperty.longitude ?? ""}
+                inputProps={{ step: "any", min: -180, max: 180 }}
+                onChange={(e) =>
+                  setNewProperty({ ...newProperty, longitude: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} md={4} sx={{ display: "flex", alignItems: "flex-start" }}>
+              <Button
+                type="button"
+                variant="outlined"
+                fullWidth
+                startIcon={<LocationOnIcon />}
+                sx={{ minHeight: 56, fontWeight: 700, textTransform: "none" }}
+                onClick={async () => {
+                  const coords = await geocodeAddress({
+                    address: newProperty.address,
+                    city: newProperty.city,
+                    country: newProperty.country || "Việt Nam",
+                  });
+                  if (coords && isValidCoordinate(coords.latitude, coords.longitude)) {
+                    setNewProperty((prev) => ({
+                      ...prev,
+                      latitude: String(coords.latitude),
+                      longitude: String(coords.longitude),
+                    }));
+                  }
+                }}
+              >
+                Lấy tọa độ từ địa chỉ
+              </Button>
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField

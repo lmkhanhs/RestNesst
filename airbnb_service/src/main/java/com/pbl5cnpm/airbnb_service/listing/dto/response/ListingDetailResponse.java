@@ -27,6 +27,8 @@ public class ListingDetailResponse {
     String address;
     String country;
     String city;
+    Double latitude;
+    Double longitude;
     String area;
     String status;
     String avgStart;

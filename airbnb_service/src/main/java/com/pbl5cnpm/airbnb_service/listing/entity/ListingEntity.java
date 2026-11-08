@@ -44,6 +44,8 @@ public class ListingEntity extends BaseEntity {
     LocalDate startDate;
     LocalDate endDate;
     Long position;
+    Double latitude;
+    Double longitude;
     @ManyToOne
     @JoinColumn(name = "host_id")
     UserEntity host;

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -59,6 +60,7 @@ public class ListingsServices {
     private final CloudinaryService cloudinaryService;
     private final ReviewsRepository reviewsRepository;
     private final RoleRepository roleRepository;
+    private final ListingGeocodingService listingGeocodingService;
 
     public List<ListingsResponse> handleGetAll() {
         List<ListingEntity> entitys = this.listingsRepository.findAllAndStatus(ListingStatus.ACTIVE.toString(), false,
@@ -96,6 +98,13 @@ public class ListingsServices {
         boolean isAdmin = host.getRoles().stream()
                 .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN.toString()));
         entity.setAccess(isAdmin);
+        applyCoordinates(
+                entity,
+                listingRequest.getLatitude(),
+                listingRequest.getLongitude(),
+                listingRequest.getAddress(),
+                listingRequest.getCity(),
+                listingRequest.getCountry());
         // UPDATE
         List<ImagesEntity> imagesEntities = new ArrayList<>();
         List<MultipartFile> imgs = listingRequest.getImgs();
@@ -206,6 +215,14 @@ public class ListingsServices {
         String status = listinginfor.getStatus().equals(ListingStatus.ACTIVE.toString())
                 ? ListingStatus.ACTIVE.toString()
                 : ListingStatus.INACTIVE.toString();
+        String oldCountry = entity.getCountriesEntity() != null ? entity.getCountriesEntity().getName() : null;
+        String newCountry = listinginfor.getCountriesEntity() != null
+                ? listinginfor.getCountriesEntity().getName()
+                : listingRequest.getCountry();
+        boolean locationChanged = !Objects.equals(entity.getAddress(), listinginfor.getAddress())
+                || !Objects.equals(entity.getCity(), listinginfor.getCity())
+                || !Objects.equals(oldCountry, newCountry);
+
         entity.setTitle(listinginfor.getTitle());
         entity.setDescription(listinginfor.getDescription());
         entity.setAddress(listinginfor.getAddress());
@@ -213,6 +230,12 @@ public class ListingsServices {
         entity.setArea(listinginfor.getArea());
         entity.setCountriesEntity(listinginfor.getCountriesEntity());
         entity.setCategoriesEntities(listinginfor.getCategoriesEntities());
+        if (ListingGeocodingService.isValidCoordinate(listingRequest.getLatitude(), listingRequest.getLongitude())) {
+            entity.setLatitude(listingRequest.getLatitude());
+            entity.setLongitude(listingRequest.getLongitude());
+        } else if (locationChanged || !ListingGeocodingService.isValidCoordinate(entity.getLatitude(), entity.getLongitude())) {
+            applyCoordinates(entity, null, null, listinginfor.getAddress(), listinginfor.getCity(), newCountry);
+        }
 
         if (listinginfor.getImagesEntities() != null) {
             entity.getImagesEntities().clear();
@@ -267,6 +290,28 @@ public class ListingsServices {
             reviewEntity.setStatus("POSITIVE");
         }
         return reviewEntity;
+    }
+
+    private void applyCoordinates(
+            ListingEntity entity,
+            Double requestedLatitude,
+            Double requestedLongitude,
+            String address,
+            String city,
+            String country) {
+        ListingGeocodingService.Coordinates resolved = this.listingGeocodingService != null
+                ? this.listingGeocodingService.resolveForPersist(
+                        requestedLatitude,
+                        requestedLongitude,
+                        address,
+                        city,
+                        country,
+                        entity.getId())
+                : ListingGeocodingService.resolveStaticFallback(address, city, country, entity.getId());
+        if (resolved != null) {
+            entity.setLatitude(resolved.latitude());
+            entity.setLongitude(resolved.longitude());
+        }
     }
 
     @Scheduled(fixedRateString = "${schedule.AvgStart}")

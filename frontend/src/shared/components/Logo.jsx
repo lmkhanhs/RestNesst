@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { Link as RouterLink } from "react-router-dom";
 // @mui
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { Box, Typography } from "@mui/material";
 
 // ----------------------------------------------------------------------
@@ -14,6 +14,7 @@ Logo.propTypes = {
 export default function Logo({ disabledLink = false, sx }) {
   const theme = useTheme();
   const PRIMARY_MAIN = theme.palette.primary.main;
+  const isDark = theme.palette.mode === "dark";
 
   const logo = (
     <Box
@@ -32,7 +33,9 @@ export default function Logo({ disabledLink = false, sx }) {
           width: 38,
           height: 38,
           borderRadius: "11px",
-          bgcolor: "rgba(217, 27, 66, 0.1)",
+          bgcolor: alpha(PRIMARY_MAIN, isDark ? 0.18 : 0.12),
+          border: "1px solid",
+          borderColor: alpha(PRIMARY_MAIN, isDark ? 0.3 : 0.18),
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import com.pbl5cnpm.airbnb_service.amenity.repository.AmenitiesRepository;
 import com.pbl5cnpm.airbnb_service.category.repository.CategoriesRepository;
 import com.pbl5cnpm.airbnb_service.country.repository.CountriesRepository;
 import com.pbl5cnpm.airbnb_service.listing.repository.ImageRepository;
+import com.pbl5cnpm.airbnb_service.listing.service.ListingGeocodingService;
 import com.pbl5cnpm.airbnb_service.shared.storage.CloudinaryService;
 
 @Mapper(componentModel = "spring")
@@ -226,6 +229,51 @@ public abstract class ListingMapper {
     protected CountriesEntity toCountriesEntity(String country){
         var enti = this.countriesRepository.findByName(country).orElseThrow(()-> new AppException(ErrorCode.COUNTRY_NOT_EXISTED));
         return enti;
+    }
+
+    @AfterMapping
+    protected void fillResponseCoordinates(ListingEntity entity, @MappingTarget ListingsResponse target) {
+        ListingGeocodingService.Coordinates coords = ListingGeocodingService.resolveOrFallback(entity);
+        if (coords != null) {
+            target.setLatitude(coords.latitude());
+            target.setLongitude(coords.longitude());
+        }
+    }
+
+    @AfterMapping
+    protected void fillDetailCoordinates(ListingEntity entity, @MappingTarget ListingDetailResponse target) {
+        ListingGeocodingService.Coordinates coords = ListingGeocodingService.resolveOrFallback(entity);
+        if (coords != null) {
+            target.setLatitude(coords.latitude());
+            target.setLongitude(coords.longitude());
+        }
+    }
+
+    @AfterMapping
+    protected void fillAdminDetailCoordinates(ListingEntity entity, @MappingTarget ListingAdminDetailResponse target) {
+        ListingGeocodingService.Coordinates coords = ListingGeocodingService.resolveOrFallback(entity);
+        if (coords != null) {
+            target.setLatitude(coords.latitude());
+            target.setLongitude(coords.longitude());
+        }
+    }
+
+    @AfterMapping
+    protected void fillManagerCoordinates(ListingEntity entity, @MappingTarget ListingResponseManager target) {
+        ListingGeocodingService.Coordinates coords = ListingGeocodingService.resolveOrFallback(entity);
+        if (coords != null) {
+            target.setLatitude(coords.latitude());
+            target.setLongitude(coords.longitude());
+        }
+    }
+
+    @AfterMapping
+    protected void fillHostManagerCoordinates(ListingEntity entity, @MappingTarget ListingResponseManagerForHost target) {
+        ListingGeocodingService.Coordinates coords = ListingGeocodingService.resolveOrFallback(entity);
+        if (coords != null) {
+            target.setLatitude(coords.latitude());
+            target.setLongitude(coords.longitude());
+        }
     }
     
 }

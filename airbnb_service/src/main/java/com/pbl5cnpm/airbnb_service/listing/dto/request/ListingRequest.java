@@ -25,6 +25,8 @@ public class ListingRequest {
     String address;
     String country;
     String city;
+    Double latitude;
+    Double longitude;
     String area;
     Double price;
     LocalDate startDate;

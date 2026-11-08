@@ -17,6 +17,7 @@ import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import { Link as RouterLink } from "react-router-dom";
 import { SearchContext } from "@/features/search/context/SearchContext.jsx";
 import { SearchResults } from "@/features/search/components/results/index.js";
+import SearchMap from "@/features/search/components/results/SearchMap.jsx";
 import {
   formatNightlyPrice,
   getImageUrl,
@@ -39,7 +40,13 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mapCollapsed, setMapCollapsed] = useState(false);
   const isDesktop = useResponsive("up", "md");
+
+  const activeMapProperties = useMemo(
+    () => (isSearching ? searchResults : defaultProperties) || [],
+    [isSearching, searchResults, defaultProperties]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -95,6 +102,14 @@ export default function HomePage() {
     }
   };
 
+  const scrollToBottomMap = () => {
+    setMapCollapsed(false);
+    requestAnimationFrame(() => {
+      const el = document.getElementById("ban-do-cho-o");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
   const handleOpenFilterFromHero = () => {
     if (!isDesktop) {
       setFiltersOpen(true);
@@ -110,7 +125,7 @@ export default function HomePage() {
         mx: "auto",
         px: { xs: 2, sm: 3, lg: 4 },
         py: { xs: 2, sm: 3, md: 4 },
-        pb: { xs: 11, md: 10 },
+        pb: { xs: 4, md: 5 },
       }}
     >
       {/* Trang chủ: Hero & Điểm lưu trú tâm điểm */}
@@ -561,6 +576,7 @@ export default function HomePage() {
           alignItems: "stretch",
           gap: { xs: 2.5, md: 3, lg: 3.5 },
           minWidth: 0,
+          scrollMarginTop: "96px",
         }}
       >
         {/* Cột Bộ lọc: Mobile/Tablet dùng nút mở nhanh bằng một tay + chuyển động ngắn; Desktop hiển thị cột cố định */}
@@ -664,6 +680,8 @@ export default function HomePage() {
             isSearching={isSearching}
             loading={loading || isSearchLoading}
             error={error || searchError}
+            hideInlineMap
+            onJumpToMap={scrollToBottomMap}
             retryAction={
               error && (
                 <Button
@@ -678,6 +696,17 @@ export default function HomePage() {
             }
           />
         </Box>
+      </Box>
+
+      {/* Khu vực Bản đồ khám phá toàn chiều rộng đặt ở phía dưới */}
+      <Box sx={{ mt: { xs: 4, md: 5 }, minWidth: 0 }}>
+        <SearchMap
+          id="ban-do-cho-o"
+          data={activeMapProperties}
+          collapsed={mapCollapsed}
+          onToggleCollapse={() => setMapCollapsed((prev) => !prev)}
+          onScrollToList={scrollToListings}
+        />
       </Box>
 
       {/* Nút mở nhanh bộ lọc bằng ngón cái ở cuối màn hình điện thoại */}

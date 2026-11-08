@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 // @mui
 import { alpha, ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 // hooks
@@ -16,6 +16,18 @@ ThemeColorPresets.propTypes = {
 export default function ThemeColorPresets({ children }) {
   const defaultTheme = useTheme();
   const { setColor } = useSettings();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const isDark = defaultTheme.palette.mode === 'dark';
+    root.style.setProperty('--rn-primary', setColor.main);
+    root.style.setProperty('--rn-primary-hover', setColor.dark);
+    root.style.setProperty('--rn-primary-contrast', setColor.contrastText || '#FFFFFF');
+    root.style.setProperty(
+      '--rn-primary-soft',
+      isDark ? alpha(setColor.main, 0.22) : setColor.lighter || alpha(setColor.main, 0.12)
+    );
+  }, [setColor, defaultTheme.palette.mode]);
 
   const themeOptions = useMemo(
     () => ({

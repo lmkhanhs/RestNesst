@@ -7,6 +7,7 @@ import AmenitiesSection from "./AmenitiesSection.jsx";
 import AboutThisPlace from "./AboutThisPlace.jsx";
 import HostInfo from "./HostInfo.jsx";
 import HostMessage from "./HostMessage.jsx";
+import PropertyMap from "./PropertyMap.jsx";
 
 const Details = ({ property }) => {
   const reviewCount = Array.isArray(property?.reviews)
@@ -88,6 +89,18 @@ const Details = ({ property }) => {
           />
         </Grid>
       </Grid>
+
+      {/* Bản đồ vị trí trải rộng toàn chiều ngang ở phía dưới */}
+      <PropertyMap
+        id={property.id}
+        title={property.title}
+        address={property.address}
+        city={property.city}
+        country={property.country}
+        price={property.price}
+        latitude={property.latitude}
+        longitude={property.longitude}
+      />
     </Box>
   );
 };
@@ -99,6 +112,8 @@ Details.propTypes = {
     address: PropTypes.string,
     city: PropTypes.string,
     country: PropTypes.string,
+    latitude: PropTypes.number,
+    longitude: PropTypes.number,
     area: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     price: PropTypes.number.isRequired,
     description: PropTypes.string,

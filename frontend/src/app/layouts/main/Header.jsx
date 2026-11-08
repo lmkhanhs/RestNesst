@@ -143,7 +143,7 @@ const Header = () => {
     setUserInfo(null);
     setSelectedRole(null);
     handleClose();
-    navigate("/");
+    navigate("/login", { replace: true });
   };
 
   const handleRoleSelect = (role) => {

@@ -1,9 +1,9 @@
-import { Alert, Box, Button, Grid, Stack, Typography } from "@mui/material";
-import { useState, useEffect, useMemo, useContext } from "react";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
+import { useState, useMemo, useContext } from "react";
 import PropTypes from "prop-types";
 import CardView from "./ListingTabs.jsx";
 import { FaColumns, FaMap } from "react-icons/fa";
-import Map from "./SearchMap.jsx";
+import SearchMap from "./SearchMap.jsx";
 import { SearchContext } from "@/features/search/context/SearchContext.jsx";
 
 const Result = ({
@@ -15,10 +15,12 @@ const Result = ({
   loading = false,
   error = "",
   retryAction,
+  hideInlineMap = false,
+  onJumpToMap,
 }) => {
   const [view, setView] = useState("card");
   const [tabValue, setTabValue] = useState(0);
-  const [mapProperties, setMapProperties] = useState([]);
+  const [inlineMapCollapsed, setInlineMapCollapsed] = useState(false);
   const searchCtx = useContext(SearchContext);
 
   // Ưu tiên hiển thị searchResults nếu đang tìm kiếm
@@ -42,30 +44,31 @@ const Result = ({
     if (setSearchResults) setSearchResults([]);
   };
 
-  // Process properties data for the map
-  useEffect(() => {
-    if (properties && properties.length > 0) {
-      const processedProperties = properties.map((property) => ({
-        ...property,
-        id: property.id || "",
-        latitude: property.latitude || DEFAULT_CENTER.lat,
-        longitude: property.longitude || DEFAULT_CENTER.lng,
-        name: property.name || property.title || "Property",
-        price: property.price || 0,
-        address: property.address || "Address not available",
-      }));
-      setMapProperties(processedProperties);
-    } else {
-      setMapProperties([]);
+  const handleSelectCardView = () => {
+    setView("card");
+    const listSection = document.getElementById("danh-sach-phong");
+    listSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSelectMapView = () => {
+    setView("map");
+    if (onJumpToMap) {
+      onJumpToMap();
+      return;
     }
-  }, [properties]);
+    setInlineMapCollapsed(false);
+    requestAnimationFrame(() => {
+      const mapEl = document.getElementById("ban-do-cho-o");
+      mapEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   const resultCount = isSearching
     ? searchResults?.length || 0
     : defaultProperties?.length || 0;
 
   return (
-    <Stack sx={{ minWidth: 0 }} spacing={2}>
+    <Stack sx={{ minWidth: 0 }} spacing={2.5}>
       {error && (
         <Alert
           severity="error"
@@ -147,7 +150,7 @@ const Result = ({
           alignItems="center"
           spacing={1}
           role="group"
-          aria-label="Chế độ hiển thị danh sách"
+          aria-label="Điều hướng chế độ danh sách và bản đồ"
           sx={{
             bgcolor: "var(--rn-surface-subtle)",
             p: 0.5,
@@ -157,7 +160,7 @@ const Result = ({
         >
           <Button
             type="button"
-            onClick={() => setView("card")}
+            onClick={handleSelectCardView}
             aria-pressed={view === "card"}
             startIcon={<FaColumns size={15} aria-hidden="true" />}
             className="rn-interactive-btn"
@@ -185,7 +188,7 @@ const Result = ({
           </Button>
           <Button
             type="button"
-            onClick={() => setView("map")}
+            onClick={handleSelectMapView}
             aria-pressed={view === "map"}
             startIcon={<FaMap size={15} aria-hidden="true" />}
             className="rn-interactive-btn"
@@ -214,42 +217,25 @@ const Result = ({
         </Stack>
       </Box>
 
-      {view === "map" ? (
-        <Box sx={{ width: "100%", minWidth: 0 }}>
-          <Grid container spacing={2.5}>
-            <Grid item lg={7} xs={12} sx={{ minWidth: 0 }}>
-              <CardView
-                searchResults={properties}
-                isSearching={isSearching}
-                view={view}
-                loading={loading}
-                value={tabValue}
-                handleChangeTab={handleChangeTab}
-              />
-            </Grid>
-            <Grid item lg={5} xs={12} sx={{ minWidth: 0 }}>
-              <Map data={mapProperties} />
-            </Grid>
-          </Grid>
-        </Box>
-      ) : (
-        <CardView
-          searchResults={properties}
-          isSearching={isSearching}
-          view={view}
-          loading={loading}
-          value={tabValue}
-          handleChangeTab={handleChangeTab}
+      <CardView
+        searchResults={properties}
+        isSearching={isSearching}
+        view="card"
+        loading={loading}
+        value={tabValue}
+        handleChangeTab={handleChangeTab}
+      />
+
+      {!hideInlineMap && (
+        <SearchMap
+          data={properties}
+          collapsed={inlineMapCollapsed}
+          onToggleCollapse={() => setInlineMapCollapsed((prev) => !prev)}
+          onScrollToList={handleSelectCardView}
         />
       )}
     </Stack>
   );
-};
-
-// Default center coordinates (Hanoi)
-const DEFAULT_CENTER = {
-  lat: 21.0285,
-  lng: 105.8542,
 };
 
 Result.propTypes = {
@@ -261,6 +247,8 @@ Result.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
   retryAction: PropTypes.node,
+  hideInlineMap: PropTypes.bool,
+  onJumpToMap: PropTypes.func,
 };
 
 export default Result;

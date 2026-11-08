@@ -6,6 +6,7 @@ import {
   useMediaQuery, useTheme,
 } from '@mui/material';
 import axiosInstance from '@/shared/api/httpClient.js';
+import { geocodeAddress, isValidCoordinate } from '@/features/listings/utils/propertyCoordinates.js';
 
 export default function CreatePropertyDialog({ onClose, onCreated }) {
   const theme = useTheme();
@@ -14,8 +15,10 @@ export default function CreatePropertyDialog({ onClose, onCreated }) {
   const submitting = useRef(false);
   const [property, setProperty] = useState({
     title: '', description: '', address: '', city: '', country: '',
+    latitude: '', longitude: '',
     area: '', price: '', startDate: '', endDate: '',
   });
+  const [geocoding, setGeocoding] = useState(false);
   const [options, setOptions] = useState({ countries: [], categories: [], amenities: [] });
   const [categories, setCategories] = useState([]);
   const [amenities, setAmenities] = useState([]);
@@ -68,6 +71,31 @@ export default function CreatePropertyDialog({ onClose, onCreated }) {
     setProperty((previous) => ({ ...previous, [event.target.name]: event.target.value }));
   };
 
+  const handleResolveCoordinates = async () => {
+    if (!property.address.trim() && !property.city.trim()) {
+      setError('Vui lòng nhập địa chỉ hoặc thành phố trước khi lấy tọa độ.');
+      return;
+    }
+    setError('');
+    setGeocoding(true);
+    try {
+      const coords = await geocodeAddress({
+        address: property.address,
+        city: property.city,
+        country: property.country || 'Việt Nam',
+      });
+      if (coords && isValidCoordinate(coords.latitude, coords.longitude)) {
+        setProperty((previous) => ({
+          ...previous,
+          latitude: String(coords.latitude),
+          longitude: String(coords.longitude),
+        }));
+      }
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   const handleImages = (event) => {
     const files = Array.from(event.target.files || []);
     if (files.some((file) => !file.type.startsWith('image/'))) {
@@ -100,7 +128,14 @@ export default function CreatePropertyDialog({ onClose, onCreated }) {
     setError('');
     try {
       const formData = new FormData();
-      Object.entries(property).forEach(([key, value]) => formData.append(key, value.trim()));
+      Object.entries(property).forEach(([key, value]) => {
+        if (key === 'latitude' || key === 'longitude') return;
+        formData.append(key, String(value).trim());
+      });
+      if (isValidCoordinate(property.latitude, property.longitude)) {
+        formData.append('latitude', String(Number(property.latitude)));
+        formData.append('longitude', String(Number(property.longitude)));
+      }
       // Giữ tên field và cách gửi danh sách theo API tạo chỗ ở hiện tại.
       formData.append('categories', categories.map((item) => item.name).join(','));
       formData.append('amenites', amenities.map((item) => item.name).join(','));
@@ -171,6 +206,30 @@ export default function CreatePropertyDialog({ onClose, onCreated }) {
                   <option value="">Chọn quốc gia</option>
                   {options.countries.map((country) => <option key={country.id} value={country.name}>{country.name}</option>)}
                 </TextField>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  name="latitude" label="Vĩ độ (tùy chọn)" type="number" fullWidth
+                  value={property.latitude} onChange={handleChange}
+                  inputProps={{ step: 'any', min: -90, max: 90 }}
+                  helperText="Để trống sẽ tự động phân giải"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  name="longitude" label="Kinh độ (tùy chọn)" type="number" fullWidth
+                  value={property.longitude} onChange={handleChange}
+                  inputProps={{ step: 'any', min: -180, max: 180 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4} sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                <Button
+                  type="button" variant="outlined" fullWidth onClick={handleResolveCoordinates}
+                  disabled={geocoding || saving}
+                  sx={{ minHeight: 56, fontWeight: 700, textTransform: 'none' }}
+                >
+                  {geocoding ? 'Đang tra tọa độ...' : 'Lấy tọa độ từ địa chỉ'}
+                </Button>
               </Grid>
               {[
                 ['price', 'Giá mỗi đêm (VND)'], ['area', 'Diện tích (m²)'],

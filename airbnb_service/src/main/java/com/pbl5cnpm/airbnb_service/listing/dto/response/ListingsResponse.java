@@ -26,6 +26,8 @@ public class ListingsResponse {
     String address;
     String city;
     String country;
+    Double latitude;
+    Double longitude;
     String avgStart;
     List<String> images;
     Boolean popular;

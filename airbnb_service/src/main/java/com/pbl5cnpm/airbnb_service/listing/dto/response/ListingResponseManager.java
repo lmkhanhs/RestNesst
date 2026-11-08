@@ -23,6 +23,8 @@ public class ListingResponseManager {
     String address;
     String city;
     String country;
+    Double latitude;
+    Double longitude;
     List<String> images;
     Boolean popular;
     LocalDate startDate;
