@@ -1,7 +1,6 @@
 ---
 name: design-system
-description: Token architecture, component specifications, and slide generation. Three-layer tokens (primitive→semantic→component), CSS variables, spacing/typography scales, component specs, strategic slide creation. Use for design tokens, systematic design, brand-compliant presentations.
-argument-hint: "[component or token]"
+description: Define design tokens, theme scales, and component states for consistent interfaces. Use for shared color, typography, spacing, light/dark themes, and component specifications across the frontend.
 license: MIT
 metadata:
   author: claudekit
@@ -10,235 +9,53 @@ metadata:
 
 # Design System
 
-Token architecture, component specifications, systematic design, slide generation.
+Use this skill when a change spans shared tokens, theme scales, or component specifications. For visual direction use `frontend-design`; for interaction, accessibility, or responsive guidance use `ui-ux-pro-max`.
 
-## When to Use
+## Project Context
 
-- Design token creation
-- Component state definitions
-- CSS variable systems
-- Spacing/typography scales
-- Design-to-code handoff
-- Tailwind theme configuration
-- **Slide/presentation generation**
+RestNesst uses React with MUI and Emotion. Read `frontend/AGENTS.md` and inspect the existing theme before proposing token changes. Extend that theme and its component overrides; installing a new UI framework is outside this skill's scope.
 
 ## Token Architecture
 
-Load: `references/token-architecture.md`
+Use primitive → semantic → component layers when they make the existing theme easier to maintain:
 
-### Three-Layer Structure
+- Primitives: raw colors, spacing, font sizes, and weights.
+- Semantic tokens: purpose-based names such as primary action, surface, and muted text.
+- Component tokens: specific states and variants derived from semantic tokens.
 
-```
-Primitive (raw values)
-       ↓
-Semantic (purpose aliases)
-       ↓
-Component (component-specific)
-```
+Prefer existing tokens over new names. For light/dark themes, preserve the semantic purpose while changing the underlying values. Keep a token's purpose documented alongside its definition.
 
-**Example:**
-```css
-/* Primitive */
---color-blue-600: #2563EB;
+Read only the references needed for the change:
 
-/* Semantic */
---color-primary: var(--color-blue-600);
+| Concern | Reference |
+| --- | --- |
+| Layering and naming | `references/token-architecture.md` |
+| Raw values and scales | `references/primitive-tokens.md` |
+| Purpose-based aliases | `references/semantic-tokens.md` |
+| Component-level tokens | `references/component-tokens.md` |
+| Component specifications | `references/component-specs.md` |
+| States and variants | `references/states-and-variants.md` |
 
-/* Component */
---button-bg: var(--color-primary);
-```
+`references/tailwind-integration.md` is available for an explicitly requested Tailwind task; it is not the project's default styling workflow.
 
-## Quick Start
+## Component Specifications
 
-**Generate tokens:**
-```bash
-node scripts/generate-tokens.cjs --config tokens.json -o tokens.css
-```
+For the affected component, identify applicable default, hover, focus-visible, active, disabled, loading, and error states. Define their colors, typography, spacing, borders, and motion using the existing theme. Include keyboard behavior and reduced-motion behavior when relevant.
 
-**Validate usage:**
-```bash
-node scripts/validate-tokens.cjs --dir src/
-```
+Keep changes scoped to the requested component or shared theme concern. Do not restyle unrelated screens simply to eliminate every literal value.
 
-## References
+## Optional Local Helpers
 
-| Topic | File |
-|-------|------|
-| Token Architecture | `references/token-architecture.md` |
-| Primitive Tokens | `references/primitive-tokens.md` |
-| Semantic Tokens | `references/semantic-tokens.md` |
-| Component Tokens | `references/component-tokens.md` |
-| Component Specs | `references/component-specs.md` |
-| States & Variants | `references/states-and-variants.md` |
-| Tailwind Integration | `references/tailwind-integration.md` |
+The bundled helpers generate standalone CSS variables or audit literal values. Use them only when that output fits the task; generated CSS does not replace MUI theme integration. Resolve script paths relative to this skill's directory.
 
-## Component Spec Pattern
+| Resource | Purpose |
+| --- | --- |
+| `scripts/generate-tokens.cjs` | Generate CSS from a JSON token configuration |
+| `scripts/validate-tokens.cjs` | Identify hardcoded values for review |
+| `templates/design-tokens-starter.json` | Reference structure for three token layers |
 
-| Property | Default | Hover | Active | Disabled |
-|----------|---------|-------|--------|----------|
-| Background | primary | primary-dark | primary-darker | muted |
-| Text | white | white | white | muted-fg |
-| Border | none | none | none | muted-border |
-| Shadow | sm | md | none | none |
+The historical slide-related data and scripts remain supporting resources, but presentation generation is outside this skill's active scope. No other skill is required to use the token and component guidance above.
 
-## Scripts
+## Verification
 
-| Script | Purpose |
-|--------|---------|
-| `generate-tokens.cjs` | Generate CSS from JSON token config |
-| `validate-tokens.cjs` | Check for hardcoded values in code |
-| `search-slides.py` | BM25 search + contextual recommendations |
-| `slide-token-validator.py` | Validate slide HTML for token compliance |
-| `fetch-background.py` | Fetch images from Pexels/Unsplash |
-
-## Templates
-
-| Template | Purpose |
-|----------|---------|
-| `design-tokens-starter.json` | Starter JSON with three-layer structure |
-
-## Integration
-
-**With brand:** Extract primitives from brand colors/typography
-**With ui-styling:** Component tokens → Tailwind config
-
-**Skill Dependencies:** brand, ui-styling
-**Primary Agents:** ui-ux-designer, frontend-developer
-
-## Slide System
-
-Brand-compliant presentations using design tokens + Chart.js + contextual decision system.
-
-### Source of Truth
-
-| File | Purpose |
-|------|---------|
-| `docs/brand-guidelines.md` | Brand identity, voice, colors |
-| `assets/design-tokens.json` | Token definitions (primitive→semantic→component) |
-| `assets/design-tokens.css` | CSS variables (import in slides) |
-| `assets/css/slide-animations.css` | CSS animation library |
-
-### Slide Search (BM25)
-
-```bash
-# Basic search (auto-detect domain)
-python scripts/search-slides.py "investor pitch"
-
-# Domain-specific search
-python scripts/search-slides.py "problem agitation" -d copy
-python scripts/search-slides.py "revenue growth" -d chart
-
-# Contextual search (Premium System)
-python scripts/search-slides.py "problem slide" --context --position 2 --total 9
-python scripts/search-slides.py "cta" --context --position 9 --prev-emotion frustration
-```
-
-### Decision System CSVs
-
-| File | Purpose |
-|------|---------|
-| `data/slide-strategies.csv` | 15 deck structures + emotion arcs + sparkline beats |
-| `data/slide-layouts.csv` | 25 layouts + component variants + animations |
-| `data/slide-layout-logic.csv` | Goal → Layout + break_pattern flag |
-| `data/slide-typography.csv` | Content type → Typography scale |
-| `data/slide-color-logic.csv` | Emotion → Color treatment |
-| `data/slide-backgrounds.csv` | Slide type → Image category (Pexels/Unsplash) |
-| `data/slide-copy.csv` | 25 copywriting formulas (PAS, AIDA, FAB) |
-| `data/slide-charts.csv` | 25 chart types with Chart.js config |
-
-### Contextual Decision Flow
-
-```
-1. Parse goal/context
-        ↓
-2. Search slide-strategies.csv → Get strategy + emotion beats
-        ↓
-3. For each slide:
-   a. Query slide-layout-logic.csv → layout + break_pattern
-   b. Query slide-typography.csv → type scale
-   c. Query slide-color-logic.csv → color treatment
-   d. Query slide-backgrounds.csv → image if needed
-   e. Apply animation class from slide-animations.css
-        ↓
-4. Generate HTML with design tokens
-        ↓
-5. Validate with slide-token-validator.py
-```
-
-### Pattern Breaking (Duarte Sparkline)
-
-Premium decks alternate between emotions for engagement:
-```
-"What Is" (frustration) ↔ "What Could Be" (hope)
-```
-
-System calculates pattern breaks at 1/3 and 2/3 positions.
-
-### Slide Requirements
-
-**ALL slides MUST:**
-1. Import `assets/design-tokens.css` - single source of truth
-2. Use CSS variables: `var(--color-primary)`, `var(--slide-bg)`, etc.
-3. Use Chart.js for charts (NOT CSS-only bars)
-4. Include navigation (keyboard arrows, click, progress bar)
-5. Center align content
-6. Focus on persuasion/conversion
-
-### Chart.js Integration
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-<canvas id="revenueChart"></canvas>
-<script>
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: {
-        labels: ['Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [{
-            data: [5, 12, 28, 45],
-            borderColor: '#FF6B6B',  // Use brand coral
-            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-            fill: true,
-            tension: 0.4
-        }]
-    }
-});
-</script>
-```
-
-### Token Compliance
-
-```css
-/* CORRECT - uses token */
-background: var(--slide-bg);
-color: var(--color-primary);
-font-family: var(--typography-font-heading);
-
-/* WRONG - hardcoded */
-background: #0D0D0D;
-color: #FF6B6B;
-font-family: 'Space Grotesk';
-```
-
-### Reference Implementation
-
-Working example with all features:
-```
-assets/designs/slides/claudekit-pitch-251223.html
-```
-
-### Command
-
-```bash
-/slides:create "10-slide investor pitch for ClaudeKit Marketing"
-```
-
-## Best Practices
-
-1. Never use raw hex in components - always reference tokens
-2. Semantic layer enables theme switching (light/dark)
-3. Component tokens enable per-component customization
-4. Use HSL format for opacity control
-5. Document every token's purpose
-6. **Slides must import design-tokens.css and use var() exclusively**
+Check affected theme variants, contrast, focus visibility, and responsive states. Follow the frontend's existing verification commands for any application code changes, and report checks actually performed.
