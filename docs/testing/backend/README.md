@@ -2,25 +2,32 @@
 
 ## Phạm vi và trạng thái
 
-Đã có code kiểm thử gắn ID cho bộ đặc tả. Xem [kết quả chạy và mức hoàn thành từng ca](execution-results.md). Nhãn `Not Run` trong từng mục test case giữ trạng thái **lúc soạn đặc tả**, không phải kết quả chạy mới nhất. Integration cục bộ dùng H2 và blacklist double, chưa thay việc nghiệm thu trên MySQL/Redis thật.
+Đã có code kiểm thử gắn ID cho ba chức năng 01–03. Xem [kết quả chạy và mức hoàn thành 79 ID cũ](execution-results.md). Ba chức năng bổ sung 04–06 mới có đặc tả, chưa triển khai/chạy theo ID mới. Nhãn `Not Run` trong từng mục test case giữ trạng thái **lúc soạn đặc tả**, không phải kết quả chạy mới nhất của bộ cũ. Integration cục bộ dùng H2 và blacklist double, chưa thay việc nghiệm thu trên MySQL/Redis thật.
 
-Bộ tài liệu sử dụng skill `qa-test-planner`, chỉ đặc tả ba chức năng:
+Bộ tài liệu sử dụng skill `qa-test-planner`, đặc tả sáu chức năng:
 
 | Chức năng | Tài liệu | Unit | Integration | Tổng |
 | --- | --- | --- | --- | --- |
 | Đăng nhập bằng username/password và kiểm tra token được cấp | [01-auth-login.md](01-auth-login.md) | 5 | 14 | 19 |
 | Gửi, liệt kê, duyệt và từ chối yêu cầu làm host | [02-host-application.md](02-host-application.md) | 7 | 25 | 32 |
 | Tạo đặt phòng | [03-create-booking.md](03-create-booking.md) | 5 | 23 | 28 |
+| Đăng xuất và thu hồi token | [04-auth-logout.md](04-auth-logout.md) | 5 | 10 | 15 |
+| Làm mới access token và refresh token | [05-auth-refresh.md](05-auth-refresh.md) | 5 | 10 | 15 |
+| Quên mật khẩu và cấp mật khẩu mới qua email | [06-auth-forgot-password.md](06-auth-forgot-password.md) | 5 | 10 | 15 |
 
-Tổng cộng **79 test case** (17 unit, 62 integration), chưa tính số lượt chạy của các biến thể dữ liệu. Tất cả test case bắt đầu ở **Not Run**. Không có test case nào được thực thi trong lần viết tài liệu này. Không khởi động Spring, chạy Maven, gọi API, kết nối DB/Redis, seed hoặc tạo test tự động. Các trạng thái và response mô tả bên dưới là kỳ vọng để kiểm thử, không phải kết quả đo thực tế.
+Tổng cộng **124 ID test case** (32 unit, 92 integration), chưa tính số lượt chạy của các biến thể dữ liệu. Trong đó **79 ID cũ** (17 unit, 62 integration) có code và báo cáo lịch sử; **45 ID bổ sung** (15 unit, 30 integration) đều **Not Run**. Số ID đặc tả không phải tổng số test tự động trong repo; không cộng các test không gắn ID hoặc tham số hóa vào bảng này.
 
-Chạy bộ đặc tả và cập nhật báo cáo từ repo gốc:
+Lượt bổ sung 04–06 chỉ viết tài liệu từ source: không chạy Maven/API, không kết nối DB/Redis/SMTP, seed hay tạo test tự động. Hành vi [CODE] trong ba file mới được ghi nhận qua đọc source; kỳ vọng [ĐX] cần xác nhận, không phải kết quả đo hoặc yêu cầu đã phê duyệt. Báo cáo lịch sử và ba đặc tả 01–03 được giữ nguyên.
+
+Chạy **79 ID cũ của 01–03** và cập nhật báo cáo lịch sử từ repo gốc:
 
 ```bash
 python3 airbnb_service/scripts/run_backend_specs.py --offline
 ```
 
 Bỏ `--offline` nếu cần tải dependency. Profile `backend-specs` chỉ nạp cấu hình test tường minh, H2 in-memory riêng và dữ liệu giả; không khởi động ứng dụng chính/seed hoặc dùng datasource dev. Profile chủ động này có cả assertion `proposal` theo các tiêu chí [ĐX]/Q, nên có thể trả exit code khác 0 khi code lệch đề xuất. Không sửa kỳ vọng thành hành vi đang lỗi chỉ để đạt màu xanh.
+
+Script hiện chỉ nhận ID AUTH/HOST/BOOK. Các ID LOGOUT/REFRESH/FORGET trong 04–06 chưa được runner thu thập và chưa có mapping triển khai đầy đủ; lệnh trên không kiểm thử 45 ID mới. Chưa sửa runner hoặc báo cáo tự sinh trong lượt đặc tả này. Khi triển khai tự động sau này, bổ sung mapping/runner và ghi bằng chứng mới trước khi cập nhật trạng thái.
 
 ## Căn cứ và cách hiểu yêu cầu
 
