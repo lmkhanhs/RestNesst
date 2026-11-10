@@ -1,6 +1,6 @@
 # Đặc tả kiểm thử — Tạo đặt phòng
 
-**Trạng thái tài liệu:** Chưa thực thi; mọi test case là Not Run. [Quy ước chung, fixture và headers](README.md).
+**Trạng thái lúc soạn:** Chưa thực thi; các nhãn Not Run bên dưới là trạng thái ban đầu. Xem [kết quả chạy mới nhất](execution-results.md). [Quy ước chung, fixture và headers](README.md).
 
 ## 1. Phạm vi và nguồn
 
@@ -21,7 +21,7 @@ Luồng: SecurityFilterChain → controller lấy principal.username → `handle
 | R-B05 | Ngày hợp lệ, checkout sau checkin, không đặt quá khứ, thời gian nằm trong lịch cho phép | [ĐX] Q-B02, source chưa kiểm tra |
 | R-B06 | Giá phải được backend xác minh theo giá listing và quy tắc giá được duyệt, không tin tùy ý totalPrice client | [ĐX] Q-B03, source đang map trực tiếp |
 | R-B07 | Không nhận booking cho listing không được phép đặt, lịch đã chiếm hoặc vượt sức chứa | [ĐX] Q-B04/Q-B05; mô hình tồn phòng và trạng thái chưa rõ |
-| R-B08 | Đầu vào sai/lỗi persistence không để lại booking một phần hoặc dữ liệu ngoài chủ thể | [ĐX] toàn vẹn và validation; source chưa có transaction ngoài save |
+| R-B08 | Đầu vào sai/lỗi persistence không để lại booking một phần hoặc dữ liệu ngoài chủ thể | [ĐX] toàn vẹn và validation; source hiện có @Transactional cấp class ở BookingService, cần kiểm chứng rollback thực |
 | R-B09 | Vai trò/tài khoản được phép đặt phải rõ; quyền khác với việc có JWT hợp lệ | [CODE] hiện chỉ authenticated; [ĐX] cần Q-B06/Q-G03 |
 
 Request `BOOK_A`, dùng H_A:
@@ -54,7 +54,7 @@ Ví dụ trên chỉ trích các field cần kiểm tra; bookingId thực phải
 | Q-B06 | Chỉ GUEST, hay mọi user active kể cả HOST/ADMIN/không role được đặt? Source không có @PreAuthorize riêng; không tự thêm kỳ vọng 403 chỉ vì thiếu GUEST. |
 | Q-B07 | listing thiếu hiện 500/code1008; user principal không còn trong DB dùng Optional.get có thể thành 400/body code=200. Đề xuất lỗi nghiệp vụ rõ ràng (listing 404; principal không hợp lệ 401), không lộ exception. |
 | Q-B08 | Null/blank/độ dài content và totalPrice, request unknown fields, định dạng lỗi JSON chưa được yêu cầu định nghĩa. Cần chốt trả 400/415 và schema, không dựa vào DB để làm validation duy nhất. |
-| Q-B09 | handleBooking không có transaction bao quanh save+map. Nếu mapper lỗi sau save đã commit, client có thể nhận lỗi dù DB có booking. Chốt tính nguyên tử, khôi phục lỗi và chính sách retry/idempotency để tránh booking trùng. |
+| Q-B09 | Đối chiếu lại khi triển khai test: BookingService hiện có @Transactional cấp class, bao quanh save+map. BOOK-IT-022 cần kiểm chứng rollback khi mapper lỗi, không suy từ unit mock. Vẫn cần chốt HTTP/schema lỗi và chính sách retry/idempotency. |
 | Q-B10 | Không có quy tắc idempotency key/hạn thời gian giữ chỗ trong hợp đồng đã đọc. Hai request giống nhau có tạo hai booking không? Cần quyết định độc lập với kiểm tra overlap. |
 
 ## 4. Test case

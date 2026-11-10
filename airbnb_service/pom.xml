@@ -152,6 +152,32 @@
 
 	</dependencies>
 
+	<!-- Explicit acceptance run: includes provisional expectations which may currently fail. -->
+	<profiles>
+		<profile>
+			<id>backend-specs</id>
+			<properties>
+				<backend.spec.reportsDirectory>${project.build.directory}/backend-spec-reports</backend.spec.reportsDirectory>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/*SpecTest.java</include>
+								<include>**/*AcceptanceIT.java</include>
+							</includes>
+							<reportsDirectory>${backend.spec.reportsDirectory}</reportsDirectory>
+							<argLine>-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<!-- Maven Compiler Plugin -->

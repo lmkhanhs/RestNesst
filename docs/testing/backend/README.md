@@ -2,6 +2,8 @@
 
 ## Phạm vi và trạng thái
 
+Đã có code kiểm thử gắn ID cho bộ đặc tả. Xem [kết quả chạy và mức hoàn thành từng ca](execution-results.md). Nhãn `Not Run` trong từng mục test case giữ trạng thái **lúc soạn đặc tả**, không phải kết quả chạy mới nhất. Integration cục bộ dùng H2 và blacklist double, chưa thay việc nghiệm thu trên MySQL/Redis thật.
+
 Bộ tài liệu sử dụng skill `qa-test-planner`, chỉ đặc tả ba chức năng:
 
 | Chức năng | Tài liệu | Unit | Integration | Tổng |
@@ -11,6 +13,14 @@ Bộ tài liệu sử dụng skill `qa-test-planner`, chỉ đặc tả ba chứ
 | Tạo đặt phòng | [03-create-booking.md](03-create-booking.md) | 5 | 23 | 28 |
 
 Tổng cộng **79 test case** (17 unit, 62 integration), chưa tính số lượt chạy của các biến thể dữ liệu. Tất cả test case bắt đầu ở **Not Run**. Không có test case nào được thực thi trong lần viết tài liệu này. Không khởi động Spring, chạy Maven, gọi API, kết nối DB/Redis, seed hoặc tạo test tự động. Các trạng thái và response mô tả bên dưới là kỳ vọng để kiểm thử, không phải kết quả đo thực tế.
+
+Chạy bộ đặc tả và cập nhật báo cáo từ repo gốc:
+
+```bash
+python3 airbnb_service/scripts/run_backend_specs.py --offline
+```
+
+Bỏ `--offline` nếu cần tải dependency. Profile `backend-specs` chỉ nạp cấu hình test tường minh, H2 in-memory riêng và dữ liệu giả; không khởi động ứng dụng chính/seed hoặc dùng datasource dev. Profile chủ động này có cả assertion `proposal` theo các tiêu chí [ĐX]/Q, nên có thể trả exit code khác 0 khi code lệch đề xuất. Không sửa kỳ vọng thành hành vi đang lỗi chỉ để đạt màu xanh.
 
 ## Căn cứ và cách hiểu yêu cầu
 

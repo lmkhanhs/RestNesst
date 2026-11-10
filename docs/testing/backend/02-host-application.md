@@ -1,6 +1,6 @@
 # Đặc tả kiểm thử — Yêu cầu làm host
 
-**Trạng thái tài liệu:** Chưa thực thi; mọi test case là Not Run. [Quy ước chung, fixture và headers](README.md).
+**Trạng thái lúc soạn:** Chưa thực thi; các nhãn Not Run bên dưới là trạng thái ban đầu. Xem [kết quả chạy mới nhất](execution-results.md). [Quy ước chung, fixture và headers](README.md).
 
 ## 1. Phạm vi và nguồn
 

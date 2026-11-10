@@ -76,6 +76,28 @@ Không triển khai Redis rỗng với khóa ký cũ khi còn blacklist chưa h�
 
 ## Kiểm thử
 
+### Bộ đặc tả đăng nhập, yêu cầu host và tạo booking
+
+Chạy từ `airbnb_service/`:
+
+```bash
+python3 scripts/run_backend_specs.py --offline
+```
+
+Script chạy profile `backend-specs` và tạo [báo cáo từng ID](../docs/testing/backend/execution-results.md) từ XML mới. Bỏ `--offline` nếu cần Maven tải dependency. Profile chỉ dùng H2 in-memory riêng và blacklist double, không nạp `application.yml`, startup seed hoặc datasource dev. Kiểm tra HTTP đi qua Spring Security/controller/service/mapper/JPA thật; không thay thế nghiệm thu MySQL/Redis.
+
+Profile dùng Byte Buddy agent từ dependency đã được Spring Boot quản lý để Mockito chạy được khi JVM không cho tự attach. Không đổi Java target 17; môi trường JVM thực tế xem trong log Maven. Các ca `proposal` dùng kỳ vọng [ĐX]/Q chưa chốt và có thể đang Fail; `observation` chưa đủ oracle. Lệnh giữ exit code lỗi, không che test thất bại.
+
+Chạy riêng những ca đã có hợp đồng, không cập nhật báo cáo Markdown:
+
+```bash
+mvn -Pbackend-specs -DexcludedGroups=proposal,observation test
+```
+
+Các class `*AcceptanceIT` chỉ chạy khi gọi profile hoặc chọn `-Dtest` tường minh; 17 ca unit mới vẫn được `mvn test` phát hiện bình thường.
+
+### Các regression test hiện có
+
 ```bash
 mvn -Dtest=InvalidTokenRepositoryTest,AuthenticationServiceTest,UserServiceHostApplicationTest,ListingsAdminDetailTest,ListingsAdminDetailSecurityTest,BackendPackageDiscoveryTest test
 ```

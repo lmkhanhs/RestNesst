@@ -1,6 +1,6 @@
 # Đặc tả kiểm thử — Đăng nhập backend
 
-**Trạng thái tài liệu:** Chưa thực thi; mọi test case là Not Run. Đọc [quy ước, fixture, headers và oracle](README.md) trước khi sử dụng.
+**Trạng thái lúc soạn:** Chưa thực thi; các nhãn Not Run bên dưới là trạng thái ban đầu. Xem [kết quả chạy mới nhất](execution-results.md). Đọc [quy ước, fixture, headers và oracle](README.md) trước khi sử dụng.
 
 ## 1. Phạm vi và nguồn
 
